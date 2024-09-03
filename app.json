@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "74b4c28a-4249-40fe-aad9-f4287f748a65"
+      }
+    },
+    "owner": "lepoloprograma"
   }
 }
