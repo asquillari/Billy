@@ -1,4 +1,3 @@
-import { Float } from 'react-native/Libraries/Types/CodegenTypes';
 import { supabase } from '../../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
@@ -23,7 +22,7 @@ export const insertData = async (incomeData: IncomeData): Promise<IncomeData[] |
       .from('Income')
       .insert(incomeData);
 
-      return data;
+    return data;
 };
 
 export const removeData = async (id: number | undefined) => {

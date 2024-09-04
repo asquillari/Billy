@@ -1,13 +1,11 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet} from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { ScrollView } from 'react-native-gesture-handler';
 import { insertData, fetchData, IncomeData, removeData } from '../api/api';
-import { Text, Button} from 'react-native';
+import { Button } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
 export default function HomeScreen() {
