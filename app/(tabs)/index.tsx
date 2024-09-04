@@ -57,7 +57,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Fetched Income Data:</ThemedText>
           {incomeData?.map((income) => (
-            <ThemedView key={income.amount}>
+            <ThemedView key={income.id}>
               <ThemedText>
                 {`Amount: $${income.amount}\nDate: ${income.created_at}`}
               </ThemedText>
