@@ -5,7 +5,44 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
+import { ScrollView } from 'react-native-gesture-handler';
+import { insertData, fetchData, IncomeData, removeData } from '../api/api';
+import { Text, Button} from 'react-native';
+import React, { useEffect, useState } from 'react';
+
 export default function HomeScreen() {
+
+  const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
+
+  // Recupero información
+  const getIncomeData = async () => {
+    const data = await fetchData();
+    setIncomeData(data);
+  };
+
+  // Esto hace que se pueda usar la función 
+  useEffect(() => {
+    getIncomeData();
+  }, []);
+
+  const handleInsertData = async (): Promise<void> => {
+    // Nuevo objeto para agregar
+    const newIncome = {
+      amount: 1000,  
+    };
+    // Inserta en la tabla
+    const result = await insertData(newIncome);
+    // Actualizo
+    getIncomeData();
+  };
+
+  const handleDeleteData = async (id: number | undefined): Promise<void> => {
+    // Remueve
+    await removeData(id);
+    // Actualiza
+    getIncomeData();
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -15,37 +52,26 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
+      
+      {/* Visualizador de información */}
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+        <ThemedText type="subtitle">Fetched Income Data:</ThemedText>
+          {incomeData?.map((income) => (
+            <ThemedView key={income.amount}>
+              <ThemedText>
+                {`Amount: $${income.amount}\nDate: ${income.created_at}`}
+              </ThemedText>
+              {/* Botón para borrar */}
+              <Button color="#FF0000" title="Delete" onPress={() => handleDeleteData(income.id)} />
+            </ThemedView>
+          ))}
       </ThemedView>
+
+      {/* Botón para agregar */}
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
+        <Button title="Insert Income Data" onPress={handleInsertData}/>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+
     </ParallaxScrollView>
   );
 }
