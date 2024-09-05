@@ -179,7 +179,7 @@ export async function getProfile(name: string | undefined): Promise<string[] | n
   const { data } = await supabase
     .from('Profiles')
     .select()
-    .match({name});
+    .eq('name', name)
   return data;
 };
 
@@ -207,26 +207,27 @@ export async function removeProfile(name: string | undefined) {
 
 /* Balance */
 
-export async function getBalance(profile: string) {
-  const { data } = await supabase
+export async function getBalance(profile: string): Promise<number> {
+  const { data, error } = await supabase
     .from('Profiles')
     .select('balance')
     .eq('name', profile)
     .single();
-  return data?.balance;
+  return data?.balance ?? 0;
 }
 
+// Update the balance for a given profile
 async function putBalance(profile: string, newBalance: number) {
-  console.log(newBalance);
   const { data } = await supabase
     .from('Profiles')
-    .update({ balance: newBalance})
-    .match({profile});
+    .update({balance: newBalance})
+    .match({name: profile}); 
   return data;
 }
 
-async function updateBalance(added: number, profile: string) {  
-  var newBalance: number = await getBalance(profile) + added;
+// Update the balance based on an added or subtracted value
+async function updateBalance(added: number, profile: string) {
+  var currentBalance = await getBalance(profile);
+  const newBalance = currentBalance + added;
   await putBalance(profile, newBalance);
-  //console.log(newBalance);
 }

@@ -55,8 +55,10 @@ export default function HomeScreen() {
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla
     await addIncome("Juancito", 123, "Ganando");
-    // Actualizo
+    // Actualizo los ingresos
     getIncomeData();
+    // Actualizo el balance
+    getBalanceData();
   };
 
   async function handleRemoveIncome(id: number | undefined): Promise<void> {
@@ -112,7 +114,7 @@ export default function HomeScreen() {
       {/* Display del balance (no funciona) */}
       <ThemedView>
         <ThemedText>
-          {balance}
+          {`Your balance is ${balance}`}
         </ThemedText>
       </ThemedView>
 
