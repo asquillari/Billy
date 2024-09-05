@@ -4,7 +4,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { fetchIncome, addIncome, removeIncome, IncomeData, ExpenseData } from '../api/api';
+import { fetchIncomes, addIncome, removeIncome, IncomeData, ExpenseData } from '../api/api';
 import { Button } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
@@ -14,7 +14,7 @@ export default function HomeScreen() {
 
   // Recupero información
   const getIncomeData = async () => {
-    const data = await fetchIncome();
+    const data = await fetchIncomes();
     setIncomeData(data);
   };
 

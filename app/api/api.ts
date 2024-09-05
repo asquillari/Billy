@@ -14,7 +14,7 @@ export interface ExpenseData {
   created_at?: Timestamp;
 }
 
-export const fetchIncome = async () => {
+export const fetchIncomes = async () => {
     // Recupero información
     const { data } = await supabase
       .from('Incomes')
@@ -40,7 +40,7 @@ export const removeIncome = async (id: number | undefined) => {
     .match({id});
 }
 
-export const fetchExpense = async () => {
+export const fetchExpenses = async () => {
   // Recupero información
   const { data } = await supabase
     .from('Expenses')
