@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
 export interface IncomeData {
@@ -16,16 +16,17 @@ export interface ExpenseData {
   created_at?: Timestamp;
 }
 
+var balance: number;
+
 export const fetchIncomes = async () => {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select('*');
-  
   return data;
 };
 
-export const getIncome = async (id: number | undefined) => {
+export async function getIncome(id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
@@ -35,24 +36,24 @@ export const getIncome = async (id: number | undefined) => {
   return data;
 };
 
-export const addIncome = async (incomeData: IncomeData): Promise<IncomeData[] | null> => {
+export async function addIncome(incomeData: IncomeData) : Promise<IncomeData[] | null> {
   // Inserto información
   const { data } = await supabase
     .from('Incomes')
     .insert(incomeData);
-
+  updateBalance(incomeData.amount);
   return data;
 };
 
-export const removeIncome = async (id: number | undefined) => {
+export async function removeIncome(id: number | undefined) {
     // Borro información
-    const { data } = await supabase
+    await supabase
       .from('Incomes')
       .delete()
       .match({id});
 }
 
-export const fetchExpenses = async () => {
+export async function fetchExpenses() {
   // Recupero información
   const { data } = await supabase
     .from('Expenses')
@@ -61,7 +62,7 @@ export const fetchExpenses = async () => {
   return data;
 };
 
-export const getExpense = async (id: number | undefined) => {
+export async function getExpense(id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Expenses')
@@ -71,19 +72,27 @@ export const getExpense = async (id: number | undefined) => {
   return data;
 };
 
-export const addExpense = async (expenseData: ExpenseData): Promise<IncomeData[] | null> => {
+export async function addExpense(expenseData: ExpenseData): Promise<IncomeData[] | null> {
   // Inserto información
   const { data } = await supabase
     .from('Expenses')
     .insert(expenseData);
-
+  updateBalance(-expenseData.amount);
   return data;
 };
 
-export const removeExpense = async (id: number | undefined) => {
+export async function removeExpense(id: number | undefined) {
   // Borro información
-  const { data } = await supabase
+  await supabase
   .from('Expenses')
   .delete()
   .match({id});
+}
+
+export async function getBalance(): Promise<number> {
+  return balance;
+}
+
+async function updateBalance(added: number) {
+  balance += added;
 }

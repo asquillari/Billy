@@ -1,33 +1,29 @@
-import { Image, StyleSheet} from 'react-native';
+import React, { useEffect, useState } from 'react';
+
+import { Image, StyleSheet, Button } from 'react-native';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { fetchIncomes, addIncome, removeIncome, IncomeData, ExpenseData } from '../api/api';
-import { Button } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
 
 export default function HomeScreen() {
 
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
+  const [expenseData, setExpenseData] = useState<IncomeData[] | null>(null);
 
   // Recupero información
-  const getIncomeData = async () => {
+  async function getIncomeData() {
     const data = await fetchIncomes();
     setIncomeData(data);
   };
 
-  // Esto hace que se pueda usar la función 
-  useEffect(() => {
-    getIncomeData();
-  }, []);
-
-  const handleAddIncome = async (): Promise<void> => {
+  async function handleAddIncome(): Promise<void> {
     // Nuevo objeto para agregar
     const newIncome = {
       amount: 1000,  
-      description: "Probando"
+      description: "Cobrando"
     };
     // Inserta en la tabla
     const result = await addIncome(newIncome);
@@ -35,11 +31,36 @@ export default function HomeScreen() {
     getIncomeData();
   };
 
-  const handleRemoveIncome = async (id: number | undefined): Promise<void> => {
+  async function handleRemoveIncome(id: number | undefined): Promise<void> {
     // Remueve
     await removeIncome(id);
     // Actualiza
     getIncomeData();
+  };
+
+  async function getExpenseData() {
+    const data = await fetchExpenses();
+    setExpenseData(data);
+  };
+
+  async function handleAddExpense(): Promise<void> {
+    // Nuevo objeto para agregar
+    const newExpense = {
+      amount: 1000,  
+      category: "Ocio",
+      description: "Gastando"
+    };
+    // Inserta en la tabla
+    const result = await (newExpense);
+    // Actualizo
+    getExpenseData();
+  };
+
+  async function handleRemoveExpense(id: number | undefined): Promise<void> {
+    // Remueve
+    await removeExpense(id);
+    // Actualiza
+    getExpenseData();
   };
 
   return (
@@ -69,6 +90,12 @@ export default function HomeScreen() {
       {/* Botón para agregar */}
       <ThemedView style={styles.stepContainer}>
         <Button title="Insert Income Data" onPress={handleAddIncome}/>
+      </ThemedView>
+
+      <ThemedView>
+        <ThemedText>
+          {'Balance $${getBalance()}'}
+        </ThemedText>
       </ThemedView>
 
     </ParallaxScrollView>
