@@ -32,9 +32,6 @@ export interface ProfileData {
   created_at?: Timestamp;
 }
 
-// Provisional, esto no se mantiene a través de sesiones (hay que linkearlo a los perfiles en la base de datos)
-var balance = 0;
-
 
 
 /* Incomes */
@@ -102,7 +99,7 @@ export async function getExpense(id: number | undefined, profile: string) {
   return data;
 };
 
-export async function addExpense(profile: string, amount: number, category: string, description: string): Promise<ExpenseData[] | null> {
+export async function addExpense(profile: string, amount: number, category: string, description: string) {
   const newExpense: ExpenseData = {
     profile: profile,
     amount: amount,
@@ -147,7 +144,7 @@ export async function getCategories(name: string | undefined, profile: string) {
   return data;
 };
 
-export async function addCategory(profile: string, name: string, limit?: number): Promise<CategoryData[] | null> {
+export async function addCategory(profile: string, name: string, limit?: number) {
   const newCategory: CategoryData = {
     profile: profile,
     name: name,
@@ -178,7 +175,7 @@ export async function fetchProfiles() {
   return data;
 };
 
-export async function getProfile(name: string | undefined) {
+export async function getProfile(name: string | undefined): Promise<string[] | null> {
   // Recupero información
   const { data } = await supabase
     .from('Profiles')
@@ -187,7 +184,7 @@ export async function getProfile(name: string | undefined) {
   return data;
 };
 
-export async function addProfile(name: string, type: boolean): Promise<ProfileData[] | null> {
+export async function addProfile(name: string, type: boolean) {
   const newProfile: ProfileData = {
     name: name,
     type: type
@@ -211,10 +208,23 @@ export async function removeProfile(name: string | undefined) {
 
 /* Balance */
 
-export async function getBalance(profile: string): Promise<number> {
-  return balance;
+export async function getBalance(profile: string) {
+  const { data } = await supabase
+    .from('Profiles')
+    .select('balance')
+    .match({profile})
+    .single();
+  return data?.balance;
+}
+
+async function putBalance(profile: string, newBalance: number) {
+  const { data } = await supabase
+    .from('Profiles')
+    .update({ balance: newBalance})
+    .match({profile});
+  return data;
 }
 
 async function updateBalance(added: number, profile: string) {  
-  profile.balance += added;
+  var newBalance: number = await getBalance(profile) + added;
 }
