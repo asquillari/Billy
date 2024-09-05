@@ -12,12 +12,24 @@ export default function HomeScreen() {
 
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
+  const [balance, setBalance] = useState<number | null>(null); // State to store the balance
 
   // Recupero información
   async function getIncomeData() {
     const data = await fetchIncomes();
     setIncomeData(data);
   };
+
+  // Recupero información
+  async function getBalanceData() {
+    const data = await getBalance();
+    setBalance(data);
+  };
+
+  // Hace que se vea desde el principio
+  useEffect(() => {
+    getIncomeData();
+  })
 
   async function handleAddIncome(): Promise<void> {
     // Nuevo objeto para agregar
@@ -26,7 +38,7 @@ export default function HomeScreen() {
       description: "Cobrando"
     };
     // Inserta en la tabla
-    const result = await addIncome(newIncome);
+    await addIncome(newIncome);
     // Actualizo
     getIncomeData();
   };
@@ -51,7 +63,7 @@ export default function HomeScreen() {
       description: "Gastando"
     };
     // Inserta en la tabla
-    const result = await (newExpense);
+    await (newExpense);
     // Actualizo
     getExpenseData();
   };
@@ -62,6 +74,11 @@ export default function HomeScreen() {
     // Actualiza
     getExpenseData();
   };
+
+  // Doesn assign the balance to anything
+  useEffect(() => {
+    getBalance();
+  });
 
   return (
     <ParallaxScrollView
@@ -92,12 +109,10 @@ export default function HomeScreen() {
         <Button title="Insert Income Data" onPress={handleAddIncome}/>
       </ThemedView>
 
-      {/* Display del balance */}
+      {/* Display del balance (no funciona) */}
       <ThemedView>
         <ThemedText>
-          {
-          {'Balance $${getBalance()}'}
-          }
+          {balance}
         </ThemedText>
       </ThemedView>
 
