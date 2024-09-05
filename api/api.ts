@@ -3,6 +3,7 @@ import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/co
 
 export interface IncomeData {
   id?: number;
+  profile?: string;
   amount: number;
   description: string;
   created_at?: Timestamp;
@@ -10,6 +11,7 @@ export interface IncomeData {
 
 export interface ExpenseData {
   id? : number;
+  profile?: number;
   amount: number;
   description: string;
   category: string;
@@ -18,8 +20,8 @@ export interface ExpenseData {
 
 export interface ProfileData {
   name: string;
-  created_at?: Timestamp;
   balance: number; 
+  created_at?: Timestamp;
 }
 
 // Provisional, esto no se mantiene a través de sesiones (hay que linkearlo a los perfiles en la base de datos)
