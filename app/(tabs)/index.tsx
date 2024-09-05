@@ -23,7 +23,7 @@ export default function HomeScreen() {
     getIncomeData();
   }, []);
 
-  const handleInsertData = async (): Promise<void> => {
+  const handleAddIncome = async (): Promise<void> => {
     // Nuevo objeto para agregar
     const newIncome = {
       amount: 1000,  
@@ -35,7 +35,7 @@ export default function HomeScreen() {
     getIncomeData();
   };
 
-  const handleDeleteData = async (id: number | undefined): Promise<void> => {
+  const handleRemoveIncome = async (id: number | undefined): Promise<void> => {
     // Remueve
     await removeIncome(id);
     // Actualiza
@@ -61,14 +61,14 @@ export default function HomeScreen() {
                 {`Amount: $${income.amount}\nDescription: ${income.description}`}
               </ThemedText>
               {/* Botón para borrar */}
-              <Button color="#FF0000" title="Delete" onPress={() => handleDeleteData(income.id)} />
+              <Button color="#FF0000" title="Delete" onPress={() => handleRemoveIncome(income.id)} />
             </ThemedView>
           ))}
       </ThemedView>
 
       {/* Botón para agregar */}
       <ThemedView style={styles.stepContainer}>
-        <Button title="Insert Income Data" onPress={handleInsertData}/>
+        <Button title="Insert Income Data" onPress={handleAddIncome}/>
       </ThemedView>
 
     </ParallaxScrollView>
