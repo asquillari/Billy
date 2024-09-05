@@ -114,7 +114,7 @@ export default function HomeScreen() {
       {/* Display del balance (no funciona) */}
       <ThemedView>
         <ThemedText>
-          {`Your balance is ${balance}`}
+          {`Your balance is $${balance}`}
         </ThemedText>
       </ThemedView>
 
