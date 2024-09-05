@@ -27,6 +27,7 @@ export default function HomeScreen() {
     // Nuevo objeto para agregar
     const newIncome = {
       amount: 1000,  
+      description: "Probando"
     };
     // Inserta en la tabla
     const result = await addIncome(newIncome);
@@ -57,7 +58,7 @@ export default function HomeScreen() {
           {incomeData?.map((income) => (
             <ThemedView key={income.id}>
               <ThemedText>
-                {`Amount: $${income.amount}\nDate: ${income.created_at}`}
+                {`Amount: $${income.amount}\nDescription: ${income.description}`}
               </ThemedText>
               {/* Botón para borrar */}
               <Button color="#FF0000" title="Delete" onPress={() => handleDeleteData(income.id)} />

@@ -4,40 +4,52 @@ import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/co
 export interface IncomeData {
   id? : number;
   amount: number;
+  description: string;
   created_at?: Timestamp;
 }
 
 export interface ExpenseData {
   id? : number;
   amount: number;
+  description: string;
   category: string;
   created_at?: Timestamp;
 }
 
 export const fetchIncomes = async () => {
-    // Recupero información
-    const { data } = await supabase
-      .from('Incomes')
-      .select('*');
-      
-    return data;
+  // Recupero información
+  const { data } = await supabase
+    .from('Incomes')
+    .select('*');
+  
+  return data;
+};
+
+export const getIncome = async (id: number | undefined) => {
+  // Recupero información
+  const { data } = await supabase
+    .from('Incomes')
+    .select()
+    .match({id});
+    
+  return data;
 };
 
 export const addIncome = async (incomeData: IncomeData): Promise<IncomeData[] | null> => {
-    // Inserto información
-    const { data } = await supabase
-      .from('Incomes')
-      .insert(incomeData);
+  // Inserto información
+  const { data } = await supabase
+    .from('Incomes')
+    .insert(incomeData);
 
-    return data;
+  return data;
 };
 
 export const removeIncome = async (id: number | undefined) => {
     // Borro información
     const { data } = await supabase
-    .from('Incomes')
-    .delete()
-    .match({id});
+      .from('Incomes')
+      .delete()
+      .match({id});
 }
 
 export const fetchExpenses = async () => {
@@ -45,6 +57,16 @@ export const fetchExpenses = async () => {
   const { data } = await supabase
     .from('Expenses')
     .select('*');
+    
+  return data;
+};
+
+export const getExpense = async (id: number | undefined) => {
+  // Recupero información
+  const { data } = await supabase
+    .from('Expenses')
+    .select()
+    .match({id});
     
   return data;
 };
