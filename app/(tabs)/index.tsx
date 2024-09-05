@@ -11,7 +11,7 @@ import { fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExp
 export default function HomeScreen() {
 
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
-  const [expenseData, setExpenseData] = useState<IncomeData[] | null>(null);
+  const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
 
   // Recupero información
   async function getIncomeData() {
@@ -22,7 +22,7 @@ export default function HomeScreen() {
   async function handleAddIncome(): Promise<void> {
     // Nuevo objeto para agregar
     const newIncome = {
-      amount: 1000,  
+      amount: 1000,
       description: "Cobrando"
     };
     // Inserta en la tabla
@@ -92,9 +92,12 @@ export default function HomeScreen() {
         <Button title="Insert Income Data" onPress={handleAddIncome}/>
       </ThemedView>
 
+      {/* Display del balance */}
       <ThemedView>
         <ThemedText>
+          {
           {'Balance $${getBalance()}'}
+          }
         </ThemedText>
       </ThemedView>
 
