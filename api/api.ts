@@ -12,9 +12,16 @@ export interface IncomeData {
 export interface ExpenseData {
   id? : number;
   profile?: number;
+  category: string; 
   amount: number;
   description: string;
-  category: string;
+  created_at?: Timestamp;
+}
+
+export interface CategoryData {
+  name: string;
+  profile?: string;
+  limit?: number;
   created_at?: Timestamp;
 }
 
@@ -86,7 +93,7 @@ export async function getExpense(id: number | undefined) {
   return data;
 };
 
-export async function addExpense(expenseData: ExpenseData): Promise<IncomeData[] | null> {
+export async function addExpense(expenseData: ExpenseData): Promise<ExpenseData[] | null> {
   // Inserto información
   const { data } = await supabase
     .from('Expenses')
@@ -104,6 +111,41 @@ export async function removeExpense(id: number | undefined) {
 }
 
 
+
+/* Categories */
+
+export async function fetchCategories() {
+  // Recupero información
+  const { data } = await supabase
+    .from('Categories')
+    .select('*');
+  return data;
+};
+
+export async function getCategories(name: string | undefined) {
+  // Recupero información
+  const { data } = await supabase
+    .from('Categories')
+    .select()
+    .match({name});
+  return data;
+};
+
+export async function addCategory(categoryData: CategoryData) : Promise<CategoryData[] | null> {
+  // Inserto información
+  const { data } = await supabase
+    .from('Categories')
+    .insert(categoryData);
+  return data;
+};
+
+export async function removeCategory(name: string | undefined) {
+    // Borro información
+    await supabase
+      .from('Categories')
+      .delete()
+      .match({name});
+}
 
 /* Profiles */
 
@@ -124,7 +166,7 @@ export async function getProfile(name: string | undefined) {
   return data;
 };
 
-export async function addProfile(profileData: ProfileData) : Promise<IncomeData[] | null> {
+export async function addProfile(profileData: ProfileData) : Promise<ProfileData[] | null> {
   // Inserto información
   const { data } = await supabase
     .from('Profiles')
