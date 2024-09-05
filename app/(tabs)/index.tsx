@@ -4,7 +4,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { insertData, fetchData, IncomeData, removeData } from '../api/api';
+import { fetchIncome, addIncome, removeIncome, IncomeData, ExpenseData } from '../api/api';
 import { Button } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
@@ -14,7 +14,7 @@ export default function HomeScreen() {
 
   // Recupero información
   const getIncomeData = async () => {
-    const data = await fetchData();
+    const data = await fetchIncome();
     setIncomeData(data);
   };
 
@@ -29,14 +29,14 @@ export default function HomeScreen() {
       amount: 1000,  
     };
     // Inserta en la tabla
-    const result = await insertData(newIncome);
+    const result = await addIncome(newIncome);
     // Actualizo
     getIncomeData();
   };
 
   const handleDeleteData = async (id: number | undefined): Promise<void> => {
     // Remueve
-    await removeData(id);
+    await removeIncome(id);
     // Actualiza
     getIncomeData();
   };
