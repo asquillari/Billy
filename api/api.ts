@@ -3,7 +3,7 @@ import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/co
 
 export interface IncomeData {
   id?: number;
-  profile?: string;
+  profile: string;
   amount: number;
   description: string;
   created_at?: Timestamp;
@@ -11,7 +11,7 @@ export interface IncomeData {
 
 export interface ExpenseData {
   id? : number;
-  profile?: number;
+  profile: string;
   category: string; 
   amount: number;
   description: string;
@@ -20,14 +20,15 @@ export interface ExpenseData {
 
 export interface CategoryData {
   name: string;
-  profile?: string;
+  profile: string;
   limit?: number;
   created_at?: Timestamp;
 }
 
 export interface ProfileData {
   name: string;
-  balance: number; 
+  balance?: number; 
+  type?: boolean;
   created_at?: Timestamp;
 }
 
@@ -38,113 +39,133 @@ var balance = 0;
 
 /* Incomes */
 
-export async function fetchIncomes() {
-  // Recupero información
-  const { data } = await supabase
-    .from('Incomes')
-    .select('*');
-  return data;
-};
-
-export async function getIncome(id: number | undefined) {
+export async function fetchIncomes(profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select()
-    .match({id});
+    .match({profile});
   return data;
 };
 
-export async function addIncome(incomeData: IncomeData) : Promise<IncomeData[] | null> {
-  // Inserto información
+export async function getIncome(id: number | undefined, profile: string) {
+  // Recupero información
   const { data } = await supabase
     .from('Incomes')
-    .insert(incomeData);
-  updateBalance(incomeData.amount);
+    .select('*')
+    .match({id, profile});
   return data;
 };
 
-export async function removeIncome(id: number | undefined) {
+export async function addIncome(profile: string, amount: number, description: string) : Promise<IncomeData[] | null> {
+  const newIncome: IncomeData = {
+    profile: profile,
+    amount: amount,
+    description: description
+  };
+  // Inserto información  
+  const { data } = await supabase
+    .from('Incomes')
+    .insert(newIncome)
+    .match({profile})
+  updateBalance(amount, profile);
+  return data;
+};
+
+export async function removeIncome(id: number | undefined, profile: string) {
     // Borro información
     await supabase
       .from('Incomes')
       .delete()
-      .match({id});
+      .match({id, profile});
 }
 
 
 
 /* Expenses */
 
-export async function fetchExpenses() {
+export async function fetchExpenses(profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Expenses')
-    .select('*');
+    .select('*')
+    .match({profile});
   return data;
 };
 
-export async function getExpense(id: number | undefined) {
+export async function getExpense(id: number | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Expenses')
     .select()
-    .match({id});
+    .match({id, profile});
   return data;
 };
 
-export async function addExpense(expenseData: ExpenseData): Promise<ExpenseData[] | null> {
+export async function addExpense(profile: string, amount: number, category: string, description: string): Promise<ExpenseData[] | null> {
+  const newExpense: ExpenseData = {
+    profile: profile,
+    amount: amount,
+    category: category,
+    description: description
+  };
   // Inserto información
   const { data } = await supabase
     .from('Expenses')
-    .insert(expenseData);
-  updateBalance(-expenseData.amount);
+    .insert(newExpense);
+  updateBalance(-amount, profile);
   return data;
 };
 
-export async function removeExpense(id: number | undefined) {
+export async function removeExpense(id: number | undefined, profile: string) {
   // Borro información
   await supabase
   .from('Expenses')
   .delete()
-  .match({id});
+  .match({id, profile});
 }
 
 
 
 /* Categories */
 
-export async function fetchCategories() {
+export async function fetchCategories(profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
-    .select('*');
+    .select('*')
+    .match({profile});
   return data;
 };
 
-export async function getCategories(name: string | undefined) {
+export async function getCategories(name: string | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
-    .match({name});
+    .match({name, profile});
   return data;
 };
 
-export async function addCategory(categoryData: CategoryData) : Promise<CategoryData[] | null> {
+export async function addCategory(profile: string, name: string, limit?: number): Promise<CategoryData[] | null> {
+  const newCategory: CategoryData = {
+    profile: profile,
+    name: name,
+    limit: limit
+  };
   // Inserto información
   const { data } = await supabase
     .from('Categories')
-    .insert(categoryData);
+    .insert(newCategory);
   return data;
 };
 
-export async function removeCategory(name: string | undefined) {
+export async function removeCategory(name: string | undefined, profile: string) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
-      .match({name});
+      .match({name, profile});
 }
 
 /* Profiles */
@@ -166,11 +187,15 @@ export async function getProfile(name: string | undefined) {
   return data;
 };
 
-export async function addProfile(profileData: ProfileData) : Promise<ProfileData[] | null> {
+export async function addProfile(name: string, type: boolean): Promise<ProfileData[] | null> {
+  const newProfile: ProfileData = {
+    name: name,
+    type: type
+  };
   // Inserto información
   const { data } = await supabase
     .from('Profiles')
-    .insert(profileData);
+    .insert(newProfile);
   return data;
 };
 
@@ -186,11 +211,10 @@ export async function removeProfile(name: string | undefined) {
 
 /* Balance */
 
-export async function getBalance(): Promise<number> {
+export async function getBalance(profile: string): Promise<number> {
   return balance;
 }
 
-async function updateBalance(added: number) {  
-  balance += added;
-  console.log(balance);
+async function updateBalance(added: number, profile: string) {  
+  profile.balance += added;
 }

@@ -22,13 +22,18 @@ export default function HomeScreen() {
 
   // Recupero información
   async function getIncomeData() {
-    const data = await fetchIncomes();
+    const data = await fetchIncomes("Juancito");
     setIncomeData(data);
+  };
+
+  async function getExpenseData() {
+    const data = await fetchExpenses("Juancito");
+    setExpenseData(data);
   };
 
   // Recupero información
   async function getBalanceData() {
-    const data = await getBalance();
+    const data = await getBalance("Juancito");
     setBalance(data);
   };
 
@@ -37,54 +42,43 @@ export default function HomeScreen() {
     getIncomeData();
   })
 
+  // Hace que se vea desde el principio
+  useEffect(() => {
+    getExpenseData();
+  })
+
+  // Hace que se vea desde el principio
+  useEffect(() => {
+    getBalanceData();
+  })
+
   async function handleAddIncome(): Promise<void> {
-    // Nuevo objeto para agregar
-    const newIncome = {
-      amount: 1000,
-      description: "Cobrando"
-    };
     // Inserta en la tabla
-    await addIncome(newIncome);
+    await addIncome("Juancito", 123, "Ganando");
     // Actualizo
     getIncomeData();
   };
 
   async function handleRemoveIncome(id: number | undefined): Promise<void> {
     // Remueve
-    await removeIncome(id);
-    // Actualiza
+    await removeIncome(id, "Juancito");
+    // Actualizo
     getIncomeData();
   };
 
-  async function getExpenseData() {
-    const data = await fetchExpenses();
-    setExpenseData(data);
-  };
-
   async function handleAddExpense(): Promise<void> {
-    // Nuevo objeto para agregar
-    const newExpense = {
-      amount: 1000,  
-      category: "Ocio",
-      description: "Gastando"
-    };
     // Inserta en la tabla
-    await (newExpense);
+    await addExpense("Juancito", 321, "Comida", "Gastando");
     // Actualizo
     getExpenseData();
   };
 
   async function handleRemoveExpense(id: number | undefined): Promise<void> {
     // Remueve
-    await removeExpense(id);
-    // Actualiza
+    await removeExpense(id, "Juancito");
+    // Actualizo
     getExpenseData();
   };
-
-  // Doesn assign the balance to anything
-  useEffect(() => {
-    getBalance();
-  });
 
   return (
     <ParallaxScrollView
