@@ -10,7 +10,7 @@ export interface IncomeData {
 export const fetchData = async () => {
     // Recupero información
     const { data } = await supabase
-      .from('Income')
+      .from('Incomes')
       .select('*');
       
     return data;
@@ -19,7 +19,7 @@ export const fetchData = async () => {
 export const insertData = async (incomeData: IncomeData): Promise<IncomeData[] | null> => {
     // Inserto información
     const { data } = await supabase
-      .from('Income')
+      .from('Incomes')
       .insert(incomeData);
 
     return data;
@@ -28,7 +28,7 @@ export const insertData = async (incomeData: IncomeData): Promise<IncomeData[] |
 export const removeData = async (id: number | undefined) => {
     // Borro información
     const { data } = await supabase
-    .from('Income')
+    .from('Incomes')
     .delete()
     .match({id});
 }
