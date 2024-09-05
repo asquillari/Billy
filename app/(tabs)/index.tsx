@@ -18,7 +18,7 @@ export default function HomeScreen() {
 
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
-  const [balance, setBalance] = useState<number | null>(null); // State to store the balance
+  const [balance, setBalanceData] = useState<number | null>(null);
 
   // Recupero información
   async function getIncomeData() {
@@ -34,23 +34,23 @@ export default function HomeScreen() {
   // Recupero información
   async function getBalanceData() {
     const data = await getBalance("Juancito");
-    setBalance(data);
+    setBalanceData(data);
   };
 
   // Hace que se vea desde el principio
   useEffect(() => {
     getIncomeData();
-  })
+  }, [])
 
   // Hace que se vea desde el principio
   useEffect(() => {
     getExpenseData();
-  })
+  }, [])
 
   // Hace que se vea desde el principio
   useEffect(() => {
     getBalanceData();
-  })
+  }, [])
 
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla

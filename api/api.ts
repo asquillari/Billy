@@ -64,7 +64,6 @@ export async function addIncome(profile: string, amount: number, description: st
   const { data } = await supabase
     .from('Incomes')
     .insert(newIncome)
-    .match({profile})
   updateBalance(amount, profile);
   return data;
 };
@@ -117,9 +116,9 @@ export async function addExpense(profile: string, amount: number, category: stri
 export async function removeExpense(id: number | undefined, profile: string) {
   // Borro información
   await supabase
-  .from('Expenses')
-  .delete()
-  .match({id, profile});
+    .from('Expenses')
+    .delete()
+    .match({id, profile});
 }
 
 
@@ -212,12 +211,13 @@ export async function getBalance(profile: string) {
   const { data } = await supabase
     .from('Profiles')
     .select('balance')
-    .match({profile})
+    .eq('name', profile)
     .single();
   return data?.balance;
 }
 
 async function putBalance(profile: string, newBalance: number) {
+  console.log(newBalance);
   const { data } = await supabase
     .from('Profiles')
     .update({ balance: newBalance})
@@ -227,4 +227,6 @@ async function putBalance(profile: string, newBalance: number) {
 
 async function updateBalance(added: number, profile: string) {  
   var newBalance: number = await getBalance(profile) + added;
+  await putBalance(profile, newBalance);
+  //console.log(newBalance);
 }
