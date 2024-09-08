@@ -244,18 +244,19 @@ async function updateBalance(added: number, profile: string) {
 
 //Sign Up
 export async function signUp(username: string, password: string, name: string, surname: string, email: string) {
-  const { user, session, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password
   });
+
   if (error) {
     console.log(error);
     return error;
   } else {
+    const { user, session } = data;
     await addUser(username, password, name, surname, email);
     return user;
   }
-
 }
 
 // Agregar usuario
@@ -272,15 +273,17 @@ async function addUser(username: string, password: string, name: string, surname
 }
 
 //Login 
-export async function login(username: string, password: string) {
-  const { user, session, error } = await supabase.auth.signIn({
-    username: username,
+export async function login(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
     password: password
   });
+
   if (error) {
     console.log(error);
     return error;
   } else {
+    const { user, session } = data;
     return user;
   }
 }
