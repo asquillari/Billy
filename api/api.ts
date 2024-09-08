@@ -1,6 +1,14 @@
 import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
+export interface UserData {
+  username: string;
+  password: string;
+  name: string;
+  surname: string;
+  email: string;
+}
+
 export interface IncomeData {
   id?: number;
   profile: string;
@@ -230,4 +238,49 @@ async function updateBalance(added: number, profile: string) {
   var currentBalance = await getBalance(profile);
   const newBalance = currentBalance + added;
   await putBalance(profile, newBalance);
+}
+
+/* User */
+
+//Sign Up
+export async function signUp(username: string, password: string, name: string, surname: string, email: string) {
+  const { user, session, error } = await supabase.auth.signUp({
+    email: email,
+    password: password
+  });
+  if (error) {
+    console.log(error);
+    return error;
+  } else {
+    await addUser(username, password, name, surname, email);
+    return user;
+  }
+
+}
+
+// Agregar usuario
+async function addUser(username: string, password: string, name: string, surname: string, email: string) {
+  const { data } = await supabase
+  .from('User')
+  .insert({
+    username: username,
+    password: password,
+    name: name,
+    surname: surname,
+    email: email
+  });
+}
+
+//Login 
+export async function login(username: string, password: string) {
+  const { user, session, error } = await supabase.auth.signIn({
+    username: username,
+    password: password
+  });
+  if (error) {
+    console.log(error);
+    return error;
+  } else {
+    return user;
+  }
 }
