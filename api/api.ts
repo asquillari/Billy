@@ -2,11 +2,10 @@ import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
 export interface UserData {
-  username: string;
+  email: string;
   password: string;
   name: string;
   surname: string;
-  email: string;
 }
 
 export interface IncomeData {
@@ -242,8 +241,20 @@ async function updateBalance(added: number, profile: string) {
 
 /* User */
 
+// Agregar usuario
+async function addUser(email: string, password: string, name: string, surname: string) {
+  const newUser: UserData = {
+    email: email,
+    password: password,
+    name: name,
+    surname: surname,
+  };
+  const { data } = await supabase
+  .from('User').insert(newUser);
+}
+
 //Sign Up
-export async function signUp(username: string, password: string, name: string, surname: string, email: string) {
+export async function signUp(password: string, name: string, surname: string, email: string) {
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password
@@ -254,23 +265,11 @@ export async function signUp(username: string, password: string, name: string, s
     return error;
   } else {
     const { user, session } = data;
-    await addUser(username, password, name, surname, email);
+    await addUser(email, password, name, surname);
     return user;
   }
 }
 
-// Agregar usuario
-async function addUser(username: string, password: string, name: string, surname: string, email: string) {
-  const { data } = await supabase
-  .from('User')
-  .insert({
-    username: username,
-    password: password,
-    name: name,
-    surname: surname,
-    email: email
-  });
-}
 
 //Login 
 export async function login(email: string, password: string) {
