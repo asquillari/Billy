@@ -255,19 +255,23 @@ export async function addUser(email: string, password: string, name: string, sur
     name: name,
     surname: surname,
   };
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('Users')
     .insert(newUser);
+
+  if (error) {
+    console.error('Error adding user:', error);
+    return null;
+  }
   return data;
 }
 
 //Sign Up
-export async function signUp(password: string, name: string, surname: string, email: string) {
+export async function signUp(email: string, password: string, name: string, surname: string) {
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password
   });
-
   if (error) {
     console.log(error);
     return error;

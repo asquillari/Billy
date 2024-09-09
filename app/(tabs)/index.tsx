@@ -6,7 +6,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
+import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
 export default function HomeScreen() {
 
@@ -55,7 +55,7 @@ export default function HomeScreen() {
 
   async function handleAddUser(): Promise<void> {
     // Inserta en la tabla
-    await addUser("josecito@gmail.com", "1234", "Jose", "Gomez");
+    await signUp("robertito@gmail.com", "1234", "Roberto", "Tomás");
   }
 
   async function handleAddIncome(): Promise<void> {
