@@ -39,7 +39,13 @@ export interface ProfileData {
   created_at?: Timestamp;
 }
 
-
+export async function getProfileID(profileName: string) {
+  const { data } = await supabase
+  .from('Profiles')
+  .select()
+  .match({profileName});
+return data;
+}
 
 /* Incomes */
 
@@ -218,7 +224,7 @@ export async function getBalance(profile: string): Promise<number> {
   const { data, error } = await supabase
     .from('Profiles')
     .select('balance')
-    .eq('name', profile)
+    .eq('id', profile)
     .single();
   return data?.balance ?? 0;
 }
