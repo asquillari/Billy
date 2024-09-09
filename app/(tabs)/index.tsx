@@ -104,7 +104,7 @@ export default function HomeScreen() {
       }
     >
       {/* Sección de balance */}
-      <BalanceCard balance={balance} />
+      <BalanceCard balance={balance} refreshData={getBalanceData} />
 
       {/* Boton para agregar gastos/ingresos*/}
       <AddButton refreshIncomeData={getIncomeData} refreshExpenseData={getExpenseData}/>

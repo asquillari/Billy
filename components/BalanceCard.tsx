@@ -4,9 +4,13 @@ import { ThemedText } from '@/components/ThemedText'
 
 interface BalanceCardProps {
     balance: number | null;
+    refreshData: () => void;
 }
 
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance }) => {
+export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }) => {
+    
+    refreshData();
+    
     return (
         <View style = {style.balanceCard}>
             <ThemedText type="subtitle">Balance total: ${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
