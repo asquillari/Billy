@@ -19,7 +19,7 @@ export const FolderList: React.FC = () => {
             {folders.map((folder, index) => (
                 <View key={index} style={styles.folder}>
                     <Text>{folder.name}</Text>
-                    <Text>{'$${folder.amount.toFixed(2)}'}</Text>
+                    {/*<Text>{'$${folder.amount.toFixed(2)}'}</Text>*/}
                 </View>
             ))}
             <TouchableOpacity onPress={handleAddFolder} style={styles.addFolderButton}>

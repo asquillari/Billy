@@ -232,7 +232,7 @@ async function putBalance(profile: string, newBalance: number) {
   const { data } = await supabase
     .from('Profiles')
     .update({balance: newBalance})
-    .match({name: profile}); 
+    .match({id: profile}); 
   return data;
 }
 
