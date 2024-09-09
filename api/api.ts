@@ -34,8 +34,7 @@ export interface CategoryData {
 
 export interface ProfileData {
   name: string;
-  balance?: number; 
-  type?: boolean;
+  balance?: number;
   created_at?: Timestamp;
 }
 
@@ -196,10 +195,9 @@ export async function getProfile(name: string | undefined): Promise<string[] | n
   return data;
 };
 
-export async function addProfile(name: string, type: boolean) {
+export async function addProfile(name: string) {
   const newProfile: ProfileData = {
     name: name,
-    type: type
   };
   // Inserto información
   const { data } = await supabase
@@ -250,7 +248,7 @@ async function updateBalance(added: number, profile: string) {
 /* User */
 
 // Agregar usuario
-async function addUser(email: string, password: string, name: string, surname: string) {
+export async function addUser(email: string, password: string, name: string, surname: string) {
   const newUser: UserData = {
     email: email,
     password: password,
@@ -258,8 +256,9 @@ async function addUser(email: string, password: string, name: string, surname: s
     surname: surname,
   };
   const { data } = await supabase
-  .from('User')
-  .insert(newUser);
+    .from('Users')
+    .insert(newUser);
+  return data;
 }
 
 //Sign Up

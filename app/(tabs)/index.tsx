@@ -6,7 +6,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { getProfileID, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
+import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
 
 export default function HomeScreen() {
 
@@ -26,6 +26,7 @@ export default function HomeScreen() {
     setIncomeData(data);
   };
 
+  // Recupero información
   async function getExpenseData() {
     const data = await fetchExpenses("f5267f06-d68b-4185-a911-19f44b4dc216");
     setExpenseData(data);
@@ -52,6 +53,11 @@ export default function HomeScreen() {
     getBalanceData();
   }, [])
 
+  async function handleAddUser(): Promise<void> {
+    // Inserta en la tabla
+    await addUser("josecito@gmail.com", "1234", "Jose", "Gomez");
+  }
+
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla
     await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
@@ -70,7 +76,7 @@ export default function HomeScreen() {
 
   async function handleAddExpense(): Promise<void> {
     // Inserta en la tabla
-    await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "Comida", "Gastando");
+    await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
     // Actualizo
     getExpenseData();
   };
@@ -108,7 +114,7 @@ export default function HomeScreen() {
 
       {/* Botón para agregar */}
       <ThemedView style={styles.stepContainer}>
-        <Button title="Insert Income Data" onPress={handleAddIncome}/>
+        <Button title="Insert Income Data" onPress={handleAddUser}/>
       </ThemedView>
 
       {/* Display del balance (no funciona) */}
