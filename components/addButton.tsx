@@ -17,7 +17,7 @@ const AddButton = ({ refreshData }: AddButtonProps) => {
     if (type === 'Income') {
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
     } else {
-      await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount),"food", description);
+      await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount),"f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
     }
 
     refreshData();

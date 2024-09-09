@@ -4,6 +4,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
 import { FolderList } from '@/components/FolderList';
 import { IncomeList } from '@/components/IncomeList';
+import { ExpenseList } from '@/components/ExpenseList';
 import AddButton from '@/components/addButton';
 
 
@@ -119,6 +120,7 @@ export default function HomeScreen() {
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
 
+      <ExpenseList ExpenseData={expenseData} refreshData={getExpenseData} />
 
     </ParallaxScrollView>
   );
