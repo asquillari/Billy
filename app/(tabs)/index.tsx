@@ -114,7 +114,7 @@ export default function HomeScreen() {
 
       {/* Botón para agregar */}
       <ThemedView style={styles.stepContainer}>
-        <Button title="Insert Income Data" onPress={handleAddIncome}/>
+        <Button title="Insert Income Data" onPress={handleAddUser}/>
       </ThemedView>
 
       {/* Display del balance (no funciona) */}
