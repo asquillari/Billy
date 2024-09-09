@@ -29,7 +29,7 @@ function DetailsScreen() {
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+export function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Details">

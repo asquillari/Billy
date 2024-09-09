@@ -56,7 +56,7 @@ export async function fetchIncomes(profile: string) {
     .match({profile});
   return data;
 };
-
+ 
 export async function getIncome(id: number | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase

@@ -10,9 +10,7 @@ import AddButton from '../../components/addButton';
 
 import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
-//export default function HomeScreen() {
-//Testing
-  export function HomeScreen() {
+  export default function HomeScreen() {
 
   // Importante! (nota para quien vea esto) los archivos index (este archivo) y explore son de el proyecto predeterminado
   // Habría que cambiarle el nombre
@@ -64,7 +62,7 @@ import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome
 
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla
-    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
+    //await addIncome(string1, number1, undefined);
     // Actualizo los ingresos
     getIncomeData();
     // Actualizo el balance
@@ -106,7 +104,7 @@ import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome
       
       {/* Visualizador de información */}
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Fetched Income Data:</ThemedText>
+        <ThemedText type="subtitle">Income Data:</ThemedText>
           {incomeData?.map((income) => (
             <ThemedView key={income.id}>
               <ThemedText>
@@ -119,9 +117,9 @@ import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome
       </ThemedView>
 
       {/* Botón para agregar */}
-      <ThemedView style={styles.stepContainer}>
+       {/* <ThemedView style={styles.stepContainer}>
         <Button title="Insert Income Data" onPress={handleAddIncome}/>
-      </ThemedView>
+      </ThemedView>  */}
 
       {/* Display del balance (no funciona) */}
       <ThemedView>
@@ -130,8 +128,10 @@ import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome
         </ThemedText>
       </ThemedView>
       
-       {/* AddButton Component */}
+       {/* AddButton Component. No funciona saltar a otra ventana 
        <AddButton />
+       */}
+       
 
     </ParallaxScrollView>
   );
