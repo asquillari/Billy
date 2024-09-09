@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { removeIncome, IncomeData } from '../api/api';
+import { removeIncome, IncomeData, getBalance } from '../api/api';
 
 interface IncomeListProps {
   incomeData: IncomeData[] | null;

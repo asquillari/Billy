@@ -1,36 +1,44 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, TextInput, Button, StyleSheet, View, Text, Modal} from 'react-native';
-import { fetchIncomes, addIncome, getBalance } from '../api/api';
+import { View, Text, TextInput, Button, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { addIncome, addExpense } from '../api/api'; 
 
-const AddButton = ({ }) => {
+interface AddButtonProps {
+  refreshData: () => void;
+}
 
+const AddButton = ({ refreshData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [type, setType] = useState<'Income' | 'Outcome'>('Income'); // State for type selection
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
 
-  async function handleSubmit (): Promise<void>  {
-    // Handle form submission here
-    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
-    await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
-    await getBalance;
+  async function handleSubmit(): Promise<void> {
+    if (type === 'Income') {
+      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
+    } else {
+      await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount),"food", description);
+    }
+
+    refreshData();
 
     // Clear form
     setAmount('');
     setDescription('');
-    
+    setType('Income'); // Reset type to default
+
     // Close the modal
     setModalVisible(false);
-  };
+  }
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button} >
-      <Icon name="add" size={24} color="#000000" />
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
+        <Icon name="add" size={24} color="#000000" />
       </TouchableOpacity>
 
       <Modal
-        animationType="slide" 
+        animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
@@ -39,8 +47,23 @@ const AddButton = ({ }) => {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Add Income</Text>
-            
+            <Text style={styles.modalTitle}>Select Type</Text>
+
+            <View style={styles.typeSelector}>
+              <TouchableOpacity
+                style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]}
+                onPress={() => setType('Income')}
+              >
+                <Text style={styles.typeButtonText}>Income</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]}
+                onPress={() => setType('Outcome')}
+              >
+                <Text style={styles.typeButtonText}>Outcome</Text>
+              </TouchableOpacity>
+            </View>
+
             <Text style={styles.label}>Amount</Text>
             <TextInput
               style={styles.input}
@@ -49,7 +72,7 @@ const AddButton = ({ }) => {
               onChangeText={setAmount}
               placeholder="Enter amount"
             />
-            
+
             <Text style={styles.label}>Description</Text>
             <TextInput
               style={styles.input}
@@ -91,6 +114,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
+  typeSelector: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  typeButton: {
+    padding: 10,
+    marginHorizontal: 5,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  typeButtonSelected: {
+    backgroundColor: '#007BFF', 
+    borderColor: '#007BFF',
+  },
+  typeButtonText: {
+    fontSize: 16,
+    color: '#000',
+  },
   label: {
     fontSize: 16,
     marginVertical: 8,
@@ -103,18 +147,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '100%',
   },
-    button: {
-    backgroundColor: '#FFFFFF', 
-    width: 60,                  
-    height: 60,                 
-    borderRadius: 30,           
-    justifyContent: 'center',   
-    alignItems: 'center',       
-    shadowColor: '#000',        
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.3,         
-    shadowRadius: 4,            
-    elevation: 4,               
+  button: {
+    backgroundColor: '#FFFFFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
 
