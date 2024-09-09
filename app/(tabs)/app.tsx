@@ -6,8 +6,6 @@ import { ThemedView } from '@/components/ThemedView';
 
 function HomeScreenTest({ navigation }) {
 
-    console.log('HomeScreenTest rendered');
-
   return (
     <ThemedView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Screen</Text>

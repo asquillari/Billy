@@ -4,6 +4,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
 import { FolderList } from '@/components/FolderList';
 import { IncomeList } from '@/components/IncomeList';
+import AddButton from '@/components/addButton';
 
 
 import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
@@ -108,6 +109,9 @@ export default function HomeScreen() {
     >
       {/* Sección de balance */}
       <BalanceCard balance={balance} />
+
+      {/* Boton para agregar gastos/ingresos*/}
+      <AddButton/>
 
       {/* Sección de Carpetas con scroll horizontal*/}
       <FolderList />
