@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, View, Dimensions} from 'react-native';
+
+import { Image, StyleSheet, Button } from 'react-native';
+
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { BalanceCard } from '@/components/BalanceCard';
-import { FolderList } from '@/components/FolderList';
-import { IncomeList } from '@/components/IncomeList';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 
+import AddButton from '../../components/addButton';
 
-import { fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
+import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
-//obtengo el porcentaje de la pantalla
-const { height } = Dimensions.get('window');
-
-
-
-export default function HomeScreen() {
+  export default function HomeScreen() {
 
   // Importante! (nota para quien vea esto) los archivos index (este archivo) y explore son de el proyecto predeterminado
   // Habría que cambiarle el nombre
   // Ya que tengo tu atención, otra cosa: Es muy importante separar todas los los componentes del pseudo-xml de abajo, que
   // deberían ir en la carpeta de "components" (era adivinable, sí). Por ejemplo, si tenemos dos botones iguales deberíamos 
   // agregarlo en components para no reutilizar el código (y hacerlo más modular)
+
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
@@ -64,7 +62,7 @@ export default function HomeScreen() {
 
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla
-    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
+    //await addIncome(string1, number1, undefined);
     // Actualizo los ingresos
     getIncomeData();
     // Actualizo el balance
@@ -92,58 +90,54 @@ export default function HomeScreen() {
     getExpenseData();
   };
 
-
-
+  
   return (
+    
     <ParallaxScrollView
-      headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
-        <View style = {styles.logoContainer}>
         <Image
-          source={require('@/assets/images/Billy/logo1.png')}  // Aquí va tu logo de Billy
+          source={require('@/assets/images/partial-react-logo.png')}
           style={styles.reactLogo}
         />
-        </View>
-      }
-    >
-      {/* Sección de balance */}
-      <BalanceCard balance={balance} />
+      }>
+      
+      {/* Visualizador de información */}
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Income Data:</ThemedText>
+          {incomeData?.map((income) => (
+            <ThemedView key={income.id}>
+              <ThemedText>
+                {`Amount: $${income.amount}\nDescription: ${income.description}`}
+              </ThemedText>
+              {/* Botón para borrar */}
+              <Button color="#FF0000" title="Delete" onPress={() => handleRemoveIncome(income.id)} />
+            </ThemedView>
+          ))}
+      </ThemedView>
 
-      {/* Sección de Carpetas con scroll horizontal*/}
-      <FolderList />
+      {/* Botón para agregar */}
+       {/* <ThemedView style={styles.stepContainer}>
+        <Button title="Insert Income Data" onPress={handleAddIncome}/>
+      </ThemedView>  */}
 
-      {/* Sección de Ingresos */}
-      <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
-
+      {/* Display del balance (no funciona) */}
+      <ThemedView>
+        <ThemedText>
+          {`Your balance is $${balance}`}
+        </ThemedText>
+      </ThemedView>
+      
+       {/* AddButton Component. No funciona saltar a otra ventana 
+       <AddButton />
+       */}
+       
 
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-foldersContainer: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  gap: 16,
-},
-folder: {
-  padding: 16,
-  backgroundColor: '#E5E5E5',
-  borderRadius: 8,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-addFolderButton: {
-  padding: 16,
-  backgroundColor: '#A1CEDC',
-  borderRadius: 8,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-addFolderText: {
-  fontSize: 24,
-  color: '#FFFFFF',
-},
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -154,15 +148,10 @@ addFolderText: {
     marginBottom: 8,
   },
   reactLogo: {
-    height: 100,
-    width: 100,
-    resizeMode: 'contain',
-
+    height: 178,
+    width: 290,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
   },
-  logoContainer:{
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-    paddingTop: 45,
-  }
 });
