@@ -10,8 +10,9 @@ interface IncomeListProps {
 }
 
 export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData }) => {
+  
   const handleRemoveIncome = async (id: number | undefined) => {
-    await removeIncome(id, "Juancito");
+    await removeIncome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
     refreshData();  // Actualiza los datos después de eliminar
   };
 
