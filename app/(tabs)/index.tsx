@@ -6,6 +6,8 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
+import AddButton from '../../components/addButton';
+
 import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
 export default function HomeScreen() {
@@ -123,6 +125,9 @@ export default function HomeScreen() {
           {`Your balance is $${balance}`}
         </ThemedText>
       </ThemedView>
+      
+       {/* AddButton Component */}
+       <AddButton />
 
     </ParallaxScrollView>
   );
