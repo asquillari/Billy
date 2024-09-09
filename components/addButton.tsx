@@ -4,10 +4,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { addIncome, addExpense } from '../api/api'; 
 
 interface AddButtonProps {
-  refreshData: () => void;
+  refreshIncomeData: () => void;
+  refreshExpenseData: () => void;
 }
 
-const AddButton = ({ refreshData }: AddButtonProps) => {
+const AddButton = ({ refreshIncomeData, refreshExpenseData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [type, setType] = useState<'Income' | 'Outcome'>('Income'); // State for type selection
   const [amount, setAmount] = useState('');
@@ -20,7 +21,8 @@ const AddButton = ({ refreshData }: AddButtonProps) => {
       await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount),"f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
     }
 
-    refreshData();
+    refreshIncomeData();
+    refreshExpenseData();
 
     // Clear form
     setAmount('');

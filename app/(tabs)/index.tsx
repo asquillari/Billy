@@ -7,13 +7,10 @@ import { IncomeList } from '@/components/IncomeList';
 import { ExpenseList } from '@/components/ExpenseList';
 import AddButton from '@/components/addButton';
 
-
 import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
-
-
 
 export default function HomeScreen() {
 
@@ -94,8 +91,6 @@ export default function HomeScreen() {
     getExpenseData();
   };
 
-
-
   return (
     <ParallaxScrollView
       headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
@@ -112,15 +107,16 @@ export default function HomeScreen() {
       <BalanceCard balance={balance} />
 
       {/* Boton para agregar gastos/ingresos*/}
-      <AddButton refreshData={getIncomeData}/>
+      <AddButton refreshIncomeData={getIncomeData} refreshExpenseData={getExpenseData}/>
 
       {/* Sección de Carpetas con scroll horizontal*/}
-      <FolderList />
+      <FolderList/>
 
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
 
-      <ExpenseList ExpenseData={expenseData} refreshData={getExpenseData} />
+      {/* Sección de Egresos */}
+      <ExpenseList expenseData={expenseData} refreshData={getExpenseData} />
 
     </ParallaxScrollView>
   );

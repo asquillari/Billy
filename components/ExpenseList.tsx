@@ -5,11 +5,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { removeExpense, ExpenseData} from '../api/api';
 
 interface ExpenseListProps {
-  ExpenseData: ExpenseData[] | null;
+  expenseData: ExpenseData[] | null;
   refreshData: () => void;
 }
 
-export const ExpenseList: React.FC<ExpenseListProps> = ({ ExpenseData, refreshData }) => {
+export const ExpenseList: React.FC<ExpenseListProps> = ({ expenseData, refreshData }) => {
   
   const handleRemoveExpense = async (id: number | undefined) => {
     await removeExpense(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
@@ -19,12 +19,12 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ ExpenseData, refreshDa
   return (
     <View>
       <ThemedText type="subtitle">Fetched Expense Data:</ThemedText>
-      {ExpenseData?.map((outcome) => (
-        <ThemedView key={outcome.id} style={styles.incomeItem}>
+      {expenseData?.map((expense) => (
+        <ThemedView key={expense.id} style={styles.expenseItem}>
           <ThemedText>
-            {`Amount: $${outcome.amount}\nDescription: ${outcome.description}`}
+            {`Amount: $${expense.amount}\nDescription: ${expense.description}`}
           </ThemedText>
-          <Button color="#FF0000" title="Delete" onPress={() => handleRemoveExpense(outcome.id)} />
+          <Button color="#FF0000" title="Delete" onPress={() => handleRemoveExpense(expense.id)} />
         </ThemedView>
       ))}
     </View>
@@ -32,7 +32,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ ExpenseData, refreshDa
 };
 
 const styles = StyleSheet.create({
-  incomeItem: {
+  expenseItem: {
     marginBottom: 8,
     padding: 8,
     borderRadius: 8,
