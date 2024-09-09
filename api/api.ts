@@ -1,6 +1,13 @@
 import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
+export interface UserData {
+  email: string;
+  password: string;
+  name: string;
+  surname: string;
+}
+
 export interface IncomeData {
   id?: number;
   profile: string;
@@ -27,12 +34,17 @@ export interface CategoryData {
 
 export interface ProfileData {
   name: string;
-  balance?: number; 
-  type?: boolean;
+  balance?: number;
   created_at?: Timestamp;
 }
 
-
+export async function getProfileID(profileName: string) {
+  const { data } = await supabase
+  .from('Profiles')
+  .select()
+  .match({profileName});
+return data;
+}
 
 /* Incomes */
 
@@ -183,10 +195,9 @@ export async function getProfile(name: string | undefined): Promise<string[] | n
   return data;
 };
 
-export async function addProfile(name: string, type: boolean) {
+export async function addProfile(name: string) {
   const newProfile: ProfileData = {
     name: name,
-    type: type
   };
   // Inserto información
   const { data } = await supabase
@@ -211,7 +222,7 @@ export async function getBalance(profile: string): Promise<number> {
   const { data, error } = await supabase
     .from('Profiles')
     .select('balance')
-    .eq('name', profile)
+    .eq('id', profile)
     .single();
   return data?.balance ?? 0;
 }
@@ -230,4 +241,59 @@ async function updateBalance(added: number, profile: string) {
   var currentBalance = await getBalance(profile);
   const newBalance = currentBalance + added;
   await putBalance(profile, newBalance);
+}
+
+
+
+/* User */
+
+// Agregar usuario
+export async function addUser(email: string, password: string, name: string, surname: string) {
+  const newUser: UserData = {
+    email: email,
+    password: password,
+    name: name,
+    surname: surname,
+  };
+  const { data, error } = await supabase
+    .from('Users')
+    .insert(newUser);
+
+  if (error) {
+    console.error('Error adding user:', error);
+    return null;
+  }
+  return data;
+}
+
+//Sign Up
+export async function signUp(email: string, password: string, name: string, surname: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: password
+  });
+  if (error) {
+    console.log(error);
+    return error;
+  } else {
+    const { user, session } = data;
+    await addUser(email, password, name, surname);
+    return user;
+  }
+}
+
+//Login 
+export async function login(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    console.log(error);
+    return error;
+  } else {
+    const { user, session } = data;
+    return user;
+  }
 }

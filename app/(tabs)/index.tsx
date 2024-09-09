@@ -6,7 +6,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
+import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
 export default function HomeScreen() {
 
@@ -22,18 +22,19 @@ export default function HomeScreen() {
 
   // Recupero información
   async function getIncomeData() {
-    const data = await fetchIncomes("Juancito");
+    const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setIncomeData(data);
   };
 
+  // Recupero información
   async function getExpenseData() {
-    const data = await fetchExpenses("Juancito");
+    const data = await fetchExpenses("f5267f06-d68b-4185-a911-19f44b4dc216");
     setExpenseData(data);
   };
 
   // Recupero información
   async function getBalanceData() {
-    const data = await getBalance("Juancito");
+    const data = await getBalance("f5267f06-d68b-4185-a911-19f44b4dc216");
     setBalanceData(data);
   };
 
@@ -52,9 +53,14 @@ export default function HomeScreen() {
     getBalanceData();
   }, [])
 
+  async function handleAddUser(): Promise<void> {
+    // Inserta en la tabla
+    await signUp("robertito@gmail.com", "1234", "Roberto", "Tomás");
+  }
+
   async function handleAddIncome(): Promise<void> {
     // Inserta en la tabla
-    await addIncome("Juancito", 123, "Ganando");
+    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
     // Actualizo los ingresos
     getIncomeData();
     // Actualizo el balance
@@ -63,21 +69,21 @@ export default function HomeScreen() {
 
   async function handleRemoveIncome(id: number | undefined): Promise<void> {
     // Remueve
-    await removeIncome(id, "Juancito");
+    await removeIncome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
     // Actualizo
     getIncomeData();
   };
 
   async function handleAddExpense(): Promise<void> {
     // Inserta en la tabla
-    await addExpense("Juancito", 321, "Comida", "Gastando");
+    await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
     // Actualizo
     getExpenseData();
   };
 
   async function handleRemoveExpense(id: number | undefined): Promise<void> {
     // Remueve
-    await removeExpense(id, "Juancito");
+    await removeExpense(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
     // Actualizo
     getExpenseData();
   };
