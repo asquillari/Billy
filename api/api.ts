@@ -239,6 +239,8 @@ async function updateBalance(added: number, profile: string) {
   await putBalance(profile, newBalance);
 }
 
+
+
 /* User */
 
 // Agregar usuario
@@ -250,7 +252,8 @@ async function addUser(email: string, password: string, name: string, surname: s
     surname: surname,
   };
   const { data } = await supabase
-  .from('User').insert(newUser);
+  .from('User')
+  .insert(newUser);
 }
 
 //Sign Up
@@ -269,7 +272,6 @@ export async function signUp(password: string, name: string, surname: string, em
     return user;
   }
 }
-
 
 //Login 
 export async function login(email: string, password: string) {
