@@ -1,11 +1,18 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { ThemedText } from './ThemedText';
+import { ThemedView } from './ThemedView';
 
 const AddButton = ({ }) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} >
+      <TouchableOpacity style={styles.button} 
+      onPress={()=>{
+        <View>
+          
+        </View>
+      }}>
         <Icon name="add" size={24} color="#000000" />
       </TouchableOpacity>
     </View>
@@ -31,6 +38,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,            
     elevation: 4,               
   },
+  text:{
+    color:'#00FFFF',
+  }
 });
 
 export default AddButton;

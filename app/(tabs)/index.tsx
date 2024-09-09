@@ -10,7 +10,9 @@ import AddButton from '../../components/addButton';
 
 import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
 
-export default function HomeScreen() {
+//export default function HomeScreen() {
+//Testing
+  export function HomeScreen() {
 
   // Importante! (nota para quien vea esto) los archivos index (este archivo) y explore son de el proyecto predeterminado
   // Habría que cambiarle el nombre
@@ -90,7 +92,9 @@ export default function HomeScreen() {
     getExpenseData();
   };
 
+  
   return (
+    
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
