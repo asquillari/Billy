@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { addIncome, addExpense } from '../api/api'; 
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { addIncome, addExpense } from '../api/api';
 
 interface AddButtonProps {
   refreshIncomeData: () => void;
@@ -10,26 +11,31 @@ interface AddButtonProps {
 
 const AddButton = ({ refreshIncomeData, refreshExpenseData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [type, setType] = useState<'Income' | 'Outcome'>('Income'); // State for type selection
+  const [type, setType] = useState<'Income' | 'Outcome'>('Income');
   const [amount, setAmount] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) setDate(selectedDate);
+  };
 
   async function handleSubmit(): Promise<void> {
     if (type === 'Income') {
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
     } else {
-      await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount),"f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
+      await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
     }
 
     refreshIncomeData();
     refreshExpenseData();
 
-    // Clear form
     setAmount('');
     setDescription('');
-    setType('Income'); // Reset type to default
-
-    // Close the modal
+    setDate(new Date()); 
+    setType('Income');
     setModalVisible(false);
   }
 
@@ -49,7 +55,7 @@ const AddButton = ({ refreshIncomeData, refreshExpenseData }: AddButtonProps) =>
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select Type</Text>
+            <Text style={styles.modalTitle}>Fill the Form</Text>
 
             <View style={styles.typeSelector}>
               <TouchableOpacity
@@ -83,6 +89,21 @@ const AddButton = ({ refreshIncomeData, refreshExpenseData }: AddButtonProps) =>
               placeholder="Enter description"
             />
 
+            <Text style={styles.label}>Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+                <Text style={styles.datePickerText}>{date.toDateString()}</Text>
+                <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon} />
+              </TouchableOpacity>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+                )}
+
             <Button title="Submit" onPress={handleSubmit} />
             <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
           </View>
@@ -102,19 +123,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: 300,
+    width: '85%',
+    maxWidth: 400,
     padding: 20,
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 15,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#333',
   },
   typeSelector: {
     flexDirection: 'row',
@@ -130,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeButtonSelected: {
-    backgroundColor: '#007BFF', 
+    backgroundColor: '#007BFF',
     borderColor: '#007BFF',
   },
   typeButtonText: {
@@ -140,6 +168,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginVertical: 8,
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -148,6 +177,26 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 16,
     width: '100%',
+    backgroundColor: '#f9f9f9',
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#f9f9f9',
+    width: '100%',
+    marginBottom: 16,
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: '#000',
+    flex: 1,
+  },
+  datePickerIcon: {
+    marginLeft: 10,
   },
   button: {
     backgroundColor: '#FFFFFF',
