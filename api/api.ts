@@ -38,14 +38,6 @@ export interface ProfileData {
   created_at?: Timestamp;
 }
 
-export async function getProfileID(profileName: string) {
-  const { data } = await supabase
-  .from('Profiles')
-  .select()
-  .match({profileName});
-return data;
-}
-
 /* Incomes */
 
 export async function fetchIncomes(profile: string) {
@@ -142,16 +134,17 @@ export async function fetchCategories(profile: string) {
   const { data } = await supabase
     .from('Categories')
     .select('*')
-    .match({profile});
+    .eq('profile', profile);
   return data;
 };
 
-export async function getCategories(name: string | undefined, profile: string) {
+export async function getCategory(id: string | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
-    .match({name, profile});
+    .eq('id', id)
+    .eq('profile', profile);
   return data;
 };
 
@@ -168,13 +161,24 @@ export async function addCategory(profile: string, name: string, limit?: number)
   return data;
 };
 
-export async function removeCategory(name: string | undefined, profile: string) {
+export async function removeCategory(id: string | undefined, profile: string) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
-      .match({name, profile});
+      .eq('id', id)
+      .eq('profile', profile);
 }
+
+export async function getCategoryFromExpense(expense: string) {
+  const { data } = await supabase
+      .from('Expenses')
+      .select('category')
+      .eq('id', expense);
+  return data;
+}
+
+
 
 /* Profiles */
 
@@ -214,6 +218,13 @@ export async function removeProfile(name: string | undefined) {
       .match({name});
 }
 
+export async function getProfileID(profileName: string) {
+  const { data } = await supabase
+    .from('Profiles')
+    .select()
+    .match({profileName});
+return data;
+}
 
 
 /* Balance */
