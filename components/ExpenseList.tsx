@@ -18,13 +18,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenseData, refreshDa
 
   return (
     <View>
-      <ThemedText type="subtitle">Fetched Expense Data:</ThemedText>
+      <ThemedText type="subtitle">Gastos:</ThemedText>
       {expenseData?.map((expense) => (
         <ThemedView key={expense.id} style={styles.expenseItem}>
           <ThemedText>
-            {`Amount: $${expense.amount}\nDescription: ${expense.description}`}
+            {`Monto: $${expense.amount}\nDescripción: ${expense.description}`}
           </ThemedText>
-          <Button color="#FF0000" title="Delete" onPress={() => handleRemoveExpense(expense.id)} />
+          <Button color="#FF0000" title="Eliminar" onPress={() => handleRemoveExpense(expense.id)} />
         </ThemedView>
       ))}
     </View>

@@ -103,6 +103,7 @@ export default function HomeScreen() {
         </View>
       }
     >
+      
       {/* Sección de balance */}
       <BalanceCard balance={balance} refreshData={getBalanceData} />
 
