@@ -21,13 +21,13 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
         if (income) {
-          handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id)
+          handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id ?? 0)
         }
       }
     }]);
   };
 
-  const handleRemoveIncome = async (profile: string, id: number | undefined) => {
+  const handleRemoveIncome = async (profile: string, id: number) => {
     await removeIncome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };

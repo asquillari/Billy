@@ -21,13 +21,13 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
         if (outcome) {
-          handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id)
+          handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id ?? 0);
         }
       }
     }]);
   };
 
-  const handleRemoveOutcome = async (profile: string, id: number | undefined) => {
+  const handleRemoveOutcome = async (profile: string, id: number) => {
     await removeOutcome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };
@@ -37,7 +37,7 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
       <ThemedText type="subtitle">Gastos:</ThemedText>
       {outcomeData?.map((outcome) => (
         <TouchableOpacity key={outcome.id} onLongPress={() => handleLongPress(outcome)} style={styles.outcomeItem}>
-          <ThemedText>{`Monto: $${outcome.amount}\nDescripción: ${outcome.description}\n`}</ThemedText>
+          <ThemedText>{`Monto: $${outcome.amount}\nDescripción: ${outcome.description}`}</ThemedText>
         </TouchableOpacity>
       ))}
     </View>
