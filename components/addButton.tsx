@@ -41,73 +41,43 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
-        <Icon name="add" size={24} color="#000000" />
+        <Icon name="add" size={24} color="#000000"/>
       </TouchableOpacity>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}
-      >
+      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Fill the Form</Text>
 
             <View style={styles.typeSelector}>
-              <TouchableOpacity
-                style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]}
-                onPress={() => setType('Income')}
-              >
+              <TouchableOpacity style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]} onPress={() => setType('Income')}>
                 <Text style={styles.typeButtonText}>Income</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]}
-                onPress={() => setType('Outcome')}
-              >
+              <TouchableOpacity style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]} onPress={() => setType('Outcome')}>
                 <Text style={styles.typeButtonText}>Outcome</Text>
               </TouchableOpacity>
             </View>
 
             <Text style={styles.label}>Amount</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Enter amount"
-            />
+            <TextInput style={styles.input} keyboardType="numeric" value={amount} onChangeText={setAmount} placeholder="Enter amount"/>
 
             <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.input}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Enter description"
-            />
+            <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="Enter description"/>
 
             <Text style={styles.label}>Date</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
-                <Text style={styles.datePickerText}>{date.toDateString()}</Text>
-                <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon} />
-              </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+              <Text style={styles.datePickerText}>{date.toDateString()}</Text>
+              <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon}/>
+            </TouchableOpacity>
+            
+            {showDatePicker && (<DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange}/>)}
+            
+            <Button title="Submit" onPress={handleSubmit}/>
+            <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000"/>
 
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                  />
-                )}
-
-            <Button title="Submit" onPress={handleSubmit} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
           </View>
         </View>
       </Modal>
+
     </View>
   );
 };

@@ -30,7 +30,7 @@ export interface CategoryData {
   profile: string;
   spent? : number;
   limit?: number;
-  color?: string;
+  color: string;
   created_at?: Timestamp;
 }
 
@@ -111,6 +111,10 @@ export async function addOutcome(profile: string, amount: number, category: stri
     category: category,
     description: description
   };
+  if (await checkCategoryLimit(category, amount) == true) {
+    console.log("couldnt add due to category limit");
+    return;
+  }
   // Inserto información
   const { data } = await supabase
     .from('Outcomes')
@@ -151,7 +155,7 @@ export async function getCategory(category: string | undefined, profile: string)
   return data;
 };
 
-export async function addCategory(profile: string, name: string, color?: string, limit?: number) {
+export async function addCategory(profile: string, name: string, color: string, limit?: number) {
     const newCategory: CategoryData = {
       profile: profile,
       name: name,
@@ -181,6 +185,15 @@ export async function getCategoryFromExpense(expense: string) {
   return data;
 }
 
+async function getCategoryLimit(category: string): Promise<number> {
+  const { data } = await supabase
+    .from('Categories')
+    .select('limit')
+    .eq('id', category)
+    .single();
+  return data?.limit ?? 0;
+}
+
 async function getCategorySpent(category: string): Promise<number> {
   const { data } = await supabase
     .from('Categories')
@@ -203,6 +216,14 @@ async function putCategorySpent(category: string, newSpent: number) {
     .match({id: category}); 
   return data;
 }
+
+async function checkCategoryLimit(category: string, amount: number) {
+  const spent = await getCategorySpent(category);
+  const limit = await getCategoryLimit(category);
+  return (spent + amount <= limit);
+}
+
+
 
 
 /* Profiles */

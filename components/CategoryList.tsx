@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput } from 'react-native';
 import { addCategory, CategoryData } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
@@ -26,9 +26,16 @@ const getRandomColor = () => {
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshData }) => {
 
+    const [modalVisible, setModalVisible] = useState(false);
+    const [name, setName] = useState('');
+    const [limit, setLimit] = useState('');
+
     const handleAddCategory = async () => {
         const randomColor = getRandomColor(); // Generate a random color
-        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", "Nueva Categoría", randomColor);
+        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, randomColor, parseFloat(limit));
+        setName('');
+        setLimit('');
+        setModalVisible(false);
         refreshData();
     };
 
@@ -39,9 +46,26 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                     <ThemedText>{`${category.name}\n$${category.spent}`}</ThemedText>
                 </ThemedView>
             ))}
-            <TouchableOpacity onPress={() => handleAddCategory()} style={styles.addCategoryButton}>
+
+            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addCategoryButton}>
                 <Text style={styles.addCategoryText}>+</Text>
             </TouchableOpacity>
+
+            <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
+                <View style={styles.modalBackground}>
+                    <View style={styles.modalContainer}>
+
+                        <Text style={styles.label}>Nombre</Text>
+                        <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ingresar nombre"/>
+
+                        <Text style={styles.label}>Límite</Text>
+                        <TextInput style={styles.input} keyboardType="numeric" value={limit} onChangeText={setLimit} placeholder="Ingresar límite"/>
+
+                        <Button title="Submit" onPress={handleAddCategory}/>
+                        <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000"/>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>       
     );
 };
@@ -72,5 +96,44 @@ const styles = StyleSheet.create({
     addCategoryText: {
         fontSize: 24,
         color: '#FFFFFF',
+    },
+    modalBackground: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        width: '85%',
+        maxWidth: 400,
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#333',
+    },
+    label: {
+        fontSize: 16,
+        marginVertical: 8,
+        color: '#333',
+      },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 4,
+        padding: 8,
+        marginBottom: 16,
+        width: '100%',
+        backgroundColor: '#f9f9f9',
     },
 });
