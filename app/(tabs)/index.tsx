@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View, Dimensions} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
-import { FolderList } from '@/components/FolderList';
+import { CategoryList } from '@/components/CategoryList';
 import { IncomeList } from '@/components/IncomeList';
 import { OutcomeList } from '@/components/OutcomeList';
 import AddButton from '@/components/addButton';
@@ -111,7 +111,7 @@ export default function HomeScreen() {
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
       {/* Sección de Carpetas con scroll horizontal*/}
-      <FolderList/>
+      <CategoryList/>
 
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
@@ -124,29 +124,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-foldersContainer: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  gap: 16,
-},
-folder: {
-  padding: 16,
-  backgroundColor: '#E5E5E5',
-  borderRadius: 8,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-addFolderButton: {
-  padding: 16,
-  backgroundColor: '#A1CEDC',
-  borderRadius: 8,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-addFolderText: {
-  fontSize: 24,
-  color: '#FFFFFF',
-},
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
