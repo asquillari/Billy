@@ -50,20 +50,20 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
 
             <View style={styles.typeSelector}>
               <TouchableOpacity style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]} onPress={() => setType('Income')}>
-                <Text style={styles.typeButtonText}>Income</Text>
+                <Text style={styles.typeButtonText}>Ingreso</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]} onPress={() => setType('Outcome')}>
-                <Text style={styles.typeButtonText}>Outcome</Text>
+                <Text style={styles.typeButtonText}>Gasto</Text>
               </TouchableOpacity>
             </View>
+    
+            <Text style={styles.label}>Monto</Text>
+            <TextInput style={styles.input} keyboardType="numeric" value={amount} onChangeText={setAmount} placeholder="Ingresar monto"/>
 
-            <Text style={styles.label}>Amount</Text>
-            <TextInput style={styles.input} keyboardType="numeric" value={amount} onChangeText={setAmount} placeholder="Enter amount"/>
+            <Text style={styles.label}>Descripción</Text>
+            <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="Ingresar descripción"/>
 
-            <Text style={styles.label}>Description</Text>
-            <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="Enter description"/>
-
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>Fecha</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
               <Text style={styles.datePickerText}>{date.toDateString()}</Text>
               <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon}/>
@@ -168,6 +168,9 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   button: {
+    position: 'absolute', // Position the button absolutely
+    top: -93, // Adjust the vertical positioning
+    right: 10, // Align it to the right of the balance card
     backgroundColor: '#FFFFFF',
     width: 60,
     height: 60,
@@ -179,7 +182,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
-  },
+  }
 });
 
 export default AddButton;

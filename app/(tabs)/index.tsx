@@ -51,37 +51,17 @@ export default function HomeScreen() {
   // Hace que se vea desde el principio
   useEffect(() => {
     getIncomeData();
-  }, [])
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
     getOutcomeData();
-  }, [])
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
     getBalanceData();
-  }, [])
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
     getCategoryData();
   }, [])
-
-  async function handleAddUser(): Promise<void> {
-    // Inserta en la tabla
-    await signUp("robertito@gmail.com", "1234", "Roberto", "Tomás");
-  }
 
   return (
     <ParallaxScrollView
       headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
       headerImage={
         <View style = {styles.logoContainer}>
-        <Image
-          source={require('@/assets/images/Billy/logo1.png')}
-          style={styles.reactLogo}
-        />
+          <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.reactLogo}/>
         </View>
       }
     >
