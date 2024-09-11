@@ -3,6 +3,7 @@ import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, Te
 import { addCategory, CategoryData, removeCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
+import { OutcomeData } from '@/api/api';
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
@@ -22,6 +23,7 @@ const getRandomColor = () => {
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshData }) => {
 
     const [modalVisible, setModalVisible] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
 
@@ -49,10 +51,15 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         refreshData();
     };
 
+    const handleCategoryPress = (category: CategoryData) => {
+        setSelectedCategory(category);
+        setDetailsModalVisible(true);
+    };
+
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
             {categoryData?.map((category, index) => (
-                <TouchableOpacity key={index} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
+                <TouchableOpacity key={index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
                     <ThemedText>{`${category.name}\n$${category.spent}`}</ThemedText>
                 </TouchableOpacity>
             ))}
@@ -61,10 +68,28 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                 <Text style={styles.addCategoryText}>+</Text>
             </TouchableOpacity>
 
+            <Modal animationType="slide" transparent={true} visible={detailsModalVisible} onRequestClose={() => { setDetailsModalVisible(false); }}>
+                <View style={styles.modalBackground}>
+                    <View style={styles.modalContainer}>
+                        {selectedCategory && (
+                            <>
+                                <Text style={styles.modalTitle}>{selectedCategory.name}</Text>
+                                <Text style={styles.modalDetail}>Spent: ${selectedCategory.spent}</Text>
+                                <Text style={styles.modalDetail}>Color: {selectedCategory.color}</Text>
+                                
+                                <View style={styles.buttonContainer}>
+                                    <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
+                                </View>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
             <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
                 <View style={styles.modalBackground}>
                     <View style={styles.modalContainer}>
-
+            
                         <Text style={styles.label}>Nombre</Text>
                         <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ingresar nombre"/>
 
@@ -115,6 +140,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalDetail: {
+        fontSize: 16,
+        marginVertical: 8,
+        color: '#333',
     },
     modalContainer: {
         width: '85%',

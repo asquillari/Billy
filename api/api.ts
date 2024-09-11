@@ -114,14 +114,14 @@ export async function getOutcome(profile: string, id: number | undefined) {
   return data;
 };
 
-export async function addOutcome(profile: string, amount: number, category: string, description: string) {
+export async function addOutcome(profile: string, category: string, amount: number, description: string) {
   const newOutcome: OutcomeData = {
     profile: profile,
     amount: amount,
     category: category,
     description: description
   };
-  if (await checkCategoryLimit(category, amount) == false ) {
+  if (await checkCategoryLimit(category, amount) == false) {
     console.log("couldnt add due to category limit");
     return;
   }
@@ -228,8 +228,9 @@ async function putCategorySpent(category: string, newSpent: number) {
 }
 
 async function checkCategoryLimit(category: string, amount: number) {
-  const spent = await getCategorySpent(category);
   const limit = await getCategoryLimit(category);
+  if (limit <= 0) return true;
+  const spent = await getCategorySpent(category);
   return (spent + amount <= limit);
 }
 
