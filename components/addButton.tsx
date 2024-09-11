@@ -74,8 +74,10 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
             
             {showDatePicker && (<DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange}/>)}
             
-            <Button title="Submit" onPress={handleSubmit}/>
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000"/>
+            <View style={styles.buttonContainer}>
+              <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
+              <Button title="Submit" onPress={handleSubmit} />
+            </View>
 
           </View>
         </View>
@@ -184,7 +186,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
-  }
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Space out the buttons
+    width: '100%',
+  },
 });
 
 export default AddButton;

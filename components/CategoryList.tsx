@@ -61,8 +61,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                         <Text style={styles.label}>Límite</Text>
                         <TextInput style={styles.input} keyboardType="numeric" value={limit} onChangeText={setLimit} placeholder="Ingresar límite"/>
 
-                        <Button title="Submit" onPress={handleAddCategory}/>
-                        <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000"/>
+                        <View style={styles.buttonContainer}>
+                            <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
+                            <Button title="Submit" onPress={handleAddCategory} />
+                        </View>
+
                     </View>
                 </View>
             </Modal>
@@ -135,5 +138,10 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         width: '100%',
         backgroundColor: '#f9f9f9',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between', // Space out the buttons
+        width: '100%',
     },
 });
