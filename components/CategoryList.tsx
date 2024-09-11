@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput, Alert } from 'react-native';
-import { addCategory, CategoryData, removeCategory } from '@/api/api';
+import { addCategory, CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
 import { OutcomeData } from '@/api/api';
+import { OutcomeList } from './OutcomeList';
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
-    refreshData: () => void;
+    refreshCategoryData: () => void;
 }
 
-// Function to generate random color
+// Function to generate a random color
 const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -20,40 +20,53 @@ const getRandomColor = () => {
     return color;
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshData }) => {
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData }) => {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
 
+    // For details
+    const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
+    
+    // Get categories' outcomes
+    async function getOutcomeData(profile: string, category: string) {
+        const data = await fetchOutcomesByCategory(profile, category);
+        setOutcomeData(data);
+    };
+
+    // See category details
+    const handleCategoryPress = (category: CategoryData) => {
+        setSelectedCategory(category);
+        // This is needed for everything to work
+        getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", category.id ?? "null").then(() => {setDetailsModalVisible(true);});
+    };
+
     // For deleting
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
 
+    // Remove category
     const handleLongPress = (category: CategoryData) => {
         setSelectedCategory(category);
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
                 if (category) {
-                    await removeCategory("f5267f06-d68b-4185-a911-19f44b4dc216", category.id    );
-                    refreshData();
+                    await removeCategory("f5267f06-d68b-4185-a911-19f44b4dc216", category.id);
+                    refreshCategoryData();
                 }
             }
         }]);
     };
 
+    // Adds category
     const handleAddCategory = async () => {
         const randomColor = getRandomColor(); // Generate a random color
         await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, randomColor, parseFloat(limit));
         setName('');
         setLimit('');
         setModalVisible(false);
-        refreshData();
-    };
-
-    const handleCategoryPress = (category: CategoryData) => {
-        setSelectedCategory(category);
-        setDetailsModalVisible(true);
+        refreshCategoryData();
     };
 
     return (
@@ -64,19 +77,19 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                 </TouchableOpacity>
             ))}
 
+            {/* Add button */}
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addCategoryButton}>
                 <Text style={styles.addCategoryText}>+</Text>
             </TouchableOpacity>
 
+            {/* Modal for details */}
             <Modal animationType="slide" transparent={true} visible={detailsModalVisible} onRequestClose={() => { setDetailsModalVisible(false); }}>
                 <View style={styles.modalBackground}>
                     <View style={styles.modalContainer}>
                         {selectedCategory && (
                             <>
-                                <Text style={styles.modalTitle}>{selectedCategory.name}</Text>
-                                <Text style={styles.modalDetail}>Spent: ${selectedCategory.spent}</Text>
-                                <Text style={styles.modalDetail}>Color: {selectedCategory.color}</Text>
-                                
+                                <Text style={styles.modalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
+                                <OutcomeList outcomeData={outcomeData} refreshData={()=>getOutcomeData}/>
                                 <View style={styles.buttonContainer}>
                                     <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
                                 </View>
@@ -86,6 +99,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                 </View>
             </Modal>
 
+            {/* Modal for adding */}
             <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
                 <View style={styles.modalBackground}>
                     <View style={styles.modalContainer}>
@@ -109,6 +123,12 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 };
 
 const styles = StyleSheet.create({
+    outcomeItem: {
+        marginBottom: 8,
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: '#000000',
+      },
     categoriesContainer: {
         flexDirection: 'row',
         flexWrap: 'nowrap',

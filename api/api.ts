@@ -101,6 +101,7 @@ export async function fetchOutcomesByCategory(profile: string, category: string)
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
+    .eq('profile', profile)
     .eq('category', category);
   return data;
 };
@@ -233,7 +234,6 @@ async function checkCategoryLimit(category: string, amount: number) {
   const spent = await getCategorySpent(category);
   return (spent + amount <= limit);
 }
-
 
 
 

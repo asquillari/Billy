@@ -14,11 +14,6 @@ const { height } = Dimensions.get('window');
 
 export default function HomeScreen() {
 
-  // Importante! (nota para quien vea esto) los archivos index (este archivo) y explore son de el proyecto predeterminado
-  // Habría que cambiarle el nombre
-  // Ya que tengo tu atención, otra cosa: Es muy importante separar todas los los componentes del pseudo-xml de abajo, que
-  // deberían ir en la carpeta de "components" (era adivinable, sí). Por ejemplo, si tenemos dos botones iguales deberíamos 
-  // agregarlo en components para no reutilizar el código (y hacerlo más modular)
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
@@ -44,7 +39,6 @@ export default function HomeScreen() {
     setBalanceData(data);
   };
 
-  // Hace que se vea desde el principio
   useEffect(() => {
     getIncomeData();
     getOutcomeData();
@@ -67,7 +61,7 @@ export default function HomeScreen() {
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
       {/* Sección de Carpetas con scroll horizontal */}
-      <CategoryList categoryData={categoryData} refreshData={getCategoryData}/>
+      <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData}/>
 
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData}/>
