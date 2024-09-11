@@ -28,7 +28,7 @@ export interface OutcomeData {
 export interface CategoryData {
   name: string;
   profile: string;
-  balance? : number;
+  spent? : number;
   limit?: number;
   created_at?: Timestamp;
 }
@@ -151,16 +151,29 @@ export async function getCategory(category: string | undefined, profile: string)
 };
 
 export async function addCategory(profile: string, name: string, limit?: number) {
-  const newCategory: CategoryData = {
-    profile: profile,
-    name: name,
-    limit: limit
-  };
-  // Inserto información
-  const { data } = await supabase
-    .from('Categories')
-    .insert(newCategory);
-  return data;
+  
+  try {
+    const newCategory: CategoryData = {
+      profile: profile,
+      name: name,
+      limit: limit
+    };
+  
+    // Insert category data into the database
+    const { data, error } = await supabase
+      .from('Categories')
+      .insert(newCategory);
+
+    // Check for errors
+    if (error) {
+      throw new Error(`Error inserting category: ${error.message}`);
+    }
+
+    return data;
+  } catch (err) {
+    console.error("Error adding category:", err);
+    return null; // Return null or handle the error accordingly
+  }
 };
 
 export async function removeCategory(category: string | undefined, profile: string) {

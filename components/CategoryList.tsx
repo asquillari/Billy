@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { addCategory, CategoryData } from '@/api/api';
+import { ThemedText } from './ThemedText';
+import { ThemedView } from './ThemedView';
+
+interface CategoryListProps {
+    categoryData: CategoryData[] | null;
+    refreshData: () => void;
+  }
 
 const initialCategories = [
-    {name: 'Expensas', amount: 0 },
-    {name: 'Comida', amount: 0},
+    {name: 'Expensas', spent: 0 },
+    {name: 'Comida', spent: 0},
 ];
 
-export const CategoryList: React.FC = () => {
-    const [categories, setCategories] = useState(initialCategories);
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshData }) => {
 
-    const handleAddCategory = () => {
-        const newCategory = {name: 'Nueva Categoría', amount: 0};
-        setCategories([...categories, newCategory]);
+    const handleAddCategory = async () => {
+        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", "Nueva Categoría");
+        refreshData();
     };
 
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {categories.map((category, index) => (
-                <View key={index} style={styles.category}>
-                    <Text>{category.name}</Text>
-                    {/*<Text>{'$${category.amount.toFixed(2)}'}</Text>*/}
-                </View>
+            {categoryData?.map((category, index) => (
+                <ThemedView key={index} style={styles.category}>
+                    <ThemedText>{`${category.name}\n$${category.spent}`}</ThemedText>
+                </ThemedView>
             ))}
-            <TouchableOpacity onPress={handleAddCategory} style={styles.addCategoryButton}>
+            <TouchableOpacity onPress={() => handleAddCategory()} style={styles.addCategoryButton}>
                 <Text style={styles.addCategoryText}>+</Text>
             </TouchableOpacity>
         </ScrollView>

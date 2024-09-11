@@ -7,7 +7,7 @@ import { IncomeList } from '@/components/IncomeList';
 import { OutcomeList } from '@/components/OutcomeList';
 import AddButton from '@/components/addButton';
 
-import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData } from '../../api/api';
+import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData, CategoryData, getCategory, fetchCategories } from '../../api/api';
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
@@ -21,6 +21,7 @@ export default function HomeScreen() {
   // agregarlo en components para no reutilizar el código (y hacerlo más modular)
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
+  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
   // Recupero información
@@ -33,6 +34,12 @@ export default function HomeScreen() {
   async function getOutcomeData() {
     const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setOutcomeData(data);
+  };
+
+  // Recupero información
+  async function getCategoryData() {
+    const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
+    setCategoryData(data);
   };
 
   // Recupero información
@@ -54,6 +61,11 @@ export default function HomeScreen() {
   // Hace que se vea desde el principio
   useEffect(() => {
     getBalanceData();
+  }, [])
+
+  // Hace que se vea desde el principio
+  useEffect(() => {
+    getCategoryData();
   }, [])
 
   async function handleAddUser(): Promise<void> {
@@ -82,6 +94,7 @@ export default function HomeScreen() {
     await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
     // Actualizo
     getOutcomeData();
+    getCategoryData();
   };
 
   async function handleRemoveOutcome(id: number | undefined): Promise<void> {
@@ -111,7 +124,7 @@ export default function HomeScreen() {
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
       {/* Sección de Carpetas con scroll horizontal*/}
-      <CategoryList/>
+      <CategoryList categoryData={categoryData} refreshData={getCategoryData}/>
 
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData} />

@@ -11,7 +11,7 @@ interface AddButtonProps {
 
 const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [type, setType] = useState<'Income' | 'Outcome'>('Income');
+  const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -25,17 +25,16 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
   async function handleSubmit(): Promise<void> {
     if (type === 'Income') {
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
+      refreshIncomeData();
     } else {
       await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
+      refreshOutcomeData();
     }
-
-    refreshIncomeData();
-    refreshOutcomeData();
 
     setAmount('');
     setDescription('');
     setDate(new Date()); 
-    setType('Income');
+    setType('Outcome');
     setModalVisible(false);
   }
 
