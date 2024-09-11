@@ -16,7 +16,7 @@ export interface IncomeData {
   created_at?: Timestamp;
 }
 
-export interface ExpenseData {
+export interface OutcomeData {
   id? : number;
   profile: string;
   category: string; 
@@ -38,14 +38,6 @@ export interface ProfileData {
   created_at?: Timestamp;
 }
 
-export async function getProfileID(profileName: string) {
-  const { data } = await supabase
-  .from('Profiles')
-  .select()
-  .match({profileName});
-return data;
-}
-
 /* Incomes */
 
 export async function fetchIncomes(profile: string) {
@@ -56,7 +48,7 @@ export async function fetchIncomes(profile: string) {
     .match({profile});
   return data;
 };
-
+ 
 export async function getIncome(id: number | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
@@ -90,28 +82,28 @@ export async function removeIncome(id: number | undefined, profile: string) {
 
 
 
-/* Expenses */
+/* Outcomes */
 
-export async function fetchExpenses(profile: string) {
+export async function fetchOutcomes(profile: string) {
   // Recupero información
   const { data } = await supabase
-    .from('Expenses')
+    .from('Outcomes')
     .select('*')
     .match({profile});
   return data;
 };
 
-export async function getExpense(id: number | undefined, profile: string) {
+export async function getOutcome(id: number | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
-    .from('Expenses')
+    .from('Outcome')
     .select()
     .match({id, profile});
   return data;
 };
 
-export async function addExpense(profile: string, amount: number, category: string, description: string) {
-  const newExpense: ExpenseData = {
+export async function addOutcome(profile: string, amount: number, category: string, description: string) {
+  const newOutcome: OutcomeData = {
     profile: profile,
     amount: amount,
     category: category,
@@ -119,16 +111,16 @@ export async function addExpense(profile: string, amount: number, category: stri
   };
   // Inserto información
   const { data } = await supabase
-    .from('Expenses')
-    .insert(newExpense);
+    .from('Outcomes')
+    .insert(newOutcome);
   updateBalance(-amount, profile);
   return data;
 };
 
-export async function removeExpense(id: number | undefined, profile: string) {
+export async function removeOutcome(id: number | undefined, profile: string) {
   // Borro información
   await supabase
-    .from('Expenses')
+    .from('Outcomes')
     .delete()
     .match({id, profile});
 }
@@ -142,16 +134,17 @@ export async function fetchCategories(profile: string) {
   const { data } = await supabase
     .from('Categories')
     .select('*')
-    .match({profile});
+    .eq('profile', profile);
   return data;
 };
 
-export async function getCategories(name: string | undefined, profile: string) {
+export async function getCategory(id: string | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
-    .match({name, profile});
+    .eq('id', id)
+    .eq('profile', profile);
   return data;
 };
 
@@ -168,13 +161,24 @@ export async function addCategory(profile: string, name: string, limit?: number)
   return data;
 };
 
-export async function removeCategory(name: string | undefined, profile: string) {
+export async function removeCategory(id: string | undefined, profile: string) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
-      .match({name, profile});
+      .eq('id', id)
+      .eq('profile', profile);
 }
+
+export async function getCategoryFromExpense(expense: string) {
+  const { data } = await supabase
+      .from('Expenses')
+      .select('category')
+      .eq('id', expense);
+  return data;
+}
+
+
 
 /* Profiles */
 
@@ -214,6 +218,13 @@ export async function removeProfile(name: string | undefined) {
       .match({name});
 }
 
+export async function getProfileID(profileName: string) {
+  const { data } = await supabase
+    .from('Profiles')
+    .select()
+    .match({profileName});
+return data;
+}
 
 
 /* Balance */
@@ -232,7 +243,7 @@ async function putBalance(profile: string, newBalance: number) {
   const { data } = await supabase
     .from('Profiles')
     .update({balance: newBalance})
-    .match({name: profile}); 
+    .match({id: profile}); 
   return data;
 }
 

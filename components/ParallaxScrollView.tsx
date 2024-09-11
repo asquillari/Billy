@@ -65,8 +65,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 250,
+    height: 100,
     overflow: 'hidden',
+    justifyContent: 'flex-end',  // Aseguramos que los elementos se alineen en la parte inferior
+    alignItems: 'center',  // Centramos el logo horizontalmente
   },
   content: {
     flex: 1,

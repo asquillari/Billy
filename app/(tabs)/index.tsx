@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-
-import { Image, StyleSheet, Button } from 'react-native';
-
+import { Image, StyleSheet, View, Dimensions} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { BalanceCard } from '@/components/BalanceCard';
+import { FolderList } from '@/components/FolderList';
+import { IncomeList } from '@/components/IncomeList';
+import { OutcomeList } from '@/components/OutcomeList';
+import AddButton from '@/components/addButton';
 
-import { getProfileID, addUser, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData, signUp } from '../../api/api';
+import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData } from '../../api/api';
+
+//obtengo el porcentaje de la pantalla
+const { height } = Dimensions.get('window');
 
 export default function HomeScreen() {
 
@@ -15,9 +19,8 @@ export default function HomeScreen() {
   // Ya que tengo tu atención, otra cosa: Es muy importante separar todas los los componentes del pseudo-xml de abajo, que
   // deberían ir en la carpeta de "components" (era adivinable, sí). Por ejemplo, si tenemos dos botones iguales deberíamos 
   // agregarlo en components para no reutilizar el código (y hacerlo más modular)
-
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
-  const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
+  const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
   // Recupero información
@@ -27,9 +30,9 @@ export default function HomeScreen() {
   };
 
   // Recupero información
-  async function getExpenseData() {
-    const data = await fetchExpenses("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setExpenseData(data);
+  async function getOutcomeData() {
+    const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
+    setOutcomeData(data);
   };
 
   // Recupero información
@@ -45,7 +48,7 @@ export default function HomeScreen() {
 
   // Hace que se vea desde el principio
   useEffect(() => {
-    getExpenseData();
+    getOutcomeData();
   }, [])
 
   // Hace que se vea desde el principio
@@ -74,61 +77,76 @@ export default function HomeScreen() {
     getIncomeData();
   };
 
-  async function handleAddExpense(): Promise<void> {
+  async function handleAddOutcome(): Promise<void> {
     // Inserta en la tabla
-    await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
+    await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
     // Actualizo
-    getExpenseData();
+    getOutcomeData();
   };
 
-  async function handleRemoveExpense(id: number | undefined): Promise<void> {
+  async function handleRemoveOutcome(id: number | undefined): Promise<void> {
     // Remueve
-    await removeExpense(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
+    await removeOutcome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
     // Actualizo
-    getExpenseData();
+    getOutcomeData();
   };
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
       headerImage={
+        <View style = {styles.logoContainer}>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
+          source={require('@/assets/images/Billy/logo1.png')}  // Aquí va tu logo de Billy
           style={styles.reactLogo}
         />
-      }>
+        </View>
+      }
+    >
       
-      {/* Visualizador de información */}
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Fetched Income Data:</ThemedText>
-          {incomeData?.map((income) => (
-            <ThemedView key={income.id}>
-              <ThemedText>
-                {`Amount: $${income.amount}\nDescription: ${income.description}`}
-              </ThemedText>
-              {/* Botón para borrar */}
-              <Button color="#FF0000" title="Delete" onPress={() => handleRemoveIncome(income.id)} />
-            </ThemedView>
-          ))}
-      </ThemedView>
+      {/* Sección de balance */}
+      <BalanceCard balance={balance} refreshData={getBalanceData} />
 
-      {/* Botón para agregar */}
-      <ThemedView style={styles.stepContainer}>
-        <Button title="Insert Income Data" onPress={handleAddUser}/>
-      </ThemedView>
+      {/* Boton para agregar gastos/ingresos*/}
+      <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
-      {/* Display del balance (no funciona) */}
-      <ThemedView>
-        <ThemedText>
-          {`Your balance is $${balance}`}
-        </ThemedText>
-      </ThemedView>
+      {/* Sección de Carpetas con scroll horizontal*/}
+      <FolderList/>
+
+      {/* Sección de Ingresos */}
+      <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
+
+      {/* Sección de Egresos */}
+      <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData} />
 
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+foldersContainer: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  gap: 16,
+},
+folder: {
+  padding: 16,
+  backgroundColor: '#E5E5E5',
+  borderRadius: 8,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+addFolderButton: {
+  padding: 16,
+  backgroundColor: '#A1CEDC',
+  borderRadius: 8,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+addFolderText: {
+  fontSize: 24,
+  color: '#FFFFFF',
+},
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -139,10 +157,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    height: 100,
+    width: 100,
+    resizeMode: 'contain',
+
   },
+  logoContainer:{
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    paddingTop: 45,
+  }
 });
