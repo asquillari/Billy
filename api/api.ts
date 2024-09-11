@@ -16,7 +16,7 @@ export interface IncomeData {
   created_at?: Timestamp;
 }
 
-export interface ExpenseData {
+export interface OutcomeData {
   id? : number;
   profile: string;
   category: string; 
@@ -90,28 +90,28 @@ export async function removeIncome(id: number | undefined, profile: string) {
 
 
 
-/* Expenses */
+/* Outcomes */
 
-export async function fetchExpenses(profile: string) {
+export async function fetchOutcomes(profile: string) {
   // Recupero información
   const { data } = await supabase
-    .from('Expenses')
+    .from('Outcomes')
     .select('*')
     .match({profile});
   return data;
 };
 
-export async function getExpense(id: number | undefined, profile: string) {
+export async function getOutcome(id: number | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
-    .from('Expenses')
+    .from('Outcome')
     .select()
     .match({id, profile});
   return data;
 };
 
-export async function addExpense(profile: string, amount: number, category: string, description: string) {
-  const newExpense: ExpenseData = {
+export async function addOutcome(profile: string, amount: number, category: string, description: string) {
+  const newOutcome: OutcomeData = {
     profile: profile,
     amount: amount,
     category: category,
@@ -119,16 +119,16 @@ export async function addExpense(profile: string, amount: number, category: stri
   };
   // Inserto información
   const { data } = await supabase
-    .from('Expenses')
-    .insert(newExpense);
+    .from('Outcomes')
+    .insert(newOutcome);
   updateBalance(-amount, profile);
   return data;
 };
 
-export async function removeExpense(id: number | undefined, profile: string) {
+export async function removeOutcome(id: number | undefined, profile: string) {
   // Borro información
   await supabase
-    .from('Expenses')
+    .from('Outcomes')
     .delete()
     .match({id, profile});
 }
