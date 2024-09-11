@@ -95,6 +95,15 @@ export async function fetchOutcomes(profile: string) {
   return data;
 };
 
+export async function fetchOutcomesByCategory(profile: string, category: string) {
+  // Recupero información
+  const { data } = await supabase
+    .from('Outcomes')
+    .select('*')
+    .eq('category', category);
+  return data;
+};
+
 export async function getOutcome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
