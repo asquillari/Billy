@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Button, StyleSheet, View, Alert, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { removeIncome, IncomeData, getBalance } from '../api/api';
@@ -10,9 +11,24 @@ interface IncomeListProps {
 }
 
 export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData }) => {
-  
-  const handleRemoveIncome = async (id: number | undefined) => {
-    await removeIncome("f5267f06-d68b-4185-a911-19f44b4dc216", id);
+
+  // For deleting
+  const [selectedIncome, setSelectedIncome] = useState<IncomeData | null>(null);
+
+  // Remove category
+  const handleLongPress = (income: IncomeData) => {
+    setSelectedIncome(income);
+    Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
+      onPress: async () => {
+        if (income) {
+          handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id)
+        }
+      }
+    }]);
+  };
+
+  const handleRemoveIncome = async (profile: string, id: number | undefined) => {
+    await removeIncome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };
 
@@ -20,10 +36,9 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
     <View>
       <ThemedText type="subtitle">Ingresos:</ThemedText>
       {incomeData?.map((income) => (
-        <ThemedView key={income.id} style={styles.incomeItem}>
+        <TouchableOpacity key={income.id} onLongPress={() => handleLongPress(income)} style={styles.incomeItem}>
           <ThemedText>{`Monto: $${income.amount}\nDescripción: ${income.description}`}</ThemedText>
-          <Button color="#FF0000" title="Eliminar" onPress={() => handleRemoveIncome(income.id)} />
-        </ThemedView>
+        </TouchableOpacity>
       ))}
     </View>
   );

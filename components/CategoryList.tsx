@@ -34,6 +34,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     async function getOutcomeData(profile: string, category: string) {
         const data = await fetchOutcomesByCategory(profile, category);
         setOutcomeData(data);
+        refreshCategoryData();
     };
 
     // See category details
@@ -89,7 +90,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                         {selectedCategory && (
                             <>
                                 <Text style={styles.modalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
-                                <OutcomeList outcomeData={outcomeData} refreshData={()=>getOutcomeData}/>
+                                <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory?.id ?? "null")} />
                                 <View style={styles.buttonContainer}>
                                     <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
                                 </View>
