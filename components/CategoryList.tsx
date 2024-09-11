@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput } from 'react-native';
-import { addCategory, CategoryData } from '@/api/api';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput, Alert } from 'react-native';
+import { addCategory, CategoryData, removeCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
     refreshData: () => void;
-  }
-
-const initialCategories = [
-    {name: 'Expensas', spent: 0 },
-    {name: 'Comida', spent: 0},
-];
+}
 
 // Function to generate random color
 const getRandomColor = () => {
@@ -30,6 +25,21 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
 
+    // For deleting
+    const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
+
+    const handleLongPress = (category: CategoryData) => {
+        setSelectedCategory(category);
+        Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
+            onPress: async () => {
+                if (category) {
+                    await removeCategory("f5267f06-d68b-4185-a911-19f44b4dc216", category.id    );
+                    refreshData();
+                }
+            }
+        }]);
+    };
+
     const handleAddCategory = async () => {
         const randomColor = getRandomColor(); // Generate a random color
         await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, randomColor, parseFloat(limit));
@@ -42,9 +52,9 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
             {categoryData?.map((category, index) => (
-                <ThemedView key={index} style={[styles.category, { backgroundColor: category.color }]}>
+                <TouchableOpacity key={index} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
                     <ThemedText>{`${category.name}\n$${category.spent}`}</ThemedText>
-                </ThemedView>
+                </TouchableOpacity>
             ))}
 
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addCategoryButton}>

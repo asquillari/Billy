@@ -26,6 +26,7 @@ export interface OutcomeData {
 }
 
 export interface CategoryData {
+  id?: string
   name: string;
   profile: string;
   spent? : number;
