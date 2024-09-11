@@ -12,7 +12,7 @@ interface OutcomeListProps {
 export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshData }) => {
   
   const handleRemoveOutcome = async (id: number | undefined) => {
-    await removeOutcome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
+    await removeOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", id);
     refreshData();  // Actualiza los datos después de eliminar
   };
 

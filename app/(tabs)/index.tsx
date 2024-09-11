@@ -24,25 +24,21 @@ export default function HomeScreen() {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
-  // Recupero información
   async function getIncomeData() {
     const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setIncomeData(data);
   };
 
-  // Recupero información
   async function getOutcomeData() {
     const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setOutcomeData(data);
   };
 
-  // Recupero información
   async function getCategoryData() {
     const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
     setCategoryData(data);
   };
-
-  // Recupero información
+  
   async function getBalanceData() {
     const data = await getBalance("f5267f06-d68b-4185-a911-19f44b4dc216");
     setBalanceData(data);
@@ -61,11 +57,9 @@ export default function HomeScreen() {
       headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
       headerImage={
         <View style = {styles.logoContainer}>
-          <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.reactLogo}/>
-        </View>
-      }
-    >
-      
+          <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
+        </View>}>
+    
       {/* Sección de balance */}
       <BalanceCard balance={balance} refreshData={getBalanceData}/>
 
@@ -86,20 +80,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
+  billyLogo: {
     height: 100,
     width: 100,
     resizeMode: 'contain',
-
   },
   logoContainer:{
     justifyContent: 'center',

@@ -51,7 +51,7 @@ export async function fetchIncomes(profile: string) {
   return data;
 };
  
-export async function getIncome(id: number | undefined, profile: string) {
+export async function getIncome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
@@ -74,7 +74,7 @@ export async function addIncome(profile: string, amount: number, description: st
   return data;
 };
 
-export async function removeIncome(id: number | undefined, profile: string) {
+export async function removeIncome(profile: string, id: number | undefined) {
     // Borro información
     await supabase
       .from('Incomes')
@@ -95,7 +95,7 @@ export async function fetchOutcomes(profile: string) {
   return data;
 };
 
-export async function getOutcome(id: number | undefined, profile: string) {
+export async function getOutcome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Outcome')
@@ -111,7 +111,7 @@ export async function addOutcome(profile: string, amount: number, category: stri
     category: category,
     description: description
   };
-  if (await checkCategoryLimit(category, amount) == true) {
+  if (await checkCategoryLimit(category, amount) == false ) {
     console.log("couldnt add due to category limit");
     return;
   }
@@ -124,7 +124,7 @@ export async function addOutcome(profile: string, amount: number, category: stri
   return data;
 };
 
-export async function removeOutcome(id: number | undefined, profile: string) {
+export async function removeOutcome(profile: string, id: number | undefined) {
   // Borro información
   await supabase
     .from('Outcomes')
@@ -145,7 +145,7 @@ export async function fetchCategories(profile: string) {
   return data;
 };
 
-export async function getCategory(category: string | undefined, profile: string) {
+export async function getCategory(profile: string, category: string | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
@@ -168,7 +168,7 @@ export async function addCategory(profile: string, name: string, color: string, 
     return data;
 }
 
-export async function removeCategory(category: string | undefined, profile: string) {
+export async function removeCategory(profile: string, category: string | undefined) {
     // Borro información
     await supabase
       .from('Categories')

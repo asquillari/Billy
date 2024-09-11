@@ -22,7 +22,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }
 const style = StyleSheet.create({
     balanceCard: {
         padding:16,
-        backgroundColor: 'rgba(255,255,255, 0.8)',
+        backgroundColor: '#B29CCA',
         borderRadius: 12,
         shadowColor: '#000',
         shadowOffset: {width:0, height:2 },

@@ -27,7 +27,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
+      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "9a042378-9f40-4bff-83d8-d8e78eea2343", description);
       refreshOutcomeData();
     }
 
@@ -41,7 +41,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
-        <Icon name="add" size={24} color="#000000"/>
+        <Icon name="add" size={24} color="#B29CCA"/>
       </TouchableOpacity>
 
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
@@ -49,14 +49,17 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
           <View style={styles.modalContainer}>
 
             <View style={styles.typeSelector}>
+
               <TouchableOpacity style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]} onPress={() => setType('Income')}>
                 <Text style={styles.typeButtonText}>Ingreso</Text>
               </TouchableOpacity>
+
               <TouchableOpacity style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]} onPress={() => setType('Outcome')}>
                 <Text style={styles.typeButtonText}>Gasto</Text>
               </TouchableOpacity>
+
             </View>
-    
+
             <Text style={styles.label}>Monto</Text>
             <TextInput style={styles.input} keyboardType="numeric" value={amount} onChangeText={setAmount} placeholder="Ingresar monto"/>
 
@@ -77,7 +80,6 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 };
@@ -168,10 +170,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   button: {
-    position: 'absolute', // Position the button absolutely
-    top: -93, // Adjust the vertical positioning
-    right: 10, // Align it to the right of the balance card
-    backgroundColor: '#FFFFFF',
+    position: 'absolute',
+    top: -93,
+    right: 10,
+    backgroundColor: '#3D0097',
     width: 60,
     height: 60,
     borderRadius: 30,
