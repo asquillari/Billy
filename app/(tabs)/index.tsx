@@ -73,44 +73,13 @@ export default function HomeScreen() {
     await signUp("robertito@gmail.com", "1234", "Roberto", "Tomás");
   }
 
-  async function handleAddIncome(): Promise<void> {
-    // Inserta en la tabla
-    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
-    // Actualizo los ingresos
-    getIncomeData();
-    // Actualizo el balance
-    getBalanceData();
-  };
-
-  async function handleRemoveIncome(id: number | undefined): Promise<void> {
-    // Remueve
-    await removeIncome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
-    // Actualizo
-    getIncomeData();
-  };
-
-  async function handleAddOutcome(): Promise<void> {
-    // Inserta en la tabla
-    await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
-    // Actualizo
-    getOutcomeData();
-    getCategoryData();
-  };
-
-  async function handleRemoveOutcome(id: number | undefined): Promise<void> {
-    // Remueve
-    await removeOutcome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
-    // Actualizo
-    getOutcomeData();
-  };
-
   return (
     <ParallaxScrollView
       headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
       headerImage={
         <View style = {styles.logoContainer}>
         <Image
-          source={require('@/assets/images/Billy/logo1.png')}  // Aquí va tu logo de Billy
+          source={require('@/assets/images/Billy/logo1.png')}
           style={styles.reactLogo}
         />
         </View>
@@ -118,19 +87,19 @@ export default function HomeScreen() {
     >
       
       {/* Sección de balance */}
-      <BalanceCard balance={balance} refreshData={getBalanceData} />
+      <BalanceCard balance={balance} refreshData={getBalanceData}/>
 
-      {/* Boton para agregar gastos/ingresos*/}
+      {/* Boton para agregar gastos/ingresos */}
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
-      {/* Sección de Carpetas con scroll horizontal*/}
+      {/* Sección de Carpetas con scroll horizontal */}
       <CategoryList categoryData={categoryData} refreshData={getCategoryData}/>
 
       {/* Sección de Ingresos */}
-      <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
+      <IncomeList incomeData={incomeData} refreshData={getIncomeData}/>
 
       {/* Sección de Egresos */}
-      <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData} />
+      <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData}/>
 
     </ParallaxScrollView>
   );

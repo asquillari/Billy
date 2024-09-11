@@ -21,9 +21,7 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
       <ThemedText type="subtitle">Ingresos:</ThemedText>
       {incomeData?.map((income) => (
         <ThemedView key={income.id} style={styles.incomeItem}>
-          <ThemedText>
-            {`Monto: $${income.amount}\nDescripción: ${income.description}`}
-          </ThemedText>
+          <ThemedText>{`Monto: $${income.amount}\nDescripción: ${income.description}`}</ThemedText>
           <Button color="#FF0000" title="Eliminar" onPress={() => handleRemoveIncome(income.id)} />
         </ThemedView>
       ))}

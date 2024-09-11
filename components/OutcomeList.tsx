@@ -21,9 +21,7 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
       <ThemedText type="subtitle">Gastos:</ThemedText>
       {outcomeData?.map((outcome) => (
         <ThemedView key={outcome.id} style={styles.outcomeItem}>
-          <ThemedText>
-            {`Monto: $${outcome.amount}\nDescripción: ${outcome.description}\n`}
-          </ThemedText>
+          <ThemedText>{`Monto: $${outcome.amount}\nDescripción: ${outcome.description}\n`}</ThemedText>
           <Button color="#FF0000" title="Eliminar" onPress={() => handleRemoveOutcome(outcome.id)} />
         </ThemedView>
       ))}

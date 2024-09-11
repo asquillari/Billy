@@ -30,6 +30,7 @@ export interface CategoryData {
   profile: string;
   spent? : number;
   limit?: number;
+  color?: string;
   created_at?: Timestamp;
 }
 
@@ -150,31 +151,18 @@ export async function getCategory(category: string | undefined, profile: string)
   return data;
 };
 
-export async function addCategory(profile: string, name: string, limit?: number) {
-  
-  try {
+export async function addCategory(profile: string, name: string, color?: string, limit?: number) {
     const newCategory: CategoryData = {
       profile: profile,
       name: name,
-      limit: limit
+      limit: limit,
+      color: color
     };
-  
-    // Insert category data into the database
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('Categories')
       .insert(newCategory);
-
-    // Check for errors
-    if (error) {
-      throw new Error(`Error inserting category: ${error.message}`);
-    }
-
     return data;
-  } catch (err) {
-    console.error("Error adding category:", err);
-    return null; // Return null or handle the error accordingly
-  }
-};
+}
 
 export async function removeCategory(category: string | undefined, profile: string) {
     // Borro información
