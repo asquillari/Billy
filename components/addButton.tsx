@@ -24,10 +24,10 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
 
   async function handleSubmit(): Promise<void> {
     if (type === 'Income') {
-      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
+      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "9a042378-9f40-4bff-83d8-d8e78eea2343", description);
+      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), "9a042378-9f40-4bff-83d8-d8e78eea2343", description);
       refreshOutcomeData();
     }
 
