@@ -4,10 +4,10 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
 import { FolderList } from '@/components/FolderList';
 import { IncomeList } from '@/components/IncomeList';
-import { ExpenseList } from '@/components/ExpenseList';
+import { OutcomeList } from '@/components/OutcomeList';
 import AddButton from '@/components/addButton';
 
-import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchExpenses, getExpense, addExpense, removeExpense, getBalance, IncomeData, ExpenseData } from '../../api/api';
+import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData } from '../../api/api';
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
@@ -20,7 +20,7 @@ export default function HomeScreen() {
   // deberían ir en la carpeta de "components" (era adivinable, sí). Por ejemplo, si tenemos dos botones iguales deberíamos 
   // agregarlo en components para no reutilizar el código (y hacerlo más modular)
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
-  const [expenseData, setExpenseData] = useState<ExpenseData[] | null>(null);
+  const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
   // Recupero información
@@ -30,9 +30,9 @@ export default function HomeScreen() {
   };
 
   // Recupero información
-  async function getExpenseData() {
-    const data = await fetchExpenses("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setExpenseData(data);
+  async function getOutcomeData() {
+    const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
+    setOutcomeData(data);
   };
 
   // Recupero información
@@ -48,7 +48,7 @@ export default function HomeScreen() {
 
   // Hace que se vea desde el principio
   useEffect(() => {
-    getExpenseData();
+    getOutcomeData();
   }, [])
 
   // Hace que se vea desde el principio
@@ -77,18 +77,18 @@ export default function HomeScreen() {
     getIncomeData();
   };
 
-  async function handleAddExpense(): Promise<void> {
+  async function handleAddOutcome(): Promise<void> {
     // Inserta en la tabla
-    await addExpense("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
+    await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
     // Actualizo
-    getExpenseData();
+    getOutcomeData();
   };
 
-  async function handleRemoveExpense(id: number | undefined): Promise<void> {
+  async function handleRemoveOutcome(id: number | undefined): Promise<void> {
     // Remueve
-    await removeExpense(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
+    await removeOutcome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
     // Actualizo
-    getExpenseData();
+    getOutcomeData();
   };
 
   return (
@@ -108,7 +108,7 @@ export default function HomeScreen() {
       <BalanceCard balance={balance} refreshData={getBalanceData} />
 
       {/* Boton para agregar gastos/ingresos*/}
-      <AddButton refreshIncomeData={getIncomeData} refreshExpenseData={getExpenseData}/>
+      <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
       {/* Sección de Carpetas con scroll horizontal*/}
       <FolderList/>
@@ -117,7 +117,7 @@ export default function HomeScreen() {
       <IncomeList incomeData={incomeData} refreshData={getIncomeData} />
 
       {/* Sección de Egresos */}
-      <ExpenseList expenseData={expenseData} refreshData={getExpenseData} />
+      <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData} />
 
     </ParallaxScrollView>
   );
