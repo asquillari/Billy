@@ -28,6 +28,7 @@ export interface OutcomeData {
 export interface CategoryData {
   name: string;
   profile: string;
+  balance? : number;
   limit?: number;
   created_at?: Timestamp;
 }
@@ -68,7 +69,7 @@ export async function addIncome(profile: string, amount: number, description: st
   const { data } = await supabase
     .from('Incomes')
     .insert(newIncome)
-  updateBalance(amount, profile);
+  updateBalance(profile, amount);
   return data;
 };
 
@@ -113,7 +114,8 @@ export async function addOutcome(profile: string, amount: number, category: stri
   const { data } = await supabase
     .from('Outcomes')
     .insert(newOutcome);
-  updateBalance(-amount, profile);
+  updateBalance(profile, -amount);
+  updateCategorySpent(category, amount);
   return data;
 };
 
@@ -138,12 +140,12 @@ export async function fetchCategories(profile: string) {
   return data;
 };
 
-export async function getCategory(id: string | undefined, profile: string) {
+export async function getCategory(category: string | undefined, profile: string) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
-    .eq('id', id)
+    .eq('id', category)
     .eq('profile', profile);
   return data;
 };
@@ -161,12 +163,12 @@ export async function addCategory(profile: string, name: string, limit?: number)
   return data;
 };
 
-export async function removeCategory(id: string | undefined, profile: string) {
+export async function removeCategory(category: string | undefined, profile: string) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
-      .eq('id', id)
+      .eq('id', category)
       .eq('profile', profile);
 }
 
@@ -178,6 +180,28 @@ export async function getCategoryFromExpense(expense: string) {
   return data;
 }
 
+async function getCategorySpent(category: string): Promise<number> {
+  const { data } = await supabase
+    .from('Categories')
+    .select('spent')
+    .eq('id', category)
+    .single();
+  return data?.spent ?? 0;
+}
+
+async function updateCategorySpent(category: string, added: number) {
+  var currentSpent = await getCategorySpent(category);
+  const newSpent = currentSpent + added;
+  await putCategorySpent(category, newSpent);
+}
+
+async function putCategorySpent(category: string, newSpent: number) {
+  const { data } = await supabase
+    .from('Categories')
+    .update({spent: newSpent})
+    .match({id: category}); 
+  return data;
+}
 
 
 /* Profiles */
@@ -230,7 +254,7 @@ return data;
 /* Balance */
 
 export async function getBalance(profile: string): Promise<number> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('Profiles')
     .select('balance')
     .eq('id', profile)
@@ -248,7 +272,7 @@ async function putBalance(profile: string, newBalance: number) {
 }
 
 // Update the balance based on an added or subtracted value
-async function updateBalance(added: number, profile: string) {
+async function updateBalance(profile: string, added: number) {
   var currentBalance = await getBalance(profile);
   const newBalance = currentBalance + added;
   await putBalance(profile, newBalance);
