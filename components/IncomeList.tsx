@@ -1,9 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
-import { Button, StyleSheet, View, Alert, TouchableOpacity } from 'react-native';
+import { Button, StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { removeIncome, IncomeData, getBalance } from '../api/api';
+
+import { FontAwesome } from '@expo/vector-icons';
 
 interface IncomeListProps {
   incomeData: IncomeData[] | null;
@@ -27,28 +29,79 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
     }]);
   };
 
+  const renderItem = ({ item }: { item: IncomeData }) => (
+    <TouchableOpacity onLongPress={() => handleLongPress(item)}>
+        <View style={styles.card}>
+            <View style={styles.iconContainer}>
+                <FontAwesome name="dollar" size={24} color="green" />
+            </View>
+            <View style={styles.textContainer}>
+                <ThemedText style={styles.description}>{item.description}</ThemedText>
+                <ThemedText style={styles.date}>{new Date(item.created_at??"null").toLocaleDateString()}</ThemedText>
+            </View>
+            <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
+        </View>
+    </TouchableOpacity>
+  );
+
   const handleRemoveIncome = async (profile: string, id: number) => {
     await removeIncome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };
 
   return (
-    <View>
-      <ThemedText type="subtitle">Ingresos:</ThemedText>
-      {incomeData?.map((income) => (
-        <TouchableOpacity key={income.id} onLongPress={() => handleLongPress(income)} style={styles.incomeItem}>
-          <ThemedText>{`Monto: $${income.amount}\nDescripción: ${income.description}`}</ThemedText>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.container}>
+      <FlatList
+          data={incomeData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id?.toString() || ''}
+          showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  incomeItem: {
-    marginBottom: 8,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#000000',
-  },
+    container: {
+        marginTop: 20,
+        paddingHorizontal: 16,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    card: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    iconContainer: {
+        marginRight: 16,
+    },
+    textContainer: {
+        flex: 1,
+    },
+    description: {
+        fontSize: 18,
+        color: '#555',
+        fontWeight: '400',
+    },
+    date: {
+        fontSize: 12,
+        color: '#888',
+    },
+    amount: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'green',
+    },
 });

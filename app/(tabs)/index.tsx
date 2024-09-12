@@ -5,7 +5,9 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import { IncomeList } from '@/components/IncomeList';
 import { OutcomeList } from '@/components/OutcomeList';
+import { TransactionList } from '@/components/TransactionList';
 import AddButton from '@/components/addButton';
+import { ThemedText } from '@/components/ThemedText';
 
 import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData, CategoryData, getCategory, fetchCategories } from '../../api/api';
 
@@ -68,10 +70,10 @@ export default function HomeScreen() {
       <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
 
       {/* Sección de Ingresos */}
-      <IncomeList incomeData={incomeData} refreshData={getIncomeData}/>
-
-      {/* Sección de Egresos */}
-      <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData}/>
+      <View>
+        <ThemedText style={styles.title}>Actividad reciente</ThemedText>
+        <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
+      </View>
 
     </ParallaxScrollView>
   );
@@ -88,5 +90,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: '100%',
     paddingTop: 45,
-  }
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });

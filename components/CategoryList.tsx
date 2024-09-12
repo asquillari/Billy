@@ -86,11 +86,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
             {/* Modal for details */}
             <Modal animationType="slide" transparent={true} visible={detailsModalVisible} onRequestClose={() => { setDetailsModalVisible(false); }}>
-                <View style={styles.modalBackground}>
-                    <View style={styles.modalContainer}>
+                <View style={styles.detailsModalBackground}>
+                    <View style={styles.detailsModalContainer}>
                         {selectedCategory && (
                             <>
-                                <Text style={styles.modalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
+                                <Text style={styles.detailsModalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
                                 <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory?.id ?? "null")} />
                                 <View style={styles.buttonContainer}>
                                     <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
@@ -187,6 +187,47 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#333',
     },
+    detailsModalBackground: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    detailsModalContainer: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingTop: 20,
+        paddingHorizontal: 16,
+        paddingBottom: 40,
+        maxHeight: '80%',
+    },
+    detailsModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    detailsModalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    detailsModalAmount: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#4CAF50',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        backgroundColor: '#FF6347',
+        borderRadius: 20,
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     label: {
         fontSize: 16,
         marginVertical: 8,
@@ -202,8 +243,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
     },
     buttonContainer: {
+        marginTop: 20,
         flexDirection: 'row',
-        justifyContent: 'space-between', // Space out the buttons
+        justifyContent: 'center', // Space out the buttons
         width: '100%',
     },
 });
