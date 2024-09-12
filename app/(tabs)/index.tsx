@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Image, StyleSheet, View, Dimensions} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -39,12 +39,16 @@ export default function HomeScreen() {
     setBalanceData(data);
   };
 
-  useEffect(() => {
+  const refreshAllData = useCallback(() => {
     getIncomeData();
     getOutcomeData();
     getBalanceData();
     getCategoryData();
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    refreshAllData();
+  }, [refreshAllData]);
 
   return (
     <ParallaxScrollView
@@ -61,7 +65,7 @@ export default function HomeScreen() {
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
 
       {/* Sección de Carpetas con scroll horizontal */}
-      <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData}/>
+      <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
 
       {/* Sección de Ingresos */}
       <IncomeList incomeData={incomeData} refreshData={getIncomeData}/>

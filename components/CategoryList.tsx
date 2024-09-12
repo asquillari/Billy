@@ -8,6 +8,7 @@ import { OutcomeList } from './OutcomeList';
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
     refreshCategoryData: () => void;
+    refreshAllData: () => void;
 }
 
 // Function to generate a random color
@@ -20,7 +21,7 @@ const getRandomColor = () => {
     return color;
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData }) => {
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -34,7 +35,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     async function getOutcomeData(profile: string, category: string) {
         const data = await fetchOutcomesByCategory(profile, category);
         setOutcomeData(data);
-        refreshCategoryData();
+        refreshAllData();
     };
 
     // See category details

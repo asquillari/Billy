@@ -295,15 +295,6 @@ export async function getBalance(profile: string): Promise<number> {
   return data?.balance ?? 0;
 }
 
-// Update the balance for a given profile
-async function putBalance(profile: string, newBalance: number) {
-  const { data } = await supabase
-    .from('Profiles')
-    .update({balance: newBalance})
-    .match({id: profile}); 
-  return data;
-}
-
 // Update the balance based on an added or subtracted value
 async function updateBalance(profile: string, added: number) {
   // Calls atomic function to avoid the infamous race condition
