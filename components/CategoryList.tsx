@@ -75,12 +75,13 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
             {categoryData?.map((category, index) => (
                 <TouchableOpacity key={index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
-                    <ThemedText>{`${category.name}\n$${category.spent}`}</ThemedText>
+                    <ThemedText>{category.name}</ThemedText>
+                    <ThemedText>${category.spent}</ThemedText>
                 </TouchableOpacity>
             ))}
 
             {/* Add button */}
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addCategoryButton}>
+            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
                 <Text style={styles.addCategoryText}>+</Text>
             </TouchableOpacity>
 
@@ -125,37 +126,49 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 };
 
 const styles = StyleSheet.create({
-    outcomeItem: {
-        marginBottom: 8,
-        padding: 8,
-        borderRadius: 8,
-        backgroundColor: '#000000',
-      },
     categoriesContainer: {
         flexDirection: 'row',
         flexWrap: 'nowrap',
         marginBottom: 16,
     },
     category: {
-        padding: 16,
-        backgroundColor: '#A1CEDC',
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: 150,
+        height: 80,
+        padding: 15,
+        borderRadius: 15,
         marginRight: 16,
-        width:120,
+        justifyContent: 'space-between',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    folderTab: {
+        position: 'absolute',
+        top: 0,
+        left: 15,
+        right: 15,
+        height: 15,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderBottomLeftRadius: 10,
+        borderBottomRightRadius: 10,
     },
     addCategoryButton: {
         padding: 16,
         backgroundColor: '#FF6347',
-        borderRadius: 8,
+        borderRadius: 15,
         alignItems: 'center',
         justifyContent: 'center',
-        width: 120,
+        width: 150,
+        height: 80,
     },
     addCategoryText: {
         fontSize: 24,
         color: '#FFFFFF',
+    },
+    outcomeItem: {
+        marginBottom: 8,
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: '#000000',
     },
     modalBackground: {
         flex: 1,
