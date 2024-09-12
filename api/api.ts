@@ -57,7 +57,8 @@ export async function getIncome(profile: string, id: number | undefined) {
   const { data } = await supabase
     .from('Incomes')
     .select('*')
-    .match({id, profile});
+    .match({id, profile})
+    .single();
   return data;
 };
 
@@ -76,11 +77,14 @@ export async function addIncome(profile: string, amount: number, description: st
 };
 
 export async function removeIncome(profile: string, id: number | undefined) {
-    // Borro información
-    await supabase
-      .from('Incomes')
-      .delete()
-      .match({id, profile});
+  const income = await getIncome(profile, id);
+  const amount = income?.amount;
+  // Borro información
+  await supabase
+    .from('Incomes')
+    .delete()
+    .match({id, profile});
+  await updateBalance(profile, -amount)
 }
 
 
@@ -109,9 +113,10 @@ export async function fetchOutcomesByCategory(profile: string, category: string)
 export async function getOutcome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
-    .from('Outcome')
+    .from('Outcomes')
     .select()
-    .match({id, profile});
+    .match({id, profile})
+    .single();  
   return data;
 };
 
@@ -136,11 +141,16 @@ export async function addOutcome(profile: string, category: string, amount: numb
 };
 
 export async function removeOutcome(profile: string, id: number | undefined) {
+  const outcome = await getOutcome(profile, id);
+  const amount = outcome?.amount;
+  const category = outcome?.category;
   // Borro información
   await supabase
     .from('Outcomes')
     .delete()
     .match({id, profile});
+  await updateBalance(profile, amount);
+  await updateCategorySpent(category, -amount);
 }
 
 
@@ -188,12 +198,13 @@ export async function removeCategory(profile: string, category: string | undefin
       .eq('profile', profile);
 }
 
-export async function getCategoryFromExpense(expense: string) {
+export async function getCategoryFromOutcome(outcome: number) {
   const { data } = await supabase
       .from('Expenses')
       .select('category')
-      .eq('id', expense);
-  return data;
+      .eq('id', outcome)
+      .single();
+  return data?.category ?? "null";
 }
 
 async function getCategoryLimit(category: string): Promise<number> {
@@ -211,6 +222,7 @@ async function getCategorySpent(category: string): Promise<number> {
     .select('spent')
     .eq('id', category)
     .single();
+  console.log(data);
   return data?.spent ?? 0;
 }
 
