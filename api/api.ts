@@ -41,6 +41,8 @@ export interface ProfileData {
   created_at?: Timestamp;
 }
 
+
+
 /* Incomes */
 
 export async function fetchIncomes(profile: string) {
