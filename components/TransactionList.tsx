@@ -10,9 +10,10 @@ interface TransactionListProps {
   outcomeData: OutcomeData[] | null;
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
+  scrollEnabled?: boolean;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData }) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, scrollEnabled = true }) => {
   
   // For deleting
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
@@ -75,14 +76,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-          data={combinedTransactions}
-          renderItem={renderTransactionItem}
-          keyExtractor={(item) => `${(item as any).type}-${item.id}`}
-          showsVerticalScrollIndicator={false}
-      />
-    </View>
+    <FlatList
+      data={combinedTransactions}
+      renderItem={renderTransactionItem}
+      keyExtractor={(item) => `${(item as any).type}-${item.id}`}
+      showsVerticalScrollIndicator={false}
+      style={styles.container}
+      scrollEnabled={scrollEnabled}
+    />
   );
 };
 

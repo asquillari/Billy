@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Image, StyleSheet, View, Dimensions} from 'react-native';
+
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { BalanceCard } from '@/components/BalanceCard';
-import { CategoryList } from '@/components/CategoryList';
-import { IncomeList } from '@/components/IncomeList';
-import { OutcomeList } from '@/components/OutcomeList';
-import { TransactionList } from '@/components/TransactionList';
-import AddButton from '@/components/addButton';
+
 import { ThemedText } from '@/components/ThemedText';
 
-import { signUp, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData, CategoryData, getCategory, fetchCategories } from '../../api/api';
+import { TransactionList } from '@/components/TransactionList';
+import { BalanceCard } from '@/components/BalanceCard';
+import { CategoryList } from '@/components/CategoryList';
+import AddButton from '@/components/addButton';
+
+import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
@@ -54,27 +55,26 @@ export default function HomeScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor= {{light: '#4B00B8', dark: '#20014E'}}
+      headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
       headerImage={
-        <View style = {styles.logoContainer}>
+        <View style={styles.logoContainer}>
           <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
-        </View>}>
+        </View>
+      }>
     
-      {/* Sección de balance */}
       <BalanceCard balance={balance} refreshData={getBalanceData}/>
-
-      {/* Boton para agregar gastos/ingresos */}
       <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
-
-      {/* Sección de Carpetas con scroll horizontal */}
       <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
-
-      {/* Sección de Ingresos */}
       <View>
         <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-        <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
+        <TransactionList 
+          incomeData={incomeData} 
+          outcomeData={outcomeData} 
+          refreshIncomeData={getIncomeData} 
+          refreshOutcomeData={getOutcomeData}
+          scrollEnabled={false}
+        />
       </View>
-
     </ParallaxScrollView>
   );
 }
