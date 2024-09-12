@@ -306,9 +306,12 @@ async function putBalance(profile: string, newBalance: number) {
 
 // Update the balance based on an added or subtracted value
 async function updateBalance(profile: string, added: number) {
-  var currentBalance = await getBalance(profile);
-  const newBalance = currentBalance + added;
-  await putBalance(profile, newBalance);
+  // Calls atomic function to avoid the infamous race condition
+  const { data } = await supabase.rpc('update_balance', { 
+    profile_id: profile, 
+    amount: added 
+  });
+  return data;
 }
 
 
