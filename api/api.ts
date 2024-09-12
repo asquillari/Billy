@@ -222,7 +222,6 @@ async function getCategorySpent(category: string): Promise<number> {
     .select('spent')
     .eq('id', category)
     .single();
-  console.log(data);
   return data?.spent ?? 0;
 }
 
