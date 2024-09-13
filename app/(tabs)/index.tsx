@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Image, StyleSheet, View, Dimensions} from 'react-native';
-
+import { Image, StyleSheet, View, Dimensions, Button } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -10,7 +9,7 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
 
-import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
+import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories, signUp, logIn } from '../../api/api';
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
@@ -22,6 +21,10 @@ export default function HomeScreen() {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
+  const [signUpMessage, setSignUpMessage] = useState<string | null>(null);
+  const [loginMessage, setLoginMessage] = useState<string | null>(null);
+
+  // Recupero información
   async function getIncomeData() {
     const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setIncomeData(data);
@@ -53,6 +56,25 @@ export default function HomeScreen() {
     refreshAllData();
   }, [refreshAllData]);
 
+  async function handleAddUser(): Promise<void> {
+    // Inserta en la tabla
+    try {
+      await signUp("agos@gmail.com", "1234", "agos", "squillari");
+      setSignUpMessage("Sign up successful!");
+    } catch (error) {
+      setSignUpMessage("Sign up failed.");
+    }
+  }
+
+  async function handleLogin(): Promise<void> {
+    try {
+      await logIn("agos@gmail.com", "1234");
+      setLoginMessage("Login successful!");
+    } catch (error) {
+      setLoginMessage("Login failed.");
+    }
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
@@ -75,6 +97,17 @@ export default function HomeScreen() {
           scrollEnabled={false}
         />
       </View>
+
+      {/* Botones para Sign Up y Login */}
+     {/* <View style={styles.buttonContainer}>
+        <Button title="Sign Up" onPress={handleAddUser} />
+        {signUpMessage && <Text>{signUpMessage}</Text>}
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Login" onPress={handleLogin} />
+        {loginMessage && <Text>{loginMessage}</Text>}
+      </View>*/}
+      
     </ParallaxScrollView>
   );
 }
@@ -95,4 +128,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  buttonContainer: {
+    margin: 10,
+    alignItems: 'center',
+  }
 });

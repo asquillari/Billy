@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'react-native-bcrypt';
 
 export interface UserData {
   email: string;
@@ -322,6 +324,17 @@ async function updateBalance(profile: string, added: number) {
 
 /* User */
 
+//Hasheo de contraseña
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+      if (err) reject(err);
+      hash ? resolve(hash) : reject('Error hashing password');
+    });
+  });
+}
+
 // Agregar usuario
 export async function addUser(email: string, password: string, name: string, surname: string) {
   const newUser: UserData = {
@@ -343,25 +356,27 @@ export async function addUser(email: string, password: string, name: string, sur
 
 //Sign Up
 export async function signUp(email: string, password: string, name: string, surname: string) {
+  const hashedPassword = await hashPassword(password);
   const { data, error } = await supabase.auth.signUp({
     email: email,
-    password: password
+    password: hashedPassword
   });
   if (error) {
     console.log(error);
     return error;
   } else {
     const { user, session } = data;
-    await addUser(email, password, name, surname);
+    await addUser(email, hashedPassword, name, surname);
     return user;
   }
 }
 
 //Login 
-export async function login(email: string, password: string) {
+export async function logIn(email: string, password: string) {
+  const hashedPassword = await hashPassword(password);
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
-    password: password
+    password: hashedPassword
   });
 
   if (error) {
