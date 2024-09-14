@@ -132,7 +132,11 @@ export async function addOutcome(profile: string, category: string, amount: numb
     description: description
   };
   if (await checkCategoryLimit(category, amount) == false) {
-    console.log("couldnt add due to category limit");
+    console.log("Couldn't add due to category limit");
+    return;
+  }
+  if (category == "") {
+    console.log("Category missing");
     return;
   }
   // Inserto información
