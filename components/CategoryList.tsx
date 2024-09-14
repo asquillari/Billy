@@ -4,6 +4,8 @@ import { addCategory, CategoryData, removeCategory, fetchOutcomesByCategory } fr
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { OutcomeList } from './OutcomeList';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
@@ -11,14 +13,28 @@ interface CategoryListProps {
     refreshAllData: () => void;
 }
 
-// Function to generate a random color
-const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+const gradients = [
+    ['#F1B267', '#EEF160'],
+    ['#7E91F7', '#41D9FA'],
+    ['#F77EE4', '#B06ECF'],
+    ['#CBEC48', '#50B654'],
+    ['#48ECE2', '#62D29C']
+];
+
+let currentGradientIndex = 0;
+
+const getNextGradient = () => {
+    const gradient = gradients[currentGradientIndex];
+    currentGradientIndex = (currentGradientIndex + 1) % gradients.length;
+    return gradient;
+};
+
+const parseGradient = (color: string): string[] => {
+    try {
+        return JSON.parse(color);
+    } catch {
+        return ['#48ECE2', '#62D29C']; // Colores por defecto
     }
-    return color;
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
@@ -27,6 +43,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
+    const colorScheme = useColorScheme();
 
     // For details
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
@@ -63,8 +80,8 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     // Adds category
     const handleAddCategory = async () => {
-        const randomColor = getRandomColor(); // Generate a random color
-        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, randomColor, parseFloat(limit));
+        const gradient = getNextGradient();
+        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, JSON.stringify(gradient), parseFloat(limit));
         setName('');
         setLimit('');
         setModalVisible(false);
@@ -73,16 +90,33 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {categoryData?.map((category, index) => (
-                <TouchableOpacity key={index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
-                    <ThemedText>{category.name}</ThemedText>
-                    <ThemedText>${category.spent}</ThemedText>
-                </TouchableOpacity>
-            ))}
+            {categoryData?.map((category, index) => {
+                const gradientColors = parseGradient(category.color);
+                return (
+                    <TouchableOpacity 
+                        key={index} 
+                        onPress={() => handleCategoryPress(category)} 
+                        onLongPress={() => handleLongPress(category)}
+                    >
+                        <LinearGradient 
+                            colors={gradientColors} 
+                            style={styles.category}
+                            start={{x: 0, y: 0}}
+                            end={{x: 0, y: 1}}
+                        >
+                            <ThemedText>{category.name}</ThemedText>
+                            <ThemedText>${category.spent}</ThemedText>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                );
+            })}
 
             {/* Add button */}
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
-                <Text style={styles.addCategoryText}>+</Text>
+                <Text style={[
+                    styles.addCategoryText,
+                    { color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }
+                ]}>+</Text>
             </TouchableOpacity>
 
             {/* Modal for details */}
@@ -162,7 +196,7 @@ const styles = StyleSheet.create({
     },
     addCategoryText: {
         fontSize: 24,
-        color: '#FFFFFF',
+        // El color se aplicará dinámicamente
     },
     outcomeItem: {
         marginBottom: 8,

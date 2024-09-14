@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+// ... resto de las importaciones ...
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome } from '../api/api';
+import { addIncome, addOutcome, fetchCategories, CategoryData } from '../api/api';
 
 interface AddButtonProps {
   refreshIncomeData: () => void;
@@ -17,6 +19,15 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
   const [bubbleAnimation] = useState(new Animated.Value(0));
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  useEffect(() => {
+    if (modalVisible) {
+      fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216")
+        .then(categories => setCategories(categories || []));
+    }
+  }, [modalVisible]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -28,7 +39,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", "9a042378-9f40-4bff-83d8-d8e78eea2343", parseFloat(amount), description);
+      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory, parseFloat(amount), description);
       refreshOutcomeData();
     }
 
@@ -36,6 +47,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
     setDescription('');
     setDate(new Date());
     setType('Outcome');
+    setSelectedCategory('');
     setModalVisible(false);
   }
 
@@ -102,6 +114,22 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
                 placeholderTextColor="#AAAAAA"
               />
 
+              {type === 'Outcome' && (
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={selectedCategory}
+                    onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+                    style={styles.picker}
+                    itemStyle={styles.pickerItem}
+                  >
+                    <Picker.Item label="Selecciona una categoría" value="" />
+                    {categories.map((category) => (
+                      <Picker.Item key={category.id} label={category.name} value={category.id} />
+                    ))}
+                  </Picker>
+                </View>
+              )}
+
               <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
                 <Text style={[styles.datePickerText, !date && styles.placeholderText]}>
                   {date ? date.toDateString() : 'Fecha'}
@@ -133,6 +161,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    top: -160,
+    left: 30,
   },
   modalBackground: {
     flex: 1,
@@ -231,16 +261,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -93,
     right: 10,
-    backgroundColor: '#3D0097',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+    width: 75,
+    height: 75,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 4,
   },
   closeButton: {
@@ -275,6 +305,27 @@ const styles = StyleSheet.create({
   scanButtonText: {
     color: '#6A1B9A',
     fontSize: 16,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    marginBottom: 16,
+    backgroundColor: '#f9f9f9',
+    overflow: 'hidden',
+  },
+  pickerItem: {
+    fontSize: 16,
+    height: 50,  // Ajusta este valor para mover el centro de los items
+    textAlign: 'center',
+  },
+  rectangle: {
+    justifyContent: 'center', // Centra verticalmente
+    alignItems: 'center', // Centra horizontalmente
   },
 });
 

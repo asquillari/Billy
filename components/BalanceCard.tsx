@@ -12,23 +12,48 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }
     refreshData();
     
     return (
-        <View style = {style.balanceCard}>
-            <ThemedText type="subtitle" style={{color: 'black'}}>Balance total: ${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
+        <View style={styles.balanceCard}>
+            <ThemedText type="subtitle" style={styles.balanceTotalText}>Balance total:</ThemedText>
+            <ThemedText type="title" style={styles.balanceAmount}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
         </View>
     );
 
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
     balanceCard: {
-        padding:16,
-        backgroundColor: '#B29CCA',
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: {width:0, height:2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        height: 201,
+        width: 345,
+        backgroundColor: 'rgba(0, 0, 0, 0.08)', // Cambiado a #00000014
+        borderRadius: 25,
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.05)', // #ffffff0d
+        shadowColor: 'rgba(0, 0, 0, 0.25)', // #00000040
+        shadowOffset: { width: 1, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+        elevation: 5,
+        padding: 16,
         marginBottom: 16,
+        justifyContent: 'flex-start', // Alinea el contenido al principio del contenedor
+    },
+    balanceTotalText: {
+        color: '#3C3C3C',
+        fontFamily: 'Amethysta-Regular',
+        fontSize: 14,
+        fontWeight: '400',
+        marginTop: 16, // Añadido para bajar el texto
+        marginLeft: 63, // Añadido para mover el texto a la derecha
+        letterSpacing: -0.28,
+    },
+    balanceAmount: {
+        color: '#3C3C3C',
+        fontFamily: 'Amethysta-Regular',
+        fontSize: 40,
+        fontWeight: '400',
+        letterSpacing: -2,
+        marginTop: 18, // Aumentado para bajar más el número
+        marginLeft: 63, // Añadido para alinear con el texto superior
+        lineHeight: 48, // Añadido para asegurar que el texto no se corte
     },
 });
