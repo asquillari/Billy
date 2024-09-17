@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput, Alert } from 'react-native';
 import { addCategory, CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { OutcomeList } from './OutcomeList';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useColorScheme } from '@/hooks/useColorScheme';
+
+const DEFAULT_OTROS_CATEGORY: CategoryData = {
+  id: 'otros-default',
+  profile: 'f5267f06-d68b-4185-a911-19f44b4dc216',
+  name: 'Otros',
+  color: JSON.stringify(['#AAAAAA', '#AAAAAA']), 
+  spent: 0,
+  limit: 0,
+};
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
@@ -11,14 +22,28 @@ interface CategoryListProps {
     refreshAllData: () => void;
 }
 
-// Function to generate a random color
-const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+const gradients = [
+    ['#F1B267', '#EEF160'],
+    ['#7E91F7', '#41D9FA'],
+    ['#F77EE4', '#B06ECF'],
+    ['#CBEC48', '#50B654'],
+    ['#48ECE2', '#62D29C']
+];
+
+let currentGradientIndex = 0;
+
+const getNextGradient = () => {
+    const gradient = gradients[currentGradientIndex];
+    currentGradientIndex = (currentGradientIndex + 1) % gradients.length;
+    return gradient;
+};
+
+const parseGradient = (color: string): string[] => {
+    try {
+        return JSON.parse(color);
+    } catch {
+        return ['#48ECE2', '#62D29C']; // Colores por defecto
     }
-    return color;
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
@@ -27,6 +52,16 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const colorScheme = useColorScheme();
+
+    // Aseguramos que "Otros" siempre esté presente y al final
+    const sortedCategories = useMemo(() => {
+        if (!categoryData) return [DEFAULT_OTROS_CATEGORY];
+        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || DEFAULT_OTROS_CATEGORY;
+        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
+        return [...otherCategories, otrosCategory];
+    }, [categoryData]);
 
     // For details
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
@@ -48,8 +83,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     // For deleting
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
 
-    // Remove category
     const handleLongPress = (category: CategoryData) => {
+        if (category.name === "Otros") {
+            Alert.alert("Acción no permitida", "La categoría 'Otros' no puede ser eliminada.");
+            return;
+        }
         setSelectedCategory(category);
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
@@ -61,10 +99,35 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         }]);
     };
 
+    const getCategoryColor = (category: CategoryData) => {
+        if (category.name === "Otros") {
+            return ['#CECECE', '#CECECE'];
+        }
+        return parseGradient(category.color);
+    };
+
+    const handleNameChange = (text: string) => {
+        setName(text);
+        setErrorMessage('');
+    };
+
+    const validateCategoryName = () => {
+        const categoryExists = sortedCategories.some(
+            category => category.name.toLowerCase() === name.toLowerCase()
+        );
+        if (categoryExists) {
+            setErrorMessage('Ya existe una categoría con ese nombre');
+            return false;
+        }
+        return true;
+    };
+
     // Adds category
     const handleAddCategory = async () => {
-        const randomColor = getRandomColor(); // Generate a random color
-        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, randomColor, parseFloat(limit));
+        if (!validateCategoryName()) return;
+
+        const gradient = getNextGradient();
+        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, JSON.stringify(gradient), parseFloat(limit));
         setName('');
         setLimit('');
         setModalVisible(false);
@@ -73,16 +136,33 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {categoryData?.map((category, index) => (
-                <TouchableOpacity key={index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)} style={[styles.category, { backgroundColor: category.color }]}>
-                    <ThemedText>{category.name}</ThemedText>
-                    <ThemedText>${category.spent}</ThemedText>
-                </TouchableOpacity>
-            ))}
+            {sortedCategories.map((category, index) => {
+                const gradientColors = getCategoryColor(category);
+                return (
+                    <TouchableOpacity 
+                        key={category.id || index} 
+                        onPress={() => handleCategoryPress(category)} 
+                        onLongPress={() => handleLongPress(category)}
+                    >
+                        <LinearGradient 
+                            colors={gradientColors} 
+                            style={styles.category}
+                            start={{x: 0, y: 0}}
+                            end={{x: 0, y: 1}}
+                        >
+                            <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
+                            <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                );
+            })}
 
             {/* Add button */}
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
-                <Text style={styles.addCategoryText}>+</Text>
+                <Text style={[
+                    styles.addCategoryText,
+                    { color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }
+                ]}>+</Text>
             </TouchableOpacity>
 
             {/* Modal for details */}
@@ -108,10 +188,22 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                     <View style={styles.modalContainer}>
             
                         <Text style={styles.label}>Nombre</Text>
-                        <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ingresar nombre"/>
+                        <TextInput 
+                            style={styles.input} 
+                            value={name} 
+                            onChangeText={handleNameChange} 
+                            placeholder="Ingresar nombre"
+                        />
+                        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
                         <Text style={styles.label}>Límite</Text>
-                        <TextInput style={styles.input} keyboardType="numeric" value={limit} onChangeText={setLimit} placeholder="Ingresar límite"/>
+                        <TextInput 
+                            style={styles.input} 
+                            keyboardType="numeric" 
+                            value={limit} 
+                            onChangeText={setLimit} 
+                            placeholder="Ingresar límite"
+                        />
 
                         <View style={styles.buttonContainer}>
                             <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
@@ -162,7 +254,7 @@ const styles = StyleSheet.create({
     },
     addCategoryText: {
         fontSize: 24,
-        color: '#FFFFFF',
+        // El color se aplicará dinámicamente
     },
     outcomeItem: {
         marginBottom: 8,
@@ -260,5 +352,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center', // Space out the buttons
         width: '100%',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 14,
+        marginTop: 5,
+    },
+    categoryName: {
+        color: '#000000', // Negro
+        fontWeight: 'bold',
+    },
+    categoryAmount: {
+        color: '#000000', // Negro
     },
 });
