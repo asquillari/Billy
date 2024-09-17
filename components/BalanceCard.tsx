@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -11,29 +11,31 @@ interface BalanceCardProps {
 }
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, income, expenses }) => {
+    
+    const colorScheme = useColorScheme();
+    const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#3B3B3B';
+
     return (
         <View style={styles.box}>
             <LinearGradient
                 colors={['rgba(0, 0, 0, 0.08)', 'rgba(0, 0, 0, 0.08)']}
                 style={styles.balanceCard}
             >
-                <ThemedText type="subtitle" style={styles.balanceTotalText}>Balance total:</ThemedText>
-                <ThemedText type="title" style={styles.balanceAmount}>
-                    ${balance?.toFixed(2) ?? '0.00'}
-                </ThemedText>
+                <ThemedText type="subtitle" style={[styles.balanceTotalText, { color: textColor }]}>Balance total:</ThemedText>
+                <ThemedText type="title" style={[styles.balanceAmount, { color: textColor }]}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
                 <View style={styles.ingresosGastosCard}>
                     <View style={styles.ingresosCard}>
                         <View style={styles.ingresoPlata}>
-                            <ThemedText style={styles.textWrapper}>Ingresos</ThemedText>
-                            <ThemedText style={styles.amount}>
+                            <ThemedText style={[styles.textWrapper, { color: textColor }]}>Ingresos</ThemedText>
+                            <ThemedText style={[styles.amount, { color: textColor }]}>
                                 ${income?.toFixed(2) ?? '0.00'}
                             </ThemedText>
                         </View>
                     </View>
                     <View style={styles.gastosCard}>
                         <View style={styles.gastoPlata}>
-                            <ThemedText style={styles.textWrapper}>Gastos</ThemedText>
-                            <ThemedText style={styles.amount}>
+                            <ThemedText style={[styles.textWrapper, { color: textColor }]}>Gastos</ThemedText>
+                            <ThemedText style={[styles.amount, { color: textColor }]}>
                                 ${expenses?.toFixed(2) ?? '0.00'}
                             </ThemedText>
                         </View>
@@ -62,8 +64,6 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     balanceTotalText: {
-        color: '#3B3B3B',
-        fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
         position: 'absolute',
@@ -72,8 +72,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.28,
     },
     balanceAmount: {
-        color: '#3B3B3B',
-        fontFamily: 'Amethysta-Regular',
         fontSize: 40,
         fontWeight: '400',
         position: 'absolute',
@@ -117,19 +115,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     textWrapper: {
-        color: '#3B3B3B',
-        fontFamily: 'Amethysta-Regular',
         fontSize: 10,
         fontWeight: '400',
         letterSpacing: -0.5,
     },
     amount: {
-        color: '#3B3B3B',
-        fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
         letterSpacing: -0.7,
-        marginTop: 5,
+        marginTop: -10,
     },
 });
 
