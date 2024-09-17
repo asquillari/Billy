@@ -11,7 +11,7 @@ interface AddButtonProps {
 
 const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [type, setType] = useState<'Income' | 'Outcome'>('Income');
+  const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -24,88 +24,61 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
 
   async function handleSubmit(): Promise<void> {
     if (type === 'Income') {
-      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), description);
+      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
+      refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", parseInt(amount), "f9ab4221-1b2e-45e8-b167-bb288c97995c", description);
-    }
-
-    refreshIncomeData();
-    refreshOutcomeData();
+      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", "9a042378-9f40-4bff-83d8-d8e78eea2343", parseFloat(amount), description);
+      refreshOutcomeData();
+    } 
 
     setAmount('');
     setDescription('');
     setDate(new Date()); 
-    setType('Income');
+    setType('Outcome');
     setModalVisible(false);
   }
 
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
-        <Icon name="add" size={24} color="#000000" />
+        <Icon name="add" size={24} color="#B29CCA"/>
       </TouchableOpacity>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}
-      >
+      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => {setModalVisible(false);}}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Fill the Form</Text>
 
             <View style={styles.typeSelector}>
-              <TouchableOpacity
-                style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]}
-                onPress={() => setType('Income')}
-              >
-                <Text style={styles.typeButtonText}>Income</Text>
+
+              <TouchableOpacity style={[styles.typeButton, type === 'Income' && styles.typeButtonSelected]} onPress={() => setType('Income')}>
+                <Text style={styles.typeButtonText}>Ingreso</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]}
-                onPress={() => setType('Outcome')}
-              >
-                <Text style={styles.typeButtonText}>Outcome</Text>
+
+              <TouchableOpacity style={[styles.typeButton, type === 'Outcome' && styles.typeButtonSelected]} onPress={() => setType('Outcome')}>
+                <Text style={styles.typeButtonText}>Gasto</Text>
               </TouchableOpacity>
+
             </View>
 
-            <Text style={styles.label}>Amount</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="Enter amount"
-            />
+            <Text style={styles.label}>Monto</Text>
+            <TextInput style={styles.input} keyboardType="numeric" value={amount} onChangeText={setAmount} placeholder="Ingresar monto"/>
 
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.input}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Enter description"
-            />
+            <Text style={styles.label}>Descripción</Text>
+            <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="Ingresar descripción"/>
 
-            <Text style={styles.label}>Date</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
-                <Text style={styles.datePickerText}>{date.toDateString()}</Text>
-                <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon} />
-              </TouchableOpacity>
+            <Text style={styles.label}>Fecha</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+              <Text style={styles.datePickerText}>{date.toDateString()}</Text>
+              <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon}/>
+            </TouchableOpacity>
+            
+            {showDatePicker && (<DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange}/>)}
+            
+            <View style={styles.buttonContainer}>
+              <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
+              <Button title="Submit" onPress={handleSubmit} />
+            </View>
 
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                  />
-                )}
-
-            <Button title="Submit" onPress={handleSubmit} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="#FF0000" />
           </View>
         </View>
       </Modal>
@@ -199,7 +172,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   button: {
-    backgroundColor: '#FFFFFF',
+    position: 'absolute',
+    top: -93,
+    right: 10,
+    backgroundColor: '#3D0097',
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -210,6 +186,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Space out the buttons
+    width: '100%',
   },
 });
 
