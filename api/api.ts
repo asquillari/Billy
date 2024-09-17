@@ -62,13 +62,14 @@ export async function fetchIncomes(profile: string) {
     .match({profile});
   return data;
 };
- 
+
 export async function getIncome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select('*')
-    .match({id, profile})
+    .eq('id', id)
+    .eq('profile', profile)
     .single();
   return data;
 };
@@ -79,23 +80,21 @@ export async function addIncome(profile: string, amount: number, description: st
     amount: amount,
     description: description
   };
-  // Inserto información  
-  const { data } = await supabase
-    .from('Incomes')
-    .insert(newIncome)
-  updateBalance(profile, amount);
-  return data;
+  const [insertResult] = await Promise.all([
+    supabase.from('Incomes').insert(newIncome).select(),
+    updateBalance(profile, amount)
+  ]);
+  return insertResult.data;
 };
 
 export async function removeIncome(profile: string, id: number | undefined) {
   const income = await getIncome(profile, id);
   const amount = income?.amount;
   // Borro información
-  await supabase
-    .from('Incomes')
-    .delete()
-    .match({id, profile});
-  await updateBalance(profile, -amount)
+  const [deleteResult] = await Promise.all([
+    supabase.from('Incomes').delete().match({ id, profile }),
+    updateBalance(profile, -income.amount)
+  ]);
 }
 
 
@@ -126,7 +125,8 @@ export async function getOutcome(profile: string, id: number | undefined) {
   const { data } = await supabase
     .from('Outcomes')
     .select()
-    .match({id, profile})
+    .eq('id', id)
+    .eq('profile', profile)
     .single();  
   return data;
 };
@@ -146,13 +146,13 @@ export async function addOutcome(profile: string, category: string, amount: numb
     console.log("Category missing");
     return;
   }
-  // Inserto información
-  const { data } = await supabase
-    .from('Outcomes')
-    .insert(newOutcome);
-  updateBalance(profile, -amount);
-  updateCategorySpent(category, amount);
-  return data;
+  const [insertResult] = await Promise.all([
+    checkCategoryLimit(category, amount),
+    supabase.from('Outcomes').insert(newOutcome).select(),
+    updateBalance(profile, -amount),
+    updateCategorySpent(category, amount)
+  ]);
+  return insertResult;
 };
 
 export async function removeOutcome(profile: string, id: number | undefined) {
@@ -160,12 +160,14 @@ export async function removeOutcome(profile: string, id: number | undefined) {
   const amount = outcome?.amount;
   const category = outcome?.category;
   // Borro información
-  await supabase
-    .from('Outcomes')
-    .delete()
-    .match({id, profile});
-  await updateBalance(profile, amount);
-  await updateCategorySpent(category, -amount);
+  const [deleteResult] = await Promise.all([
+    supabase
+      .from('Outcomes')
+      .delete()
+      .match({ id, profile }),
+    updateBalance(profile, outcome.amount),
+    updateCategorySpent(outcome.category, -outcome.amount)
+  ]);
 }
 
 

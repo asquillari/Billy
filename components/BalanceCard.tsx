@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 1, height: 2 },
         shadowOpacity: 1,
         shadowRadius: 10,
-        elevation: 5,
     },
     balanceTotalText: {
         fontSize: 14,
