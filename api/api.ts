@@ -89,10 +89,9 @@ export async function addIncome(profile: string, amount: number, description: st
 
 export async function removeIncome(profile: string, id: number | undefined) {
   const income = await getIncome(profile, id);
-  const amount = income?.amount;
   // Borro información
   const [deleteResult] = await Promise.all([
-    supabase.from('Incomes').delete().match({ id, profile }),
+    supabase.from('Incomes').delete().eq('profile', profile).eq('id', id),
     updateBalance(profile, -income.amount)
   ]);
   return deleteResult;
@@ -158,11 +157,9 @@ export async function addOutcome(profile: string, category: string, amount: numb
 
 export async function removeOutcome(profile: string, id: number | undefined) {
   const outcome = await getOutcome(profile, id);
-  const amount = outcome?.amount;
-  const category = outcome?.category;
   // Borro información
   const [deleteResult] = await Promise.all([
-    supabase.from('Outcomes').delete().match({ id, profile }),
+    supabase.from('Outcomes').delete().eq('profile', profile).eq('id', id),
     updateBalance(profile, outcome.amount),
     updateCategorySpent(outcome.category, -outcome.amount)
   ]);
@@ -188,7 +185,8 @@ export async function getCategory(profile: string, category: string | undefined)
     .from('Categories')
     .select()
     .eq('id', category)
-    .eq('profile', profile);
+    .eq('profile', profile)
+    .single();
   return data;
 };
 
@@ -211,7 +209,8 @@ export async function removeCategory(profile: string, category: string | undefin
       .from('Categories')
       .delete()
       .eq('id', category)
-      .eq('profile', profile);
+      .eq('profile', profile)
+      .single();
 }
 
 export async function getCategoryFromOutcome(outcome: number) {
@@ -251,7 +250,8 @@ async function putCategorySpent(category: string, newSpent: number) {
   const { data } = await supabase
     .from('Categories')
     .update({spent: newSpent})
-    .eq('id', category); 
+    .eq('id', category)
+    .single();
   return data;
 }
 
