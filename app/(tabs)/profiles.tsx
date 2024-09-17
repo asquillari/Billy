@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View, Dimensions, Text} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 
-export default function calendar() {
+export default function Profiles() {
 
     return(
         <View>
-            <Text style={styles.displayText}> Calendar </Text>
+            <Text style={styles.displayText}> Estadisticas </Text>
         </View>
     );
+    
+
+
 
 }
 
