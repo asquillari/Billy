@@ -59,7 +59,7 @@ export async function fetchIncomes(profile: string) {
   const { data } = await supabase
     .from('Incomes')
     .select()
-    .match({profile});
+    .eq('profile', profile)
   return data;
 };
 
@@ -95,6 +95,7 @@ export async function removeIncome(profile: string, id: number | undefined) {
     supabase.from('Incomes').delete().match({ id, profile }),
     updateBalance(profile, -income.amount)
   ]);
+  return deleteResult;
 }
 
 
@@ -106,7 +107,7 @@ export async function fetchOutcomes(profile: string) {
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
-    .match({profile});
+    .eq('profile', profile)
   return data;
 };
 
@@ -161,13 +162,11 @@ export async function removeOutcome(profile: string, id: number | undefined) {
   const category = outcome?.category;
   // Borro información
   const [deleteResult] = await Promise.all([
-    supabase
-      .from('Outcomes')
-      .delete()
-      .match({ id, profile }),
+    supabase.from('Outcomes').delete().match({ id, profile }),
     updateBalance(profile, outcome.amount),
     updateCategorySpent(outcome.category, -outcome.amount)
   ]);
+  return deleteResult;
 }
 
 
@@ -252,7 +251,7 @@ async function putCategorySpent(category: string, newSpent: number) {
   const { data } = await supabase
     .from('Categories')
     .update({spent: newSpent})
-    .match({id: category}); 
+    .eq('id', category); 
   return data;
 }
 
