@@ -46,7 +46,6 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
     setAmount('');
     setDescription('');
     setDate(new Date());
-    setType('Outcome');
     setSelectedCategory('');
     setModalVisible(false);
   }

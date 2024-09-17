@@ -22,7 +22,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }
 
 const styles = StyleSheet.create({
     balanceCard: {
-        height: 201,
+        height: 200,
         width: 345,
         backgroundColor: 'rgba(0, 0, 0, 0.08)', // Cambiado a #00000014
         borderRadius: 25,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 1, height: 2 },
         shadowOpacity: 1,
         shadowRadius: 10,
-        elevation: 5,
+        elevation: 0,
         padding: 16,
         marginBottom: 16,
         justifyContent: 'flex-start', // Alinea el contenido al principio del contenedor
