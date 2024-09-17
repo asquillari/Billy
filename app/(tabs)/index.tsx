@@ -1,79 +1,50 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Image, StyleSheet, View, Dimensions, Button } from 'react-native';
+import { Image, StyleSheet, View, Dimensions } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-
 import { ThemedText } from '@/components/ThemedText';
-
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
+import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
 
-import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories, signUp, logIn } from '../../api/api';
-
-//obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
 
 export default function HomeScreen() {
-
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [signUpMessage, setSignUpMessage] = useState<string | null>(null);
-  const [loginMessage, setLoginMessage] = useState<string | null>(null);
-
-  // Recupero información
-  async function getIncomeData() {
-    const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setIncomeData(data);
-  };
-
-  async function getOutcomeData() {
-    const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setOutcomeData(data);
-  };
-
-  async function getCategoryData() {
-    const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setCategoryData(data);
-  };
-  
-  async function getBalanceData() {
-    const data = await getBalance("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setBalanceData(data);
-  };
-
-  const refreshAllData = useCallback(() => {
-    getIncomeData();
-    getOutcomeData();
-    getBalanceData();
-    getCategoryData();
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const userId = "f5267f06-d68b-4185-a911-19f44b4dc216";
+      const [incomes, outcomes, categories, balanceData] = await Promise.all([
+        fetchIncomes(userId),
+        fetchOutcomes(userId),
+        fetchCategories(userId),
+        getBalance(userId)
+      ]);
+      
+      setIncomeData(incomes);
+      setOutcomeData(outcomes);
+      setCategoryData(categories);
+      setBalanceData(balanceData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
+    fetchData();
+  }, [fetchData]);
 
-  async function handleAddUser(): Promise<void> {
-    // Inserta en la tabla
-    try {
-      await signUp("agos@gmail.com", "1234", "agos", "squillari");
-      setSignUpMessage("Sign up successful!");
-    } catch (error) {
-      setSignUpMessage("Sign up failed.");
-    }
-  }
-
-  async function handleLogin(): Promise<void> {
-    try {
-      await logIn("agos@gmail.com", "1234");
-      setLoginMessage("Login successful!");
-    } catch (error) {
-      setLoginMessage("Login failed.");
-    }
-  }
+  const totalIncome = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0;
+  const totalExpenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0;
 
   return (
     <ParallaxScrollView
@@ -84,21 +55,33 @@ export default function HomeScreen() {
         </View>
       }>
     
-      <BalanceCard balance={balance} refreshData={getBalanceData}/>
-      <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
-      <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
-      <View>
-        <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-        <TransactionList 
-          incomeData={incomeData} 
-          outcomeData={outcomeData} 
-          refreshIncomeData={getIncomeData} 
-          refreshOutcomeData={getOutcomeData}
-          scrollEnabled={false}
-        />
-      </View>
+      {isLoading ? (
+        <ThemedText>Cargando...</ThemedText>
+      ) : (
+        <>
+          <BalanceCard 
+            balance={balance} 
+            income={totalIncome}
+            expenses={totalExpenses}
+            refreshData={fetchData}
+          />
+          <AddButton refreshIncomeData={fetchData} refreshOutcomeData={fetchData}/>
+          <CategoryList categoryData={categoryData} refreshCategoryData={fetchData} refreshAllData={fetchData}/>
+          <View>
+            <ThemedText style={styles.title}>Actividad reciente</ThemedText>
+            <TransactionList 
+              incomeData={incomeData} 
+              outcomeData={outcomeData} 
+              refreshIncomeData={fetchData} 
+              refreshOutcomeData={fetchData}
+              scrollEnabled={false}
+            />
+          </View>
+        </>
+      )}
 
-      {/* Botones para Sign Up y Login */}
+
+ {/* Botones para Sign Up y Login */}
      {/* <View style={styles.buttonContainer}>
         <Button title="Sign Up" onPress={handleAddUser} />
         {signUpMessage && <Text>{signUpMessage}</Text>}
@@ -107,7 +90,7 @@ export default function HomeScreen() {
         <Button title="Login" onPress={handleLogin} />
         {loginMessage && <Text>{loginMessage}</Text>}
       </View>*/}
-      
+
     </ParallaxScrollView>
   );
 }

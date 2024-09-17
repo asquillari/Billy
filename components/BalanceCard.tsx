@@ -1,59 +1,135 @@
 import React from 'react';
-import { StyleSheet, View , useColorScheme} from 'react-native';
-import { ThemedText } from '@/components/ThemedText'
+import { StyleSheet, View } from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface BalanceCardProps {
     balance: number | null;
+    income: number | null;
+    expenses: number | null;
     refreshData: () => void;
 }
 
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }) => {
-    const colorScheme = useColorScheme();
-    const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#3C3C3C';
-
-    refreshData();
-    
+export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, income, expenses }) => {
     return (
-        <View style={styles.balanceCard}>
-            <ThemedText type="subtitle" style={[styles.balanceTotalText, { color: textColor }]}>Balance total:</ThemedText>
-            <ThemedText type="title" style={[styles.balanceAmount, { color: textColor }]}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
+        <View style={styles.box}>
+            <LinearGradient
+                colors={['rgba(0, 0, 0, 0.08)', 'rgba(0, 0, 0, 0.08)']}
+                style={styles.balanceCard}
+            >
+                <ThemedText type="subtitle" style={styles.balanceTotalText}>Balance total:</ThemedText>
+                <ThemedText type="title" style={styles.balanceAmount}>
+                    ${balance?.toFixed(2) ?? '0.00'}
+                </ThemedText>
+                <View style={styles.ingresosGastosCard}>
+                    <View style={styles.ingresosCard}>
+                        <View style={styles.ingresoPlata}>
+                            <ThemedText style={styles.textWrapper}>Ingresos</ThemedText>
+                            <ThemedText style={styles.amount}>
+                                ${income?.toFixed(2) ?? '0.00'}
+                            </ThemedText>
+                        </View>
+                    </View>
+                    <View style={styles.gastosCard}>
+                        <View style={styles.gastoPlata}>
+                            <ThemedText style={styles.textWrapper}>Gastos</ThemedText>
+                            <ThemedText style={styles.amount}>
+                                ${expenses?.toFixed(2) ?? '0.00'}
+                            </ThemedText>
+                        </View>
+                    </View>
+                </View>
+            </LinearGradient>
         </View>
     );
-
 };
 
 const styles = StyleSheet.create({
-    balanceCard: {
-        height: 200,
+    box: {
+        height: 201,
         width: 345,
-        backgroundColor: 'rgba(0, 0, 0, 0.08)', // Cambiado a #00000014
+    },
+    balanceCard: {
+        height: 201,
+        width: 345,
         borderRadius: 25,
         borderWidth: 2,
-        borderColor: 'rgba(255, 255, 255, 0.05)', // #ffffff0d
-        shadowColor: 'rgba(0, 0, 0, 0.25)', // #00000040
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
         shadowOffset: { width: 1, height: 2 },
         shadowOpacity: 1,
         shadowRadius: 10,
-        elevation: 0,
-        padding: 16,
-        marginBottom: 16,
-        justifyContent: 'flex-start', // Alinea el contenido al principio del contenedor
+        elevation: 5,
     },
     balanceTotalText: {
+        color: '#3B3B3B',
         fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
-        marginTop: 45, // Añadido para bajar el texto
-        marginLeft: 63, // Añadido para mover el texto a la derecha
+        position: 'absolute',
+        top: 25,
+        left: 79,
         letterSpacing: -0.28,
     },
     balanceAmount: {
+        color: '#3B3B3B',
         fontFamily: 'Amethysta-Regular',
         fontSize: 40,
         fontWeight: '400',
+        position: 'absolute',
+        top: 45,
+        left: 79,
         letterSpacing: -2,
-        marginTop: 12, // Aumentado para bajar más el número
-        marginLeft: 63, // Añadido para alinear con el texto superior
-        lineHeight: 48, // Añadido para asegurar que el texto no se corte
+        lineHeight: 48,
+    },
+    ingresosGastosCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        position: 'absolute',
+        top: 128,
+        left: 21,
+        width: 300,
+    },
+    ingresosCard: {
+        backgroundColor: 'rgba(66, 1, 161, 0.08)',
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 20,
+        height: 52,
+        width: 141,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    gastosCard: {
+        backgroundColor: 'rgba(66, 1, 161, 0.08)',
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 20,
+        height: 52,
+        width: 141,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    ingresoPlata: {
+        alignItems: 'center',
+    },
+    gastoPlata: {
+        alignItems: 'center',
+    },
+    textWrapper: {
+        color: '#3B3B3B',
+        fontFamily: 'Amethysta-Regular',
+        fontSize: 10,
+        fontWeight: '400',
+        letterSpacing: -0.5,
+    },
+    amount: {
+        color: '#3B3B3B',
+        fontFamily: 'Amethysta-Regular',
+        fontSize: 14,
+        fontWeight: '400',
+        letterSpacing: -0.7,
+        marginTop: 5,
     },
 });
+
