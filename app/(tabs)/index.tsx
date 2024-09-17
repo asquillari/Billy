@@ -5,7 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
-import AddButton from '@/components/AddButton';
+import AddButton from '@/components/addButton';
 import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
 
 const { height } = Dimensions.get('window');
