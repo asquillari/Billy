@@ -58,12 +58,7 @@ export default function HomeScreen() {
         </View>
       }>
         <>
-          <BalanceCard 
-            balance={balance} 
-            incomes={totalIncome}
-            outcomes={totalExpenses}
-            refreshData={getBalanceData}
-          />
+          <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData}/>
           <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
           <View>
