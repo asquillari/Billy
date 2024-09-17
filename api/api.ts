@@ -2,6 +2,13 @@ import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'react-native-bcrypt';
+import * as Crypto from 'expo-crypto';
+
+bcrypt.setRandomFallback((len: number) => {
+  const buf = new Uint8Array(len);
+  Crypto.getRandomValues(buf);
+  return Array.from(buf);
+});
 
 export interface UserData {
   email: string;

@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start', // Alinea el contenido al principio del contenedor
     },
     balanceTotalText: {
-        fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
         marginTop: 45, // Añadido para bajar el texto
@@ -48,7 +47,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.28,
     },
     balanceAmount: {
-        fontFamily: 'Amethysta-Regular',
         fontSize: 40,
         fontWeight: '400',
         letterSpacing: -2,

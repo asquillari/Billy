@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-// ... resto de las importaciones ...
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addIncome, addOutcome, fetchCategories, CategoryData } from '../api/api';
