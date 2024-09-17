@@ -5,13 +5,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface BalanceCardProps {
     balance: number | null;
-    income: number | null;
-    expenses: number | null;
+    incomes: number | null;
+    outcomes: number | null;
     refreshData: () => void;
 }
 
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, income, expenses }) => {
-    
+export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outcomes, refreshData }) => {
+
+    refreshData();
+
     const colorScheme = useColorScheme();
     const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#3B3B3B';
 
@@ -28,7 +30,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, income, expen
                         <View style={styles.ingresoPlata}>
                             <ThemedText style={[styles.textWrapper, { color: textColor }]}>Ingresos</ThemedText>
                             <ThemedText style={[styles.amount, { color: textColor }]}>
-                                ${income?.toFixed(2) ?? '0.00'}
+                                ${incomes?.toFixed(2) ?? '0.00'}
                             </ThemedText>
                         </View>
                     </View>
@@ -36,7 +38,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, income, expen
                         <View style={styles.gastoPlata}>
                             <ThemedText style={[styles.textWrapper, { color: textColor }]}>Gastos</ThemedText>
                             <ThemedText style={[styles.amount, { color: textColor }]}>
-                                ${expenses?.toFixed(2) ?? '0.00'}
+                                ${outcomes?.toFixed(2) ?? '0.00'}
                             </ThemedText>
                         </View>
                     </View>
