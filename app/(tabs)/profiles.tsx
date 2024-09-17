@@ -6,7 +6,7 @@ export default function Profiles() {
 
     return(
         <View>
-            <Text style={styles.displayText}> Estadisticas </Text>
+            <Text style={styles.displayText}> Perfiles </Text>
         </View>
     );
     
