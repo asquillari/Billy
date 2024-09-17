@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
-        marginTop: 16, // Añadido para bajar el texto
+        marginTop: 45, // Añadido para bajar el texto
         marginLeft: 63, // Añadido para mover el texto a la derecha
         letterSpacing: -0.28,
     },
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
         fontSize: 40,
         fontWeight: '400',
         letterSpacing: -2,
-        marginTop: 18, // Aumentado para bajar más el número
+        marginTop: 12, // Aumentado para bajar más el número
         marginLeft: 63, // Añadido para alinear con el texto superior
         lineHeight: 48, // Añadido para asegurar que el texto no se corte
     },
