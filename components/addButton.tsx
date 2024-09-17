@@ -8,9 +8,10 @@ import { addIncome, addOutcome, fetchCategories, CategoryData } from '../api/api
 interface AddButtonProps {
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
+  refreshCategoryData: () => void;
 }
 
-const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) => {
+const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
@@ -40,6 +41,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData }: AddButtonProps) =>
     } else {
       await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory, parseFloat(amount), description);
       refreshOutcomeData();
+      refreshCategoryData();
     }
 
     setAmount('');
