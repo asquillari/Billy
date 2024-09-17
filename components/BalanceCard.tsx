@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View , useColorScheme} from 'react-native';
 import { ThemedText } from '@/components/ThemedText'
 
 interface BalanceCardProps {
@@ -8,13 +8,15 @@ interface BalanceCardProps {
 }
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, refreshData }) => {
-    
+    const colorScheme = useColorScheme();
+    const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#3C3C3C';
+
     refreshData();
     
     return (
         <View style={styles.balanceCard}>
-            <ThemedText type="subtitle" style={styles.balanceTotalText}>Balance total:</ThemedText>
-            <ThemedText type="title" style={styles.balanceAmount}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
+            <ThemedText type="subtitle" style={[styles.balanceTotalText, { color: textColor }]}>Balance total:</ThemedText>
+            <ThemedText type="title" style={[styles.balanceAmount, { color: textColor }]}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
         </View>
     );
 
@@ -38,7 +40,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start', // Alinea el contenido al principio del contenedor
     },
     balanceTotalText: {
-        color: '#3C3C3C',
         fontFamily: 'Amethysta-Regular',
         fontSize: 14,
         fontWeight: '400',
@@ -47,7 +48,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.28,
     },
     balanceAmount: {
-        color: '#3C3C3C',
         fontFamily: 'Amethysta-Regular',
         fontSize: 40,
         fontWeight: '400',
