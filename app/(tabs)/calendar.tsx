@@ -3,6 +3,7 @@ import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalado expo/vector-icons
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -29,7 +30,8 @@ const App = () => {
   const [viewMode, setViewMode] = useState('month'); // Nuevo estado para controlar la vista
   const calendarRef = useRef(null);
 
-  const years = Array.from({length: 21}, (_, i) => moment().year() - 10 + i);
+  const currentYear = moment().year();
+  const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
 
   const onMonthChange = (month: { dateString: string }) => {
     console.log('Mes cambiado a:', month.dateString);
@@ -64,19 +66,21 @@ const App = () => {
     );
   };
 
-  const renderYearPicker = () => (
-    <FlatList
-      data={years}
-      numColumns={3} // Muestra 3 años por fila
-      renderItem={({item}) => (
-        <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
-          <Text style={styles.yearText}>{item}</Text>
-        </TouchableOpacity>
-      )}
-      keyExtractor={item => item.toString()}
-      contentContainerStyle={styles.yearPickerContainer}
-    />
-  );
+  const renderYearPicker = () => {
+    return (
+      <FlatList
+        data={years}
+        numColumns={3}
+        renderItem={({item}) => (
+          <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
+            <Text style={styles.yearText}>{item}</Text>
+          </TouchableOpacity>
+        )}
+        keyExtractor={item => item.toString()}
+        contentContainerStyle={styles.yearPickerContainer}
+      />
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -96,6 +100,12 @@ const App = () => {
             style={styles.usuario}
           />
         </View>
+        
+        <View style={styles.tituloContainer}>
+          <Text style={styles.tituloTexto}>Calendario</Text>
+          <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
+        </View>
+
         <View style={styles.contentContainer}>
           <View style={styles.rectangleFondo}>
             <View style={styles.calendarContainer}>
@@ -122,8 +132,21 @@ const App = () => {
                   onPressArrowRight={(addMonth: () => void) => addMonth()}
                 />
               ) : (
-                renderYearPicker()
+                <View style={styles.yearPickerWrapper}>
+                  {renderYearPicker()}
+                </View>
               )}
+            </View>
+            
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.buttonCobro}>
+                <Ionicons name="add-circle" size={24} color="white" />
+                <Text style={styles.buttonTextCobro}>Fecha de cobro</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.buttonPago}>
+                <Ionicons name="add-circle" size={24} color="#370185" />
+                <Text style={styles.buttonTextPago}>Fecha de pago</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -184,19 +207,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
-    height: '85%', // Ajusta este valor según necesites
-    width: '100%',
+    height: '97%', // Ajusta este valor según necesites
+    width: '95%',
+    alignSelf: 'center',
   },
   calendarContainer: {
+    height: 320, // Ajusta este valor si es necesario
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: 'white',
     justifyContent: 'center',
     width: '100%',
   },
-  calendarWrapper: {
-    height: Dimensions.get('window').height * 0.42, // Ajusta este valor según necesites
-    marginTop: 10,
+  calendar: {
+    height: '100%',
+  },
+  yearPickerWrapper: {
+    height: '100%',
   },
   arrowContainer: {
     width: 20,
@@ -254,21 +281,95 @@ const styles = StyleSheet.create({
   },
   yearItem: {
     flex: 1,
+    aspectRatio: 1.5, // Esto hará que los rectángulos sean más anchos que altos
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
     margin: 5,
     borderRadius: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#735BF2', // Cambiamos el color de fondo a #735BF2
   },
   yearText: {
-    fontSize: 18,
-    color: '#735BF2',
+    fontSize: 20, // Reducimos un poco el tamaño de la fuente
+    fontWeight: 'bold',
+    color: '#FFFFFF', // Cambiamos el color del texto a blanco
   },
   yearPickerContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 10,
+    padding: 5,
+  },
+  tituloContainer: {
+    height: 55,
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  tituloTexto: {
+    color: '#ffffff',
+    fontFamily: "Amethysta", // Asegúrate de que este nombre coincida con el de la fuente instalada
+    fontSize: 32,
+    fontWeight: '400',
+    letterSpacing: -1.6,
+  },
+  subtituloTexto: {
+    color: '#ffffff',
+    fontFamily: "Amethysta", // También cambiamos la fuente del subtítulo
+    fontSize: 12,
+    fontWeight: '400',
+    letterSpacing: -0.12,
+    marginTop: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20, // Añade un margen inferior si es necesario
+  },
+  buttonCobro: {
+    backgroundColor: '#370185',
+    borderRadius: 12.66,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 15,
+    width: '48%',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonPago: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12.66,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    width: '48%',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonTextCobro: {
+    color: '#FFFFFF',
+    fontFamily: "Amethysta",
+    fontSize: 14,
+    marginLeft: 10,
+  },
+  buttonTextPago: {
+    color: '#370185',
+    fontFamily: "Amethysta",
+    fontSize: 14,
+    marginLeft: 10,
   },
 });
 
