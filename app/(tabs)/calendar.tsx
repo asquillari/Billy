@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Modal, FlatList, Text } from "react-native";
+import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 
@@ -25,6 +26,7 @@ const App = () => {
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
+  const [viewMode, setViewMode] = useState('month'); // Nuevo estado para controlar la vista
   const calendarRef = useRef(null);
 
   const years = Array.from({length: 21}, (_, i) => moment().year() - 10 + i);
@@ -35,16 +37,13 @@ const App = () => {
   };
 
   const onYearPress = () => {
-    console.log('Abriendo selector de año');
-    setShowYearPicker(true);
+    setViewMode('year');
   };
 
   const selectYear = (year: number) => {
-    console.log('Año seleccionado:', year);
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
-    console.log('Nueva fecha:', newDate);
     setCurrentDate(newDate);
-    setShowYearPicker(false);
+    setViewMode('month');
     setKey(prevKey => prevKey + 1); // Forzar re-render del calendario
     if (calendarRef.current) {
       calendarRef.current.setMonth(newDate);
@@ -65,57 +64,128 @@ const App = () => {
     );
   };
 
+  const renderYearPicker = () => (
+    <FlatList
+      data={years}
+      numColumns={3} // Muestra 3 años por fila
+      renderItem={({item}) => (
+        <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
+          <Text style={styles.yearText}>{item}</Text>
+        </TouchableOpacity>
+      )}
+      keyExtractor={item => item.toString()}
+      contentContainerStyle={styles.yearPickerContainer}
+    />
+  );
+
   return (
-    <View style={styles.container}>
-      <View style={styles.calendarContainer}>
-        <Calendar
-          key={key}
-          ref={calendarRef}
-          current={currentDate}
-          markedDates={markedDates}
-          markingType={'period'}
-          style={styles.calendar}
-          renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-          onMonthChange={onMonthChange}
-          renderHeader={renderCustomHeader}
-          theme={{
-            'stylesheet.calendar.header': {
-              monthText: {
-                ...styles.monthText,
-                color: '#735BF2',
-              },
-            },
-          }}
-          onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
-          onPressArrowRight={(addMonth: () => void) => addMonth()}
-        />
-      </View>
-      <Modal
-        visible={showYearPicker}
-        transparent={true}
-        animationType="slide"
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#4B00B8', '#20014E']}
+        start={{x: 1, y: 0}}
+        end={{x: 0, y: 1}}
+        style={styles.gradientContainer}
       >
-        <View style={styles.modalContainer}>
-          <FlatList
-            data={years}
-            renderItem={({item}) => (
-              <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
-                <Text style={styles.yearText}>{item}</Text>
-              </TouchableOpacity>
-            )}
-            keyExtractor={item => item.toString()}
+        <View style={styles.barraSuperior}>
+          <Image
+            source={require('../../assets/images/Billy/logo2.png')}
+            style={styles.logoBilly}
+          />
+          <Image
+            source={require('../../assets/images/icons/UserIcon.png')}
+            style={styles.usuario}
           />
         </View>
-      </Modal>
-    </View>
+        <View style={styles.contentContainer}>
+          <View style={styles.rectangleFondo}>
+            <View style={styles.calendarContainer}>
+              {viewMode === 'month' ? (
+                <Calendar
+                  key={key}
+                  ref={calendarRef}
+                  current={currentDate}
+                  markedDates={markedDates}
+                  markingType={'period'}
+                  style={styles.calendar}
+                  renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
+                  onMonthChange={onMonthChange}
+                  renderHeader={renderCustomHeader}
+                  theme={{
+                    'stylesheet.calendar.header': {
+                      monthText: {
+                        ...styles.monthText,
+                        color: '#735BF2',
+                      },
+                    },
+                  }}
+                  onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
+                  onPressArrowRight={(addMonth: () => void) => addMonth()}
+                />
+              ) : (
+                renderYearPicker()
+              )}
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 16,
+    paddingTop: 10, // Añadimos un padding superior de 10 píxeles
+  },
+  barraSuperior: {
+    height: 61,
+    backgroundColor: '#ffffff',
+    borderRadius: 30,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    marginHorizontal: 10, // Añadimos margen horizontal
+    marginBottom: 10, // Añadimos margen inferior
+  },
+  logoBilly: {
+    width: 80,
+    height: 40,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  usuario: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  gradientContainer: {
+    flex: 1,
+    paddingTop: 10, // Añadimos un padding superior de 10 píxeles
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  rectangleFondo: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+    height: '85%', // Ajusta este valor según necesites
+    width: '100%',
   },
   calendarContainer: {
     borderRadius: 20,
@@ -124,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  calendar: {
+  calendarWrapper: {
     height: Dimensions.get('window').height * 0.42, // Ajusta este valor según necesites
     marginTop: 10,
   },
@@ -183,13 +253,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   yearItem: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 15,
+    margin: 5,
+    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
   },
   yearText: {
     fontSize: 18,
     color: '#735BF2',
+  },
+  yearPickerContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 10,
   },
 });
 
