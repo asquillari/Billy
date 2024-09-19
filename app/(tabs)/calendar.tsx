@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
+import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
-import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalado expo/vector-icons
+import { Ionicons } from '@expo/vector-icons';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -22,12 +22,114 @@ const customArrowRight = () => {
   );
 };
 
+interface CobroPagoPopUpProps {
+  isVisible: boolean;
+  onClose: () => void;
+  initialType: 'cobro' | 'pago';
+}
+
+const CobroPagoPopUp: React.FC<CobroPagoPopUpProps> = ({ isVisible, onClose, initialType }) => {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [date, setDate] = useState('');
+  const [repeat, setRepeat] = useState('Nunca');
+  const [type, setType] = useState(initialType);
+  const [bubblePosition] = useState(new Animated.Value(initialType === 'cobro' ? 0 : 1));
+
+  useEffect(() => {
+    setType(initialType);
+    Animated.spring(bubblePosition, {
+      toValue: initialType === 'cobro' ? 0 : 1,
+      useNativeDriver: false,
+    }).start();
+  }, [initialType]);
+
+  const toggleType = (newType: 'cobro' | 'pago') => {
+    setType(newType);
+    Animated.spring(bubblePosition, {
+      toValue: newType === 'cobro' ? 0 : 1,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const bubbleLeft = bubblePosition.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['2%', '52%'],
+  });
+
+  return (
+    <Modal
+      visible={isVisible}
+      transparent={true}
+      animationType="slide"
+    >
+      <View style={styles.popupContainer}>
+        <View style={styles.popup}>
+          <View style={styles.header}>
+            <View style={styles.toggleContainer}>
+              <Animated.View style={[styles.bubble, { left: bubbleLeft }]} />
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => toggleType('cobro')}
+              >
+                <Text style={[styles.toggleText, type === 'cobro' ? styles.activeToggleText : null]}>Cobro</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => toggleType('pago')}
+              >
+                <Text style={[styles.toggleText, type === 'pago' ? styles.activeToggleText : null]}>Pago</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.title}>Agregar fecha de {type}</Text>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Descripción"
+            value={description}
+            onChangeText={setDescription}
+          />
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Monto"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+          />
+          
+          <TouchableOpacity style={styles.input}>
+            <Text>{date || 'Seleccionar fecha'}</Text>
+            <Ionicons name="calendar" size={24} color="black" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.input}>
+            <Text>{repeat}</Text>
+            <Ionicons name="chevron-forward" size={24} color="black" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.button} onPress={onClose}>
+            <Text style={styles.buttonText}>Aceptar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const App = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
-  const [viewMode, setViewMode] = useState('month'); // Nuevo estado para controlar la vista
+  const [viewMode, setViewMode] = useState('month');
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -45,7 +147,7 @@ const App = () => {
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
     setCurrentDate(newDate);
     setViewMode('month');
-    setKey(prevKey => prevKey + 1); // Forzar re-render del calendario
+    setKey(prevKey => prevKey + 1);
   };
 
   useEffect(() => {
@@ -76,6 +178,11 @@ const App = () => {
         contentContainerStyle={styles.yearPickerContainer}
       />
     );
+  };
+
+  const openPopup = (type: 'cobro' | 'pago') => {
+    setPopupType(type);
+    setPopupVisible(true);
   };
 
   return (
@@ -113,7 +220,7 @@ const App = () => {
                   markingType={'period'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-                  onMonthChange={(month) => {
+                  onMonthChange={(month: { dateString: string }) => {
                     console.log('Mes cambiado a:', month.dateString);
                     setCurrentDate(month.dateString);
                   }}
@@ -137,11 +244,11 @@ const App = () => {
             </View>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro}>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('cobro')}>
                 <Ionicons name="add-circle" size={24} color="white" />
                 <Text style={styles.buttonTextCobro}>Fecha de cobro</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago}>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('pago')}>
                 <Ionicons name="add-circle" size={24} color="#370185" />
                 <Text style={styles.buttonTextPago}>Fecha de pago</Text>
               </TouchableOpacity>
@@ -149,6 +256,12 @@ const App = () => {
           </View>
         </View>
       </LinearGradient>
+
+      <CobroPagoPopUp
+        isVisible={popupVisible}
+        onClose={() => setPopupVisible(false)}
+        initialType={popupType}
+      />
     </SafeAreaView>
   );
 }
@@ -156,7 +269,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10, // Añadimos un padding superior de 10 píxeles
+    paddingTop: 10,
   },
   barraSuperior: {
     height: 61,
@@ -171,8 +284,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 28,
-    marginHorizontal: 10, // Añadimos margen horizontal
-    marginBottom: 10, // Añadimos margen inferior
+    marginHorizontal: 10,
+    marginBottom: 10,
   },
   logoBilly: {
     width: 80,
@@ -190,7 +303,7 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-    paddingTop: 10, // Añadimos un padding superior de 10 píxeles
+    paddingTop: 10,
   },
   contentContainer: {
     flex: 1,
@@ -205,12 +318,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
-    height: '97%', // Ajusta este valor según necesites
+    height: '97%',
     width: '95%',
     alignSelf: 'center',
   },
   calendarContainer: {
-    height: 320, // Ajusta este valor si es necesario
+    height: 320,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: 'white',
@@ -279,17 +392,17 @@ const styles = StyleSheet.create({
   },
   yearItem: {
     flex: 1,
-    aspectRatio: 1.5, // Esto hará que los rectángulos sean más anchos que altos
+    aspectRatio: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
     margin: 5,
     borderRadius: 10,
-    backgroundColor: '#735BF2', // Cambiamos el color de fondo a #735BF2
+    backgroundColor: '#735BF2',
   },
   yearText: {
-    fontSize: 20, // Reducimos un poco el tamaño de la fuente
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF', // Cambiamos el color del texto a blanco
+    color: '#FFFFFF',
   },
   yearPickerContainer: {
     flexGrow: 1,
@@ -303,14 +416,14 @@ const styles = StyleSheet.create({
   },
   tituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta", // Asegúrate de que este nombre coincida con el de la fuente instalada
+    fontFamily: "Amethysta",
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
   },
   subtituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta", // También cambiamos la fuente del subtítulo
+    fontFamily: "Amethysta",
     fontSize: 12,
     fontWeight: '400',
     letterSpacing: -0.12,
@@ -321,7 +434,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     marginTop: 20,
-    marginBottom: 20, // Añade un margen inferior si es necesario
+    marginBottom: 20,
   },
   buttonCobro: {
     backgroundColor: '#370185',
@@ -368,6 +481,82 @@ const styles = StyleSheet.create({
     fontFamily: "Amethysta",
     fontSize: 14,
     marginLeft: 10,
+  },
+  popupContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  popup: {
+    backgroundColor: '#ffffff',
+    borderRadius: 17,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#B29BD3',
+    borderRadius: 12,
+    position: 'relative',
+    width: '80%',
+    height: 40,
+  },
+  toggleButton: {
+    padding: 10,
+    width: '50%',
+    alignItems: 'center',
+  },
+  bubble: {
+    position: 'absolute',
+    width: '48%',
+    height: '90%',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    top: '5%',
+  },
+  toggleText: {
+    fontFamily: 'Amethysta',
+    fontSize: 12,
+    color: '#370185',
+  },
+  activeToggleText: {
+    color: '#370185',
+  },
+  title: {
+    fontFamily: 'Amethysta',
+    fontSize: 20,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+    borderRadius: 7,
+    padding: 10,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  button: {
+    backgroundColor: '#370185',
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontFamily: 'Amethysta',
+    fontSize: 16,
   },
 });
 
