@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
@@ -28,7 +28,6 @@ const App = () => {
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month'); // Nuevo estado para controlar la vista
-  const calendarRef = useRef(null);
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -47,9 +46,6 @@ const App = () => {
     setCurrentDate(newDate);
     setViewMode('month');
     setKey(prevKey => prevKey + 1); // Forzar re-render del calendario
-    if (calendarRef.current) {
-      calendarRef.current.setMonth(newDate);
-    }
   };
 
   useEffect(() => {
@@ -112,13 +108,15 @@ const App = () => {
               {viewMode === 'month' ? (
                 <Calendar
                   key={key}
-                  ref={calendarRef}
                   current={currentDate}
                   markedDates={markedDates}
                   markingType={'period'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-                  onMonthChange={onMonthChange}
+                  onMonthChange={(month) => {
+                    console.log('Mes cambiado a:', month.dateString);
+                    setCurrentDate(month.dateString);
+                  }}
                   renderHeader={renderCustomHeader}
                   theme={{
                     'stylesheet.calendar.header': {
