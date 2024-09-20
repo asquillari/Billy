@@ -10,6 +10,7 @@ export interface UserData {
   password: string;
   name: string;
   surname: string;
+  currentProfile?: string;
 }
 
 export interface IncomeData {
@@ -405,6 +406,14 @@ export async function logIn(email: string, password: string) {
     const { user, session } = data;
     return user;
   }
+}
+
+export async function changeCurrentProfile(user: string, newProfileID: string) {
+  await supabase
+    .from('Profiles')
+    .update({currentProfile: newProfileID})
+    .eq('email', user)
+    .single();
 }
 
 /* Stats */

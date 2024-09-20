@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginVertical: 8,
         color: '#333',
-      },
+    },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',

@@ -52,17 +52,12 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     refreshData();
 };
 
-return (
+  return (
     <View style={styles.container}>
-      <FlatList
-        data={profileData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id?.toString() || ''}
-        numColumns={2}
-      />
-      <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+        <FlatList data={profileData} renderItem={renderItem} keyExtractor={(item) => item.id?.toString() || ''}/>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
+            <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
     </View>
   );
 };
