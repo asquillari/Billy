@@ -45,6 +45,7 @@ export interface CategoryData {
 }
 
 export interface ProfileData {
+  id?: string;
   name: string;
   balance?: number;
   created_at?: Timestamp;
