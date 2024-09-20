@@ -49,6 +49,7 @@ export interface ProfileData {
   name: string;
   balance?: number;
   created_at?: Timestamp;
+  user: string;
 }
 
 
@@ -284,15 +285,24 @@ export async function getProfile(name: string | undefined): Promise<string[] | n
   return data;
 };
 
-export async function addProfile(name: string) {
+export async function addProfile(name: string, user: string) {
   const newProfile: ProfileData = {
     name: name,
+    user: user
   };
+
   // Inserto información
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('Profiles')
     .insert(newProfile);
-  return data;
+
+  if (error) {
+    console.error('Error al agregar el perfil:', error);
+    return error;
+  } else {
+    console.log('Perfil agregado exitosamente:', data);
+    return data;
+  }
 };
 
 export async function removeProfile(name: string | undefined) {
