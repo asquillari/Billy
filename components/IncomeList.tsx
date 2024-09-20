@@ -1,8 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
-import { Button, StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { removeIncome, IncomeData, getBalance } from '../api/api';
 
 import { FontAwesome } from '@expo/vector-icons';

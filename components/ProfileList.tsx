@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState } from 'react';
-import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { getBalance, ProfileData, removeProfile } from '../api/api';
+import { addProfile, ProfileData, removeProfile } from '../api/api';
 
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -22,7 +22,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
         if (profile) {
-          handleRemoveProfile(profile.id ?? 0)
+          handleRemoveProfile(profile.id ?? "null")
         }
       }
     }]);
@@ -37,7 +37,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
             <View style={styles.textContainer}>
                 <ThemedText style={styles.description}>{item.name}</ThemedText>
             </View>
-            <ThemedText style={styles.amount}>+ ${item.balance.toFixed(2)}</ThemedText>
+            <ThemedText style={styles.amount}>+ ${(item.balance ?? 0).toFixed(2)}</ThemedText>
         </View>
     </TouchableOpacity>
   );
@@ -46,15 +46,23 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     await removeProfile(id);
     refreshData();  // Actualiza los datos después de eliminar
   };
+  
+  const handleAddProfile = () => { 
+    addProfile("Nuevo perfil", "juancito@gmail.com");
+    refreshData();
+};
 
-  return (
+return (
     <View style={styles.container}>
       <FlatList
-          data={profileData}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id?.toString() || ''}
-          showsVerticalScrollIndicator={false}
+        data={profileData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id?.toString() || ''}
+        numColumns={2}
       />
+      <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -101,5 +109,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: 'green',
+    },
+    addButton: {
+        backgroundColor: '#4a0e4e',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 20,
+        alignItems: 'center',
+    },
+      addButtonText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

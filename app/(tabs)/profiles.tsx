@@ -1,24 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Dimensions, Text} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text} from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
+import { fetchProfiles, ProfileData } from '@/api/api';
 
 export default function Profiles() {
 
-    // Recupero información
+    const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
+    
     async function getProfileData() {
-        const data = await fetchProfiles("f5267f06-d68b-4185-a911-19f44b4dc216");
+        const data = await fetchProfiles("juancito@gmail.com");
         setProfileData(data);
     };
+
+    useEffect(() => {
+        getProfileData();
+    }, []);
 
     return(
         <View>
             <Text style={styles.displayText}> Perfiles </Text>
-            <ProfileList/>
+            <ProfileList profileData={profileData} refreshData={getProfileData}/>
         </View>
     );
     
-
-
 }
 
 const styles = StyleSheet.create ({

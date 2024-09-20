@@ -263,20 +263,21 @@ async function checkCategoryLimit(category: string, amount: number) {
 
 /* Profiles */
 
-export async function fetchProfiles() {
+export async function fetchProfiles(user: string) {
   // Recupero información
   const { data } = await supabase
     .from('Profiles')
-    .select('*');
+    .select('*')
+    .eq('user', user);
   return data;
 };
 
-export async function getProfile(name: string | undefined): Promise<string[] | null> {
+export async function getProfile(id: string | undefined): Promise<string[] | null> {
   // Recupero información
   const { data } = await supabase
     .from('Profiles')
     .select()
-    .eq('name', name)
+    .eq('id', id)
   return data;
 };
 
@@ -300,12 +301,12 @@ export async function addProfile(name: string, user: string) {
   }
 };
 
-export async function removeProfile(name: string | undefined) {
+export async function removeProfile(id: string | undefined) {
     // Borro información
     await supabase
       .from('Profiles')
       .delete()
-      .match({name});
+      .eq('id', id);
 }
 
 export async function getProfileID(profileName: string) {
