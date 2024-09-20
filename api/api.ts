@@ -2,13 +2,8 @@ import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'react-native-bcrypt';
-import * as Crypto from 'expo-crypto';
 
-bcrypt.setRandomFallback((len: number) => {
-  const buf = new Uint8Array(len);
-  Crypto.getRandomValues(buf);
-  return Array.from(buf);
-});
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 export interface UserData {
   email: string;
@@ -409,4 +404,27 @@ export async function logIn(email: string, password: string) {
     const { user, session } = data;
     return user;
   }
+}
+
+/* Stats */
+
+// Get outcomes from date range
+export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
+  const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
+  const endISO = end.toISOString();
+
+  const { data } = await supabase
+    .from('Outcomes')
+    .select()
+    .eq('profile', profile)
+    .gte('created_at', startISO)
+    .lte('created_at', endISO);
+  return data;
+}
+
+// Get outcomes from date range and category
+export async function getOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
+  const dateData = await getOutcomesFromDateRange(profile, start, end);
+  const categoryData = await fetchOutcomesByCategory(profile, category);
+  return categoryData;
 }
