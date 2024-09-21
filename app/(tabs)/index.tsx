@@ -6,41 +6,43 @@ import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/AddButton';
-import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
-
-const PROFILE_ID = "f5267f06-d68b-4185-a911-19f44b4dc216";
+import useProfileData from '@/hooks/useProfileData';
+import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 
 export default function HomeScreen() {
-  const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
-  const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
-  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
-  const [balance, setBalanceData] = useState<number | null>(null);
 
-  const fetchData = useCallback(async (fetchFunction: Function) => {
-    const data = await fetchFunction(PROFILE_ID);
-    return data;
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+
+console.log(currentProfileId);
+    
+  useEffect(() => {
+
+    const fetchProfile = async () => {
+      const profileData = await fetchCurrentProfile("juancito@gmail.com");
+      setCurrentProfileId(profileData?.current_profile || null);
+    };
+    fetchProfile();
   }, []);
 
-  const getIncomeData = useCallback(() => fetchData(fetchIncomes).then(setIncomeData), [fetchData]);
-  const getOutcomeData = useCallback(() => fetchData(fetchOutcomes).then(setOutcomeData), [fetchData]);
-  const getCategoryData = useCallback(() => fetchData(fetchCategories).then(setCategoryData), [fetchData]);
-  const getBalanceData = useCallback(() => fetchData(getBalance).then(setBalanceData), [fetchData]);
-
-  const refreshAllData = useCallback(() => {
-    Promise.all([getIncomeData(), getOutcomeData(), getBalanceData(), getCategoryData()]);
-  }, [getIncomeData, getOutcomeData, getBalanceData, getCategoryData]);
-  
-  useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
+  const {
+    incomeData,
+    outcomeData,
+    categoryData,
+    balance,
+    getIncomeData,
+    getOutcomeData,
+    getCategoryData,
+    getBalanceData,
+    refreshAllData
+  } = useProfileData(currentProfileId || "");
 
   const totalIncome = useMemo(() => 
-    incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
+    incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
     [incomeData]
   );
 
   const totalExpenses = useMemo(() => 
-    outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
+    outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
     [outcomeData]
   );
 

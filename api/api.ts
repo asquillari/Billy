@@ -307,7 +307,7 @@ return data;
 
 /* Balance */
 
-export async function getBalance(profile: string): Promise<number> {
+export async function fetchBalance(profile: string): Promise<number> {
   const { data } = await supabase
     .from('Profiles')
     .select('balance')
