@@ -37,7 +37,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     if (item === 'add') {
      return (
       <TouchableOpacity style={[styles.profileItem, styles.addButton]} onPress={onAddProfile}>
-        <Ionicons name="add-circle-outline" size={35} color="#FFFFFF" />
+        <Ionicons name="add-circle-outline" size={40} color="#FFFFFF" />
         <Text style={styles.addButtonText}>Agregar Perfil</Text>
       </TouchableOpacity>
       );
@@ -45,7 +45,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
 
     return (
       <TouchableOpacity style={styles.profileItem} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
-        <Ionicons name="person-circle-outline" size={35} color="#4B00B8"/>
+        <Ionicons name="person-circle-outline" size={40} color="#4B00B8"/>
         <Text style={styles.profileName}>{item.name}</Text>
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </TouchableOpacity>
@@ -63,23 +63,21 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       keyExtractor={keyExtractor}
       numColumns={2}
       columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.listContainer}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  listContainer: {
-    paddingBottom: 20,
-  },
+
   row: {
     justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   profileItem: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    marginBottom: 5,
     width: '48%', // Adjust this value to control the gap between columns
     aspectRatio: 1, // Make items square
     alignItems: 'center',
@@ -90,7 +88,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-   profileName: {
+  profileName: {
     fontSize: 26,
     marginTop: 8,
     color: '#333',

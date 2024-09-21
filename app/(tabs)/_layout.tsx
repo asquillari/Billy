@@ -35,25 +35,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Inicio',
         }}
       />
       <Tabs.Screen
         name="statistics"
         options={{
-          title: 'Statistics',
+          title: 'Estadísticas',
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'Calendar',
+          title: 'Calendario',
         }}
       />
       <Tabs.Screen
         name="profiles"
         options={{
-          title: 'Profiles',
+          title: 'Perfiles',
         }}
       />
     </Tabs>
