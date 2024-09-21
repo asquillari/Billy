@@ -8,32 +8,28 @@ import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/AddButton';
 import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 const EMAIL = "juancito@gmail.com";
-const PROFILE_ID = "f5267f06-d68b-4185-a911-19f44b4dc216";
 
 export default function HomeScreen() {
 
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const profileData = await fetchCurrentProfile(EMAIL);
-      setCurrentProfileId(profileData?.current_profile || null);
-    };
+  const fetchProfile = async () => {
+    const profileData = await fetchCurrentProfile(EMAIL);
+    setCurrentProfileId(profileData?.current_profile || null);
+    console.log(currentProfileId);
+  };
+
+  useFocusEffect(() => {
     fetchProfile();
-  }, []);
+  });
 
-  const totalIncome = useMemo(() => 
-    incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
-    [incomeData]
-  );
+  const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
 
-  const totalExpenses = useMemo(() => 
-    outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
-    [outcomeData]
-  );
+  const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
 
   const headerImage = useMemo(() => (
     <View style={styles.logoContainer}>
@@ -48,16 +44,16 @@ export default function HomeScreen() {
        
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           
-          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={PROFILE_ID}/>
+          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
           
           <View>
             <ThemedText style={styles.title}>Categorías</ThemedText>
-            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={PROFILE_ID}/>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
           </View>
 
           <View>
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={PROFILE_ID} scrollEnabled={false}/>
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
           </View>
       
  {/* Botones para Sign Up y Login */}

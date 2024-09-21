@@ -26,7 +26,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData,
   // To avoid doing it on every render
   const fetchCategoriesData = useCallback(() => {
     fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
-  }, []);
+  }, [currentProfileId]);
 
   useEffect(() => {
     if (modalVisible) fetchCategoriesData();
