@@ -1,9 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
-import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'react-native-bcrypt';
-
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 export interface UserData {
   email: string;

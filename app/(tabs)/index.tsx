@@ -5,7 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
-import AddButton from '@/components/addButton';
+import AddButton from '@/components/AddButton';
 import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
 
 export default function HomeScreen() {

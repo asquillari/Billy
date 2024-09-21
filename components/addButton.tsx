@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -17,24 +17,26 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(''); 
   const [bubbleAnimation] = useState(new Animated.Value(0));
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  useEffect(() => {
-    if (modalVisible) {
-      fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216")
-        .then(categories => setCategories(categories || []));
-    }
-  }, [modalVisible]);
+  // To avoid doing it on every render
+  const fetchCategoriesData = useCallback(() => {
+    fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216").then(categories => setCategories(categories || []));
+  }, []);
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
+  useEffect(() => {
+    if (modalVisible) fetchCategoriesData();
+  }, [modalVisible, fetchCategoriesData]);
+
+  const handleDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) setDate(selectedDate);
-  };
+  }, []);
 
-  async function handleSubmit(): Promise<void> {
+  const handleSubmit = useCallback(async (): Promise<void> => {
     if (type === 'Income') {
       await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
       refreshIncomeData();
@@ -43,23 +45,23 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
       refreshOutcomeData();
       refreshCategoryData();
     }
-
+    // Reset form
     setAmount('');
     setDescription('');
     setDate(new Date());
     setSelectedCategory('');
     setModalVisible(false);
-  }
+  }, [type, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData]);
 
-  const switchType = (newType: 'Income' | 'Outcome') => {
+  const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
     Animated.timing(bubbleAnimation, {
       toValue: newType === 'Income' ? 1 : 0,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  };
-
+  }, [bubbleAnimation]);
+  
   const bubbleInterpolation = bubbleAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['2%', '48%'],
