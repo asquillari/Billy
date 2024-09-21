@@ -50,7 +50,6 @@ export interface ProfileData {
 /* Incomes */
 
 export async function fetchIncomes(profile: string) {
-  // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select()
@@ -59,7 +58,6 @@ export async function fetchIncomes(profile: string) {
 };
 
 export async function getIncome(profile: string, id: number | undefined) {
-  // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select('*')
@@ -84,7 +82,6 @@ export async function addIncome(profile: string, amount: number, description: st
 
 export async function removeIncome(profile: string, id: number | undefined) {
   const income = await getIncome(profile, id);
-  // Borro información
   const [deleteResult] = await Promise.all([
     supabase.from('Incomes').delete().eq('profile', profile).eq('id', id),
     updateBalance(profile, -income.amount)
@@ -97,7 +94,6 @@ export async function removeIncome(profile: string, id: number | undefined) {
 /* Outcomes */
 
 export async function fetchOutcomes(profile: string) {
-  // Recupero información
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
@@ -106,7 +102,6 @@ export async function fetchOutcomes(profile: string) {
 };
 
 export async function fetchOutcomesByCategory(profile: string, category: string) {
-  // Recupero información
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
@@ -116,7 +111,6 @@ export async function fetchOutcomesByCategory(profile: string, category: string)
 };
 
 export async function getOutcome(profile: string, id: number | undefined) {
-  // Recupero información
   const { data } = await supabase
     .from('Outcomes')
     .select()
@@ -127,20 +121,16 @@ export async function getOutcome(profile: string, id: number | undefined) {
 };
 
 export async function addOutcome(profile: string, category: string, amount: number, description: string) {
+  if (category === "" || !(await checkCategoryLimit(category, amount))) {
+    console.log("Couldn't add due to category limit or missing category");
+    return;
+  }
   const newOutcome: OutcomeData = {
     profile: profile,
     amount: amount,
     category: category,
     description: description
   };
-  if (await checkCategoryLimit(category, amount) == false) {
-    console.log("Couldn't add due to category limit");
-    return;
-  }
-  if (category == "") {
-    console.log("Category missing");
-    return;
-  }
   const [insertResult] = await Promise.all([
     checkCategoryLimit(category, amount),
     supabase.from('Outcomes').insert(newOutcome).select(),
@@ -152,7 +142,6 @@ export async function addOutcome(profile: string, category: string, amount: numb
 
 export async function removeOutcome(profile: string, id: number | undefined) {
   const outcome = await getOutcome(profile, id);
-  // Borro información
   const [deleteResult] = await Promise.all([
     supabase.from('Outcomes').delete().eq('profile', profile).eq('id', id),
     updateBalance(profile, outcome.amount),
@@ -363,7 +352,6 @@ export async function addUser(email: string, password: string, name: string, sur
   const { data, error } = await supabase
     .from('Users')
     .insert(newUser);
-
   if (error) {
     console.error('Error adding user:', error);
     return null;

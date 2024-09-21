@@ -1,67 +1,69 @@
 import React from 'react';
-import { useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { addProfile, ProfileData, removeProfile, changeCurrentProfile } from '../api/api';
-
 import { FontAwesome } from '@expo/vector-icons';
+
+const EMAIL = "juancito@gmail.com";
 
 interface ProfileListProps {
   profileData: ProfileData[] | null;
   refreshData: () => void;
 }
 
-export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData }) => {
+export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData, refreshData }) => {
 
-  const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null);
+  const handleProfilePress = useCallback((profile: ProfileData) => {
+    changeCurrentProfile(EMAIL, profile.id ?? "null");
+  }, []);
 
-  const handleProfilePress = (profile: ProfileData) => {
-    setSelectedProfile(profile);
-    changeCurrentProfile("juancito@gmail.com", profile.id ?? "null");
-  };
-
-  const handleLongPress = (profile: ProfileData) => {
-    setSelectedProfile(profile);
+  const handleLongPress = useCallback((profile: ProfileData) => {
     Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (profile) handleRemoveProfile(profile.id ?? "null")
+        if (profile) handleRemoveProfile(profile.id ?? "null");
+        refreshData();
       }
     }]);
-  };
-
-  const renderItem = ({ item }: { item: ProfileData }) => (
-    <TouchableOpacity onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
-        <View style={styles.card}>
-            <View style={styles.iconContainer}>
-                <FontAwesome name="dollar" size={24} color="green" />
-            </View>
-            <View style={styles.textContainer}>
-                <ThemedText style={styles.description}>{item.name}</ThemedText>
-            </View>
-            <ThemedText style={styles.amount}>+ ${(item.balance ?? 0).toFixed(2)}</ThemedText>
-        </View>
-    </TouchableOpacity>
-  );
+  }, [refreshData]);
 
   const handleRemoveProfile = async (id: string) => {
     await removeProfile(id);
     refreshData();  // Actualiza los datos después de eliminar
   };
   
-  const handleAddProfile = () => { 
-    addProfile("Nuevo perfil", "juancito@gmail.com");
+  const handleAddProfile = useCallback(() => { 
+    addProfile("Nuevo perfil", EMAIL);
     refreshData();
-};
+  }, [refreshData]);
+
+  const renderItem = useCallback(({ item }: { item: ProfileData }) => (
+    <TouchableOpacity onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
+      <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <FontAwesome name="dollar" size={24} color="green" />
+        </View>
+        <View style={styles.textContainer}>
+          <ThemedText style={styles.description}>{item.name}</ThemedText>
+        </View>
+        <ThemedText style={styles.amount}>+ ${(item.balance ?? 0).toFixed(2)}</ThemedText>
+      </View>
+    </TouchableOpacity>
+  ), [handleProfilePress, handleLongPress]);
+
+  const keyExtractor = useCallback((item: ProfileData) => item.id?.toString() || '', []);
+
+  const memoizedProfileData = useMemo(() => profileData || [], [profileData]);
 
   return (
     <View style={styles.container}>
-        <FlatList data={profileData} renderItem={renderItem} keyExtractor={(item) => item.id?.toString() || ''}/>
+        <FlatList data={memoizedProfileData} renderItem={renderItem} keyExtractor={keyExtractor}/>
         <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
             <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
     </View>
   );
-};
+  });
 
 const styles = StyleSheet.create({
     container: {

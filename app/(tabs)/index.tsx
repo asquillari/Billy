@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -8,54 +8,65 @@ import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/AddButton';
 import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
 
+const PROFILE_ID = "f5267f06-d68b-4185-a911-19f44b4dc216";
+
 export default function HomeScreen() {
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
-  async function getIncomeData() {
-    const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
+  const getIncomeData = useCallback(async () => {
+    const data = await fetchIncomes(PROFILE_ID);
     setIncomeData(data);
-  };
+  }, []);
 
-  async function getOutcomeData() {
-    const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
+  const getOutcomeData = useCallback(async () => {
+    const data = await fetchOutcomes(PROFILE_ID);
     setOutcomeData(data);
-  };
+  }, []);
 
-  async function getCategoryData() {
-    const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
+  const getCategoryData = useCallback(async () => {
+    const data = await fetchCategories(PROFILE_ID);
     setCategoryData(data);
-  };
+  }, []);
   
-  async function getBalanceData() {
-    const data = await getBalance("f5267f06-d68b-4185-a911-19f44b4dc216");
+  const getBalanceData = useCallback(async () => {
+    const data = await getBalance(PROFILE_ID);
     setBalanceData(data);
-  };
+  }, []);
 
   const refreshAllData = useCallback(() => {
     getIncomeData();
     getOutcomeData();
     getBalanceData();
     getCategoryData();
-  }, []);
+  }, [getIncomeData, getOutcomeData, getBalanceData, getCategoryData]);
 
   useEffect(() => {
     refreshAllData();
   }, [refreshAllData]);
 
-  const totalIncome = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0;
-  const totalExpenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0;
+  const totalIncome = useMemo(() => 
+    incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
+    [incomeData]
+  );
+
+  const totalExpenses = useMemo(() => 
+    outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
+    [outcomeData]
+  );
+
+  const headerImage = useMemo(() => (
+    <View style={styles.logoContainer}>
+      <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
+    </View>
+  ), []);
 
   return (
     <ParallaxScrollView
       headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
-      headerImage={
-        <View style={styles.logoContainer}>
-          <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
-        </View>
-      }>
+      headerImage={headerImage}>
         <>
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           
