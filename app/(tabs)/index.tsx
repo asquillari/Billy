@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, SafeAreaView } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -34,74 +34,58 @@ export default function HomeScreen() {
   const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <BillyHeader/>
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.rectangle}>
-
+        <View style={styles.contentContainer}>
+          <ScrollView style={styles.scrollView}>
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-              
-            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
             
-            <View style={{paddingHorizontal: 10}}> 
+            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+          
+            <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Categorías</ThemedText>
               <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
             </View>
 
-            <View style={{paddingHorizontal: 10}}> 
+            <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
             </View>
-
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
       </LinearGradient>
- 
-      
- {/* Botones para Sign Up y Login */}
-     {/* <View style={styles.buttonContainer}>
-        <Button title="Sign Up" onPress={handleAddUser} />
-        {signUpMessage && <Text>{signUpMessage}</Text>}
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Login" onPress={handleLogin} />
-        {loginMessage && <Text>{loginMessage}</Text>}
-      </View>*/}
-
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    marginBottom:10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3B3B3B',
+  container: {
+    flex: 1,
   },
   gradientContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  container: {
     flex: 1,
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 10,
+    width: '95%',
+    alignSelf: 'center',
   },
   scrollView: {
     flex: 1,
   },
-  rectangle: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000000',
-    minHeight: '100%',
-    width: '95%',
-    alignSelf: 'center',
-    padding: 15,
+  sectionContainer: {
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+  title: {
+    marginBottom: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#3B3B3B',
   },
 });
