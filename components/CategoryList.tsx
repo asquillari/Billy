@@ -135,7 +135,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         const gradientColors = getCategoryColor(category);
         return (
             <TouchableOpacity key={category.id || index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)}>
-                <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}} >
+                <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}}>
                     <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
                     <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
                 </LinearGradient>
