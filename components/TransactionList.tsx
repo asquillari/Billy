@@ -83,16 +83,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
       renderItem={renderTransactionItem}
       keyExtractor={(item) => `${(item as any).type}-${item.id}`}
       showsVerticalScrollIndicator={false}
-      style={styles.container}
       scrollEnabled={scrollEnabled}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 20,
-  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',

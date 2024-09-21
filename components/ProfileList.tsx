@@ -2,7 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { addProfile, ProfileData, removeProfile } from '../api/api';
+import { addProfile, ProfileData, removeProfile, changeCurrentProfile } from '../api/api';
 
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -13,23 +13,24 @@ interface ProfileListProps {
 
 export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData }) => {
 
-  // For deleting
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null);
 
-  // Remove category
+  const handleProfilePress = (profile: ProfileData) => {
+    setSelectedProfile(profile);
+    changeCurrentProfile("juancito@gmail.com", profile.id ?? "null");
+  };
+
   const handleLongPress = (profile: ProfileData) => {
     setSelectedProfile(profile);
     Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (profile) {
-          handleRemoveProfile(profile.id ?? "null")
-        }
+        if (profile) handleRemoveProfile(profile.id ?? "null")
       }
     }]);
   };
 
   const renderItem = ({ item }: { item: ProfileData }) => (
-    <TouchableOpacity onLongPress={() => handleLongPress(item)}>
+    <TouchableOpacity onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
         <View style={styles.card}>
             <View style={styles.iconContainer}>
                 <FontAwesome name="dollar" size={24} color="green" />

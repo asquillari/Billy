@@ -410,10 +410,19 @@ export async function logIn(email: string, password: string) {
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {
   await supabase
-    .from('Profiles')
-    .update({currentProfile: newProfileID})
+    .from('Users')
+    .update({current_profile: newProfileID})
     .eq('email', user)
     .single();
+}
+
+export async function fetchCurrentProfile(user: string) {
+  const { data } = await supabase
+    .from('Users')
+    .select('current_profile')
+    .eq('email', user)
+    .single();
+  return data;
 }
 
 /* Stats */
