@@ -25,7 +25,6 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
   const handleLongPress = useCallback((outcome: OutcomeData) => {
     setSelectedOutcome(outcome);
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
-
       onPress: async () => {
         if (outcome) handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id ?? 0);
       }

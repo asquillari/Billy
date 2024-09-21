@@ -9,16 +9,15 @@ import AddButton from '@/components/AddButton';
 import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 
+const EMAIL = "juancito@gmail.com";
+
 export default function HomeScreen() {
 
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
-
-console.log(currentProfileId);
     
   useEffect(() => {
-
     const fetchProfile = async () => {
-      const profileData = await fetchCurrentProfile("juancito@gmail.com");
+      const profileData = await fetchCurrentProfile(EMAIL);
       setCurrentProfileId(profileData?.current_profile || null);
     };
     fetchProfile();

@@ -32,7 +32,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
     return sortTransactions(combined);
   }, [incomeData, outcomeData, sortTransactions]);
 
-  // Remove category
   const handleLongPress = useCallback((transaction: IncomeData | OutcomeData) => {
     setSelectedTransaction(transaction);
     Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",

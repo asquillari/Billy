@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { addProfile } from '@/api/api';
 
+const EMAIL = "juancito@gmail.com";
+
 interface AddProfileModalProps {
   isVisible: boolean;
+
   onClose: () => void;
   onProfileAdded: () => void;
 }
@@ -13,7 +16,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
 
   const handleAddProfile = async () => {
     if (profileName.trim()) {
-      await addProfile(profileName, "juancito@gmail.com");
+      await addProfile(profileName, EMAIL);
       setProfileName('');
       onProfileAdded();
       onClose();

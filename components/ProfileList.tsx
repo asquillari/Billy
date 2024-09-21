@@ -43,15 +43,14 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       );
     }
 
-  return (
-    <TouchableOpacity style={styles.profileItem} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
-      <Ionicons name="person-circle-outline" size={35} color="#4B00B8"/>
-      <Text style={styles.profileName}>{item.name}</Text>
-
-      <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
-    </TouchableOpacity>
-  );
-}, [onAddProfile, handleProfilePress, handleLongPress]);
+    return (
+      <TouchableOpacity style={styles.profileItem} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
+        <Ionicons name="person-circle-outline" size={35} color="#4B00B8"/>
+        <Text style={styles.profileName}>{item.name}</Text>
+        <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
+      </TouchableOpacity>
+    );
+  }, [onAddProfile, handleProfilePress, handleLongPress]);
 
   const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
 
