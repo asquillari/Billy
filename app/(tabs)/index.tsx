@@ -10,6 +10,7 @@ import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Platform, StatusBar } from 'react-native';
 
 const EMAIL = "juancito@gmail.com";
 
@@ -34,9 +35,11 @@ export default function HomeScreen() {
   const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <BillyHeader/>
+        <View style={styles.headerContainer}>
+          <BillyHeader />
+        </View>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
@@ -50,14 +53,24 @@ export default function HomeScreen() {
 
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+              <TransactionList 
+                incomeData={incomeData} 
+                outcomeData={outcomeData} 
+                refreshIncomeData={getIncomeData} 
+                refreshOutcomeData={getOutcomeData} 
+                refreshCategoryData={getCategoryData} 
+                currentProfileId={currentProfileId??""} 
+                scrollEnabled={false}
+              />
             </View>
           </ScrollView>
         </View>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
+
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
 const styles = StyleSheet.create({
   container: {
@@ -66,14 +79,16 @@ const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
+  headerContainer: {
+    paddingTop: STATUSBAR_HEIGHT,
+  },
   contentContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     marginTop: 10,
-    width: '95%',
-    alignSelf: 'center',
+    marginHorizontal: '2.5%',
   },
   scrollView: {
     flex: 1,

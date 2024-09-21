@@ -8,7 +8,7 @@ interface BillyHeaderProps {
 
 export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => {
   return (
-    <View style={styles.container}>
+    <View>
       <View style={styles.barraSuperior}>
         <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
         <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario}/>
@@ -25,9 +25,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => 
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 25,
-  },
+
   barraSuperior: {
     height: 60,
     backgroundColor: '#ffffff',

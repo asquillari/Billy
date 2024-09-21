@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
 import { fetchProfiles, ProfileData } from '@/api/api';
 import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Platform, StatusBar } from 'react-native';
 
 const EMAIL = "juancito@gmail.com";
 
@@ -45,7 +46,9 @@ export default function Profiles() {
     return(
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
-                <BillyHeader title="Perfiles" subtitle="Gestioná tus perfiles individuales y grupales."/>
+                <View style={styles.headerContainer}>
+                    <BillyHeader title="Perfiles" subtitle="Gestioná tus perfiles individuales y grupales."/>
+                </View>
                 <View style={styles.contentContainer}>
                     <View style={styles.rectangle}>
                         {memoizedProfileList}
@@ -57,6 +60,8 @@ export default function Profiles() {
     );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
+
 const styles = StyleSheet.create ({
     displayText : {
         color:'#FFFFFF',
@@ -66,12 +71,14 @@ const styles = StyleSheet.create ({
         marginBottom: 20,
         marginTop: 20,
     },
+    headerContainer: {
+        paddingTop: STATUSBAR_HEIGHT,
+    },
     container: {
         flex: 1,
     },
     gradientContainer: {
         flex: 1,
-        paddingTop: 10,
     },
     contentContainer: {
         flex: 1,
