@@ -1,23 +1,29 @@
 import React from 'react';
-import { useMemo, useCallback } from 'react';
-import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { addProfile, ProfileData, removeProfile, changeCurrentProfile } from '../api/api';
-import { FontAwesome } from '@expo/vector-icons';
+import { useCallback } from 'react';
+import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
+import { Ionicons } from '@expo/vector-icons';
+import { Alert } from 'react-native';
 
 const EMAIL = "juancito@gmail.com";
 
 interface ProfileListProps {
-  profileData: ProfileData[] | null;
-  refreshData: () => void;
+    profileData: ProfileData[] | null;
+    refreshData: () => void;
+    onAddProfile: () => void;
 }
 
-export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData, refreshData }) => {
-
+export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile }) => {
+  
   const handleProfilePress = useCallback((profile: ProfileData) => {
     changeCurrentProfile(EMAIL, profile.id ?? "null");
   }, []);
 
+  const handleRemoveProfile = async (id: string) => {
+    await removeProfile(id);
+    refreshData();  // Actualiza los datos después de eliminar
+  };
+  
   const handleLongPress = useCallback((profile: ProfileData) => {
     Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
@@ -26,89 +32,87 @@ export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData
       }
     }]);
   }, [refreshData]);
-
-  const handleRemoveProfile = async (id: string) => {
-    await removeProfile(id);
-    refreshData();  // Actualiza los datos después de eliminar
-  };
-
-  const renderItem = useCallback(({ item }: { item: ProfileData }) => (
-    <TouchableOpacity onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-          <FontAwesome name="dollar" size={24} color="green" />
-        </View>
-        <View style={styles.textContainer}>
-          <ThemedText style={styles.description}>{item.name}</ThemedText>
-        </View>
-      </View>
-    </TouchableOpacity>
-  ), [handleProfilePress, handleLongPress]);
-
-  const keyExtractor = useCallback((item: ProfileData) => item.id?.toString() || '', []);
-
-  const memoizedProfileData = useMemo(() => profileData || [], [profileData]);
+  
+  const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
+    if (item === 'add') {
+     return (
+      <TouchableOpacity style={[styles.profileItem, styles.addButton]} onPress={onAddProfile}>
+        <Ionicons name="add-circle-outline" size={35} color="#FFFFFF" />
+        <Text style={styles.addButtonText}>Agregar Perfil</Text>
+      </TouchableOpacity>
+      );
+    }
 
   return (
-    <View style={styles.container}>
-        <FlatList data={memoizedProfileData} renderItem={renderItem} keyExtractor={keyExtractor}/>  
-    </View>
+    <TouchableOpacity style={styles.profileItem} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
+      <Ionicons name="person-circle-outline" size={35} color="#4B00B8"/>
+      <Text style={styles.profileName}>{item.name}</Text>
+
+      <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
+    </TouchableOpacity>
   );
-  });
+}, [onAddProfile, handleProfilePress, handleLongPress]);
+
+  const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
+
+  const keyExtractor = useCallback((item: ProfileData | 'add') => typeof item === 'string' ? item : item.id?.toString() ?? '', []);
+
+  return (
+    <FlatList
+      data={data}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      numColumns={2}
+      columnWrapperStyle={styles.row}
+      contentContainerStyle={styles.listContainer}
+    />
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-        marginTop: 20,
-        paddingHorizontal: 16,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    iconContainer: {
-        marginRight: 16,
-    },
-    textContainer: {
-        flex: 1,
-    },
-    description: {
-        fontSize: 18,
-        color: '#555',
-        fontWeight: '400',
-    },
-    date: {
-        fontSize: 12,
-        color: '#888',
-    },
-    amount: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: 'green',
-    },
-    addButton: {
-        backgroundColor: '#4a0e4e',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 20,
-        alignItems: 'center',
-    },
-      addButtonText: {
-        color: '#ffffff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  row: {
+    justifyContent: 'space-between',
+  },
+  profileItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    width: '48%', // Adjust this value to control the gap between columns
+    aspectRatio: 1, // Make items square
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+   profileName: {
+    fontSize: 26,
+    marginTop: 8,
+    color: '#333',
+    textAlign: 'center',
+  },
+  balanceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4B00B8',
+    marginTop: 4,
+  },
+  addButton: {
+    backgroundColor: '#4B00B8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 8,
+  },
 });
