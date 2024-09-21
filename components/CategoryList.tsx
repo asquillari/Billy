@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
@@ -7,15 +7,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import AddCategoryModal from './modals/AddCategoryModal';
 import CategoryDetailsModal from './modals/CategoryDetailsModal';
-
-const DEFAULT_OTROS_CATEGORY: CategoryData = {
-  id: 'otros-default',
-  profile: 'f5267f06-d68b-4185-a911-19f44b4dc216',
-  name: 'Otros',
-  color: JSON.stringify(['#AAAAAA', '#AAAAAA']), 
-  spent: 0,
-  limit: 0,
-};
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
@@ -29,7 +20,16 @@ const parseGradient = (color: string): string[] => {
     catch { return ['#48ECE2', '#62D29C']; }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId }) => {
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId }) => {    
+    const getDefaultOtrosCategory = useCallback((): CategoryData => ({
+        id: 'otros-default',
+        profile: currentProfileId,
+        name: 'Otros',
+        color: JSON.stringify(['#AAAAAA', '#AAAAAA']), 
+        spent: 0,
+        limit: 0,
+    }), [currentProfileId]);
+
     const [modalVisible, setModalVisible] = useState(false);
     const colorScheme = useColorScheme();
 
@@ -47,8 +47,8 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
-        if (!categoryData) return [DEFAULT_OTROS_CATEGORY];
-        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || DEFAULT_OTROS_CATEGORY;
+        if (!categoryData) return [getDefaultOtrosCategory()];
+        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || getDefaultOtrosCategory();
         const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
         return [...otherCategories, otrosCategory];
     }, [categoryData]);
