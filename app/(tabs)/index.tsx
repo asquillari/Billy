@@ -1,70 +1,94 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { TransactionList } from '@/components/TransactionList';
+import { BalanceCard } from '@/components/BalanceCard';
+import { CategoryList } from '@/components/CategoryList';
+import AddButton from '@/components/AddButton';
+import useProfileData from '@/hooks/useProfileData';
+import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
+import { useFocusEffect } from '@react-navigation/native';
+
+const EMAIL = "juancito@gmail.com";
 
 export default function HomeScreen() {
+
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
+
+  const fetchProfile = async () => {
+    const profileData = await fetchCurrentProfile(EMAIL);
+    setCurrentProfileId(profileData?.current_profile || null);
+    console.log(currentProfileId);
+  };
+
+  useFocusEffect(() => {
+    fetchProfile();
+  });
+
+  const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
+
+  const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
+
+  const headerImage = useMemo(() => (
+    <View style={styles.logoContainer}>
+      <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
+    </View>
+  ), []);
+
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+      headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
+      headerImage={headerImage}>
+       
+          <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+          
+          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+          
+          <View>
+            <ThemedText style={styles.title}>Categorías</ThemedText>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
+          </View>
+
+          <View>
+            <ThemedText style={styles.title}>Actividad reciente</ThemedText>
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+          </View>
+      
+ {/* Botones para Sign Up y Login */}
+     {/* <View style={styles.buttonContainer}>
+        <Button title="Sign Up" onPress={handleAddUser} />
+        {signUpMessage && <Text>{signUpMessage}</Text>}
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button title="Login" onPress={handleLogin} />
+        {loginMessage && <Text>{loginMessage}</Text>}
+      </View>*/}
+
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  billyLogo: {
+    height: 100,
+    width: 100,
+    resizeMode: 'contain',
+  },
+  logoContainer:{
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    height: '100%',
+    paddingTop: 45,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    marginBottom:10,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  buttonContainer: {
+    margin: 10,
+    alignItems: 'center',
+  }
 });
