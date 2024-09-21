@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,22 +16,24 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outc
     refreshData();
 
     const colorScheme = useColorScheme();
-    const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#3B3B3B';
+
+    const textColor = useMemo(() => colorScheme === 'dark' ? '#FFFFFF' : '#3B3B3B', [colorScheme]);
+
+    const formattedBalance = useMemo(() => balance !== null ? balance.toFixed(2) : '0.00', [balance]);
+    const formattedIncomes = useMemo(() => incomes?.toFixed(2) ?? '0.00', [incomes]);
+    const formattedOutcomes = useMemo(() => outcomes?.toFixed(2) ?? '0.00', [outcomes]);
 
     return (
         <View style={styles.box}>
-            <LinearGradient
-                colors={['rgba(0, 0, 0, 0.08)', 'rgba(0, 0, 0, 0.08)']}
-                style={styles.balanceCard}
-            >
+            <LinearGradient colors={['rgba(0, 0, 0, 0.08)', 'rgba(0, 0, 0, 0.08)']} style={styles.balanceCard}>
                 <ThemedText type="subtitle" style={[styles.balanceTotalText, { color: textColor }]}>Balance total:</ThemedText>
-                <ThemedText type="title" style={[styles.balanceAmount, { color: textColor }]}>${balance !== null ? balance.toFixed(2) : '0.00'}</ThemedText>
+                <ThemedText type="title" style={[styles.balanceAmount, { color: textColor }]}>${formattedBalance}</ThemedText>
                 <View style={styles.ingresosGastosCard}>
                     <View style={styles.ingresosCard}>
                         <View style={styles.ingresoPlata}>
                             <ThemedText style={[styles.textWrapper, { color: textColor }]}>Ingresos</ThemedText>
                             <ThemedText style={[styles.amount, { color: textColor }]}>
-                                ${incomes?.toFixed(2) ?? '0.00'}
+                                ${formattedIncomes}
                             </ThemedText>
                         </View>
                     </View>
@@ -38,7 +41,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outc
                         <View style={styles.gastoPlata}>
                             <ThemedText style={[styles.textWrapper, { color: textColor }]}>Gastos</ThemedText>
                             <ThemedText style={[styles.amount, { color: textColor }]}>
-                                ${outcomes?.toFixed(2) ?? '0.00'}
+                                ${formattedOutcomes}
                             </ThemedText>
                         </View>
                     </View>
