@@ -31,11 +31,6 @@ export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData
     await removeProfile(id);
     refreshData();  // Actualiza los datos después de eliminar
   };
-  
-  const handleAddProfile = useCallback(() => { 
-    addProfile("Nuevo perfil", EMAIL);
-    refreshData();
-  }, [refreshData]);
 
   const renderItem = useCallback(({ item }: { item: ProfileData }) => (
     <TouchableOpacity onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
@@ -46,7 +41,6 @@ export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.name}</ThemedText>
         </View>
-        <ThemedText style={styles.amount}>+ ${(item.balance ?? 0).toFixed(2)}</ThemedText>
       </View>
     </TouchableOpacity>
   ), [handleProfilePress, handleLongPress]);
@@ -57,10 +51,7 @@ export const ProfileList: React.FC<ProfileListProps> = React.memo(({ profileData
 
   return (
     <View style={styles.container}>
-        <FlatList data={memoizedProfileData} renderItem={renderItem} keyExtractor={keyExtractor}/>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
-            <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+        <FlatList data={memoizedProfileData} renderItem={renderItem} keyExtractor={keyExtractor}/>  
     </View>
   );
   });
