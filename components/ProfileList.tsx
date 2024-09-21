@@ -77,15 +77,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     marginBottom: 5,
-    width: '48%', // Adjust this value to control the gap between columns
-    aspectRatio: 1, // Make items square
+    width: '48%',
+    aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   profileName: {
     fontSize: 26,
