@@ -16,33 +16,20 @@ export default function HomeScreen() {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
-  const getIncomeData = useCallback(async () => {
-    const data = await fetchIncomes(PROFILE_ID);
-    setIncomeData(data);
+  const fetchData = useCallback(async (fetchFunction: Function) => {
+    const data = await fetchFunction(PROFILE_ID);
+    return data;
   }, []);
 
-  const getOutcomeData = useCallback(async () => {
-    const data = await fetchOutcomes(PROFILE_ID);
-    setOutcomeData(data);
-  }, []);
-
-  const getCategoryData = useCallback(async () => {
-    const data = await fetchCategories(PROFILE_ID);
-    setCategoryData(data);
-  }, []);
-  
-  const getBalanceData = useCallback(async () => {
-    const data = await getBalance(PROFILE_ID);
-    setBalanceData(data);
-  }, []);
+  const getIncomeData = useCallback(() => fetchData(fetchIncomes).then(setIncomeData), [fetchData]);
+  const getOutcomeData = useCallback(() => fetchData(fetchOutcomes).then(setOutcomeData), [fetchData]);
+  const getCategoryData = useCallback(() => fetchData(fetchCategories).then(setCategoryData), [fetchData]);
+  const getBalanceData = useCallback(() => fetchData(getBalance).then(setBalanceData), [fetchData]);
 
   const refreshAllData = useCallback(() => {
-    getIncomeData();
-    getOutcomeData();
-    getBalanceData();
-    getCategoryData();
+    Promise.all([getIncomeData(), getOutcomeData(), getBalanceData(), getCategoryData()]);
   }, [getIncomeData, getOutcomeData, getBalanceData, getCategoryData]);
-
+  
   useEffect(() => {
     refreshAllData();
   }, [refreshAllData]);
@@ -67,7 +54,7 @@ export default function HomeScreen() {
     <ParallaxScrollView
       headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
       headerImage={headerImage}>
-        <>
+       
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           
           <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData}/>
@@ -81,10 +68,7 @@ export default function HomeScreen() {
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
             <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}/>
           </View>
-        </>
       
-
-
  {/* Botones para Sign Up y Login */}
      {/* <View style={styles.buttonContainer}>
         <Button title="Sign Up" onPress={handleAddUser} />

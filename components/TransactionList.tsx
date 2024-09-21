@@ -19,16 +19,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   // For deleting
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
+  const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {
+    return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
+  }, []);
+  
   const combinedTransactions = useMemo(() => {
     if (!incomeData || !outcomeData) return [];
-
-    const combined: (IncomeData | OutcomeData)[] = [
+    const combined = [
       ...incomeData.map(income => ({ ...income, type: 'income' as const })),
       ...outcomeData.map(outcome => ({ ...outcome, type: 'outcome' as const }))
     ];
-
-    return combined.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
-  }, [incomeData, outcomeData]);
+    return sortTransactions(combined);
+  }, [incomeData, outcomeData, sortTransactions]);
 
   // Remove category
   const handleLongPress = useCallback((transaction: IncomeData | OutcomeData) => {
