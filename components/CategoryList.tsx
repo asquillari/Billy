@@ -20,6 +20,7 @@ interface CategoryListProps {
     categoryData: CategoryData[] | null;
     refreshCategoryData: () => void;
     refreshAllData: () => void;
+    currentProfileId: string;
 }
 
 const gradients = [
@@ -46,7 +47,7 @@ const parseGradient = (color: string): string[] => {
     }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId }) => {
 
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -76,7 +77,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     // See category details
     const handleCategoryPress = useCallback((category: CategoryData) => {
         setSelectedCategory(category);
-        getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", category.id ?? "null").then(() => {
+        getOutcomeData(currentProfileId, category.id ?? "null").then(() => {
             setDetailsModalVisible(true);
         });
     }, [getOutcomeData]);
@@ -93,7 +94,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
                 if (category) {
-                    await removeCategory("f5267f06-d68b-4185-a911-19f44b4dc216", category.id);
+                    await removeCategory(currentProfileId, category.id);
                     refreshCategoryData();
                 }
             }
@@ -123,7 +124,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const handleAddCategory = async () => {
         if (!validateCategoryName()) return;
         const gradient = getNextGradient();
-        await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, JSON.stringify(gradient), parseFloat(limit));
+        await addCategory(currentProfileId, name, JSON.stringify(gradient), parseFloat(limit));
         setName('');
         setLimit('');
         setModalVisible(false);
@@ -162,7 +163,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                         {selectedCategory && (
                             <>
                                 <Text style={styles.detailsModalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
-                                <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory?.id ?? "null")} />
+                                <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData(currentProfileId, selectedCategory?.id ?? "null")} currentProfileId={currentProfileId} />
                                 <View style={styles.buttonContainer}>
                                     <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
                                 </View>

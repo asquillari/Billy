@@ -9,9 +9,10 @@ interface AddButtonProps {
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
+  currentProfileId: string;
 }
 
-const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData }: AddButtonProps) => {
+const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
@@ -24,7 +25,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
 
   // To avoid doing it on every render
   const fetchCategoriesData = useCallback(() => {
-    fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216").then(categories => setCategories(categories || []));
+    fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
   }, []);
 
   useEffect(() => {
@@ -38,10 +39,10 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
 
   const handleSubmit = useCallback(async (): Promise<void> => {
     if (type === 'Income') {
-      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
+      await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory, parseFloat(amount), description);
+      await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description);
       refreshOutcomeData();
       refreshCategoryData();
     }

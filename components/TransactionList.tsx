@@ -11,10 +11,11 @@ interface TransactionListProps {
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
+  currentProfileId: string;
   scrollEnabled?: boolean;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, scrollEnabled = true }) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true }) => {
   
   // For deleting
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
@@ -36,8 +37,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
     setSelectedTransaction(transaction);
     Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if ((transaction as any).type === "income") handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", transaction.id ?? 0);
-        else handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", transaction.id ?? 0);
+        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId, transaction.id ?? 0);
+        else handleRemoveOutcome(currentProfileId, transaction.id ?? 0);
       }
     }]);
   }, [refreshIncomeData, refreshOutcomeData, refreshCategoryData]);

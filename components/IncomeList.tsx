@@ -2,17 +2,16 @@ import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-
-import { removeIncome, IncomeData, getBalance } from '../api/api';
-
+import { removeIncome, IncomeData } from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 
 interface IncomeListProps {
   incomeData: IncomeData[] | null;
   refreshData: () => void;
+  currentProfileId: string;
 }
 
-export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData }) => {
+export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData, currentProfileId }) => {
 
   // For deleting
   const [selectedIncome, setSelectedIncome] = useState<IncomeData | null>(null);
@@ -28,7 +27,7 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
     setSelectedIncome(income);
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (income) handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id ?? 0)
+        if (income) handleRemoveIncome(currentProfileId, income.id ?? 0)
       }
     }]);
   }, [incomeData]);

@@ -10,20 +10,20 @@ import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 
 const EMAIL = "juancito@gmail.com";
+const PROFILE_ID = "f5267f06-d68b-4185-a911-19f44b4dc216";
 
 export default function HomeScreen() {
 
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
 
-  const refreshCurrentProfile = useCallback(async () => {
-    const profile = await fetchCurrentProfile(EMAIL);
-    setCurrentProfileId(profile?.current_profile.id ?? null);
-  }, []);
-
   useEffect(() => {
-    refreshCurrentProfile();
-  }, [refreshCurrentProfile]);
+    const fetchProfile = async () => {
+      const profileData = await fetchCurrentProfile(EMAIL);
+      setCurrentProfileId(profileData?.current_profile || null);
+    };
+    fetchProfile();
+  }, []);
 
   const totalIncome = useMemo(() => 
     incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
@@ -48,16 +48,16 @@ export default function HomeScreen() {
        
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           
-          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData}/>
+          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={PROFILE_ID}/>
           
           <View>
             <ThemedText style={styles.title}>Categorías</ThemedText>
-            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={PROFILE_ID}/>
           </View>
 
           <View>
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}/>
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={PROFILE_ID} scrollEnabled={false}/>
           </View>
       
  {/* Botones para Sign Up y Login */}

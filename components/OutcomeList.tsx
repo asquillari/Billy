@@ -8,9 +8,10 @@ import { FontAwesome } from '@expo/vector-icons';
 interface OutcomeListProps {
   outcomeData: OutcomeData[] | null;
   refreshData: () => void;
+  currentProfileId: string;
 }
 
-export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshData }) => {
+export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshData, currentProfileId }) => {
   
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
@@ -26,7 +27,7 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
     setSelectedOutcome(outcome);
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (outcome) handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id ?? 0);
+        if (outcome) handleRemoveOutcome(currentProfileId, outcome.id ?? 0);
       }
     }]);
   }, [outcomeData]);
