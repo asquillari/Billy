@@ -14,14 +14,7 @@ interface AddTransactionModalProps {
   currentProfileId: string;
 }
 
-const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
-  isVisible,
-  onClose,
-  refreshIncomeData,
-  refreshOutcomeData,
-  refreshCategoryData,
-  currentProfileId
-}) => {
+const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, onClose, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
   const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());

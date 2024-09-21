@@ -17,7 +17,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outc
 
     const colorScheme = useColorScheme();
 
-    const textColor = useMemo(() => colorScheme === 'dark' ? '#FFFFFF' : '#3B3B3B', [colorScheme]);
+    const textColor = useMemo(() => colorScheme === 'dark' ? '#3B3B3B' : '#3B3B3B', [colorScheme]);
 
     const formattedBalance = useMemo(() => balance !== null ? balance.toFixed(2) : '0.00', [balance]);
     const formattedIncomes = useMemo(() => incomes?.toFixed(2) ?? '0.00', [incomes]);
@@ -53,12 +53,15 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outc
 
 const styles = StyleSheet.create({
     box: {
-        height: 201,
-        width: 345,
+        height: 200,
+        width: 350,
+        marginTop: 20,
+        alignSelf: 'center',
+        marginBottom: 20,
     },
     balanceCard: {
-        height: 201,
-        width: 345,
+        height: 200,
+        width: 350,
         borderRadius: 25,
         borderWidth: 2,
         borderColor: 'rgba(255, 255, 255, 0.05)',

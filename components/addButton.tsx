@@ -38,7 +38,6 @@ const AddButton: React.FC<AddButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     top: -160,
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     top: -70,
-    right: 10,
+    right: 30,
     backgroundColor: '#FFFFFF',
     width: 75,
     height: 75,
