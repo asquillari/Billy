@@ -14,26 +14,16 @@ const EMAIL = "juancito@gmail.com";
 export default function HomeScreen() {
 
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
-    
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const profileData = await fetchCurrentProfile(EMAIL);
-      setCurrentProfileId(profileData?.current_profile || null);
-    };
-    fetchProfile();
+  const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
+
+  const refreshCurrentProfile = useCallback(async () => {
+    const profile = await fetchCurrentProfile(EMAIL);
+    setCurrentProfileId(profile?.current_profile.id ?? null);
   }, []);
 
-  const {
-    incomeData,
-    outcomeData,
-    categoryData,
-    balance,
-    getIncomeData,
-    getOutcomeData,
-    getCategoryData,
-    getBalanceData,
-    refreshAllData
-  } = useProfileData(currentProfileId || "");
+  useEffect(() => {
+    refreshCurrentProfile();
+  }, [refreshCurrentProfile]);
 
   const totalIncome = useMemo(() => 
     incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0,
