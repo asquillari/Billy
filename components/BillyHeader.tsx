@@ -2,35 +2,33 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 interface BillyHeaderProps {
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
 }
 
 export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => {
   return (
-    <>
+    <View style={styles.container}>
       <View style={styles.barraSuperior}>
-        <Image
-          source={require('../assets/images/Billy/logo2.png')}
-          style={styles.logoBilly}
-        />
-        <Image
-          source={require('../assets/images/icons/UserIcon.png')}
-          style={styles.usuario}
-        />
+        <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
+        <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario}/>
       </View>
       
-      <View style={styles.tituloContainer}>
-        <Text style={styles.tituloTexto}>{title}</Text>
-        <Text style={styles.subtituloTexto}>{subtitle}</Text>
-      </View>
-    </>
+      {(title || subtitle) && (
+        <View style={styles.tituloContainer}>
+          {title && <Text style={styles.tituloTexto}>{title}</Text>}
+          {subtitle && <Text style={styles.subtituloTexto}>{subtitle}</Text>}
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  barraSuperior: {
+  container: {
     marginTop: 25,
+  },
+  barraSuperior: {
     height: 60,
     backgroundColor: '#ffffff',
     borderRadius: 30,
@@ -61,7 +59,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   tituloContainer: {
-    height: 55,
     marginHorizontal: 20,
     marginBottom: 10,
   },

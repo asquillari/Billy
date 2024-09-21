@@ -101,7 +101,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
                 <Text style={[
                     styles.addCategoryText,
-                    { color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }
+                    { color: colorScheme === 'dark' ? '#3B3B3B' : '#000000' }
                 ]}>+</Text>
             </TouchableOpacity>
 
@@ -130,7 +130,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
 const styles = StyleSheet.create({
     categoriesContainer: {
-        flexDirection: 'row',
+        alignSelf: 'center',
         flexWrap: 'nowrap',
         marginBottom: 16,
     },
@@ -148,10 +148,10 @@ const styles = StyleSheet.create({
         fontSize: 24,
     },
     categoryName: {
-        color: '#000000',
+        color: '#3B3B3B',
         fontWeight: 'bold',
     },
     categoryAmount: {
-        color: '#000000',
+        color: '#3B3B3B',
     },
 });

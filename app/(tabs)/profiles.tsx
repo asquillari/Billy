@@ -48,7 +48,7 @@ export default function Profiles() {
                 <BillyHeader title="Perfiles" subtitle="Gestioná tus perfiles individuales y grupales."/>
                 <View style={styles.contentContainer}>
                     <View style={styles.rectangle}>
-                        <ProfileList profileData={profileData} refreshData={getProfileData} onAddProfile={handleAddProfile}/>
+                        {memoizedProfileList}
                     </View>
                 </View>
             </LinearGradient>

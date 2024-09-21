@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React, { useState, useMemo, useCallback } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -9,6 +8,8 @@ import AddButton from '@/components/AddButton';
 import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
+import BillyHeader from '@/components/BillyHeader';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const EMAIL = "juancito@gmail.com";
 
@@ -17,44 +18,46 @@ export default function HomeScreen() {
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const profileData = await fetchCurrentProfile(EMAIL);
     setCurrentProfileId(profileData?.current_profile || null);
-    console.log(currentProfileId);
-  };
+  }, [setCurrentProfileId]);
 
-  useFocusEffect(() => {
-    fetchProfile();
-  });
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
 
   const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
 
-  const headerImage = useMemo(() => (
-    <View style={styles.logoContainer}>
-      <Image source={require('@/assets/images/Billy/logo1.png')} style={styles.billyLogo}/>
-    </View>
-  ), []);
-
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{light: '#4B00B8', dark: '#20014E'}}
-      headerImage={headerImage}>
-       
-          <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-          
-          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
-          
-          <View>
-            <ThemedText style={styles.title}>Categorías</ThemedText>
-            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
-          </View>
+    <View style={styles.container}>
+      <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
+        <BillyHeader/>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.rectangle}>
 
-          <View>
-            <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+              
+            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            
+            <View style={{paddingHorizontal: 10}}> 
+              <ThemedText style={styles.title}>Categorías</ThemedText>
+              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
+            </View>
+
+            <View style={{paddingHorizontal: 10}}> 
+              <ThemedText style={styles.title}>Actividad reciente</ThemedText>
+              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+            </View>
+
           </View>
+        </ScrollView>
+      </LinearGradient>
+ 
       
  {/* Botones para Sign Up y Login */}
      {/* <View style={styles.buttonContainer}>
@@ -66,29 +69,39 @@ export default function HomeScreen() {
         {loginMessage && <Text>{loginMessage}</Text>}
       </View>*/}
 
-    </ParallaxScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  billyLogo: {
-    height: 100,
-    width: 100,
-    resizeMode: 'contain',
-  },
-  logoContainer:{
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-    paddingTop: 45,
-  },
   title: {
     marginBottom:10,
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#3B3B3B',
   },
-  buttonContainer: {
-    margin: 10,
-    alignItems: 'center',
-  }
+  gradientContainer: {
+    flex: 1,
+    paddingTop: 10,
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  rectangle: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000000',
+    minHeight: '100%',
+    width: '95%',
+    alignSelf: 'center',
+    padding: 15,
+  },
 });

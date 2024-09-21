@@ -86,48 +86,51 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
 };
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   iconContainer: {
     marginRight: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textContainer: {
     flex: 1,
   },
   description: {
-    fontSize: 18,
-    color: '#555',
-    fontWeight: '400',
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
   },
   date: {
     fontSize: 12,
     color: '#888',
+    marginTop: 2,
   },
   amount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'red',
   },
   incomeAmount: {
-    color: 'green',
+    color: '#4CAF50',
   },
   outcomeAmount: {
-    color: 'red',
+    color: '#F44336',
   },
 });

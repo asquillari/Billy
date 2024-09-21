@@ -68,7 +68,6 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
 };
 
 const styles = StyleSheet.create({
-
   row: {
     justifyContent: 'space-between',
     paddingHorizontal: 10,
