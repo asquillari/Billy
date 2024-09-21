@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Modal, Button, TextInput, Alert } from 'react-native';
 import { addCategory, CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
@@ -48,20 +48,12 @@ const parseGradient = (color: string): string[] => {
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
 
-    const [modalVisible, setModalVisible] = useState(false);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const [name, setName] = useState('');
     const [limit, setLimit] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const colorScheme = useColorScheme();
-
-    // Aseguramos que "Otros" siempre esté presente y al final
-    const sortedCategories = useMemo(() => {
-        if (!categoryData) return [DEFAULT_OTROS_CATEGORY];
-        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || DEFAULT_OTROS_CATEGORY;
-        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
-        return [...otherCategories, otrosCategory];
-    }, [categoryData]);
 
     // For details
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
@@ -73,17 +65,26 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         refreshAllData();
     };
 
+    // Aseguramos que "Otros" siempre esté presente y al final
+    const sortedCategories = useMemo(() => {
+        if (!categoryData) return [DEFAULT_OTROS_CATEGORY];
+        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || DEFAULT_OTROS_CATEGORY;
+        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
+        return [...otherCategories, otrosCategory];
+    }, [categoryData]);
+
     // See category details
-    const handleCategoryPress = (category: CategoryData) => {
+    const handleCategoryPress = useCallback((category: CategoryData) => {
         setSelectedCategory(category);
-        // This is needed for everything to work
-        getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", category.id ?? "null").then(() => {setDetailsModalVisible(true);});
-    };
+        getOutcomeData("f5267f06-d68b-4185-a911-19f44b4dc216", category.id ?? "null").then(() => {
+            setDetailsModalVisible(true);
+        });
+    }, [getOutcomeData]);
 
     // For deleting
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
 
-    const handleLongPress = (category: CategoryData) => {
+    const handleLongPress = useCallback((category: CategoryData) => {
         if (category.name === "Otros") {
             Alert.alert("Acción no permitida", "La categoría 'Otros' no puede ser eliminada.");
             return;
@@ -97,14 +98,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                 }
             }
         }]);
-    };
+    }, [refreshCategoryData]);
 
-    const getCategoryColor = (category: CategoryData) => {
-        if (category.name === "Otros") {
-            return ['#CECECE', '#CECECE'];
-        }
-        return parseGradient(category.color);
-    };
+    const getCategoryColor = useCallback((category: CategoryData) => {
+        return category.name === "Otros" ? ['#CECECE', '#CECECE'] : parseGradient(category.color);
+    }, []);
 
     const handleNameChange = (text: string) => {
         setName(text);
@@ -122,10 +120,8 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         return true;
     };
 
-    // Adds category
     const handleAddCategory = async () => {
         if (!validateCategoryName()) return;
-
         const gradient = getNextGradient();
         await addCategory("f5267f06-d68b-4185-a911-19f44b4dc216", name, JSON.stringify(gradient), parseFloat(limit));
         setName('');
@@ -134,28 +130,22 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         refreshCategoryData();
     };
 
+    // Separe function to update it only when necessary
+    const renderCategory = useCallback((category: CategoryData, index: number) => {
+        const gradientColors = getCategoryColor(category);
+        return (
+            <TouchableOpacity key={category.id || index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)}>
+                <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}} >
+                    <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
+                    <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
+                </LinearGradient>
+            </TouchableOpacity>
+        );
+    }, [getCategoryColor, handleCategoryPress, handleLongPress]);
+
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {sortedCategories.map((category, index) => {
-                const gradientColors = getCategoryColor(category);
-                return (
-                    <TouchableOpacity 
-                        key={category.id || index} 
-                        onPress={() => handleCategoryPress(category)} 
-                        onLongPress={() => handleLongPress(category)}
-                    >
-                        <LinearGradient 
-                            colors={gradientColors} 
-                            style={styles.category}
-                            start={{x: 0, y: 0}}
-                            end={{x: 0, y: 1}}
-                        >
-                            <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
-                            <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                );
-            })}
+            {sortedCategories.map(renderCategory)}
 
             {/* Add button */}
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
@@ -254,7 +244,6 @@ const styles = StyleSheet.create({
     },
     addCategoryText: {
         fontSize: 24,
-        // El color se aplicará dinámicamente
     },
     outcomeItem: {
         marginBottom: 8,

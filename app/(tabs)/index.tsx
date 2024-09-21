@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Image, StyleSheet, View, Dimensions } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
@@ -14,7 +14,6 @@ export default function HomeScreen() {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalanceData] = useState<number | null>(null);
 
-  // Recupero información
   async function getIncomeData() {
     const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
     setIncomeData(data);
@@ -59,12 +58,17 @@ export default function HomeScreen() {
       }>
         <>
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+          
           <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData}/>
-          <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
+          
+          <View>
+            <ThemedText style={styles.title}>Categorías</ThemedText>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
+          </View>
+
           <View>
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}
-            />
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}/>
           </View>
         </>
       
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
     paddingTop: 45,
   },
   title: {
+    marginBottom:10,
     fontSize: 18,
     fontWeight: 'bold',
   },
