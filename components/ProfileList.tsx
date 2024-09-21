@@ -21,7 +21,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
 
   const handleRemoveProfile = async (id: string) => {
     await removeProfile(id);
-    refreshData();  // Actualiza los datos después de eliminar
+    refreshData();
   };
   
   const handleLongPress = useCallback((profile: ProfileData) => {
