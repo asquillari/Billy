@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
 import { fetchProfiles, ProfileData } from '@/api/api';
-import AddProfileModal from '@/components/AddProfileModal';
+import AddProfileModal from '@/components/modals/AddProfileModal';
 
 const EMAIL = "juancito@gmail.com";
 
