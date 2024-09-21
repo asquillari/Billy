@@ -1,8 +1,7 @@
 import React from 'react';
-import { useState } from 'react';
-import { Button, StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { useState, useMemo, useCallback } from 'react';
+import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -16,23 +15,34 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
 
+  const sortedOutcomeData = useMemo(() => {
+    return outcomeData?.slice().sort((a, b) => 
+      new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime()
+    ) ?? [];
+  }, [outcomeData]);
+
   // Remove category
-  const handleLongPress = (outcome: OutcomeData) => {
+  const handleLongPress = useCallback((outcome: OutcomeData) => {
     setSelectedOutcome(outcome);
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
+
       onPress: async () => {
-        if (outcome) {
-          handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id ?? 0);
-        }
+        if (outcome) handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", outcome.id ?? 0);
       }
     }]);
+  }, [outcomeData]);
+
+  const handleRemoveOutcome = async (profile: string, id: number) => {
+    await removeOutcome(profile, id);
+    refreshData();  // Actualiza los datos después de eliminar
   };
 
-  const renderItem = ({ item }: { item: OutcomeData }) => (
+  const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
         <View style={styles.card}>
+
             <View style={styles.iconContainer}>
-                <FontAwesome name="dollar" size={24} color="red" />
+                <FontAwesome name="dollar" size={24} color="red"/>
             </View>
             <View style={styles.textContainer}>
                 <ThemedText style={styles.description}>{item.description}</ThemedText>
@@ -41,19 +51,16 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
             <ThemedText style={styles.amount}>- ${item.amount.toFixed(2)}</ThemedText>
         </View>
     </TouchableOpacity>
-  );
+  ), [handleLongPress]);
 
-  const handleRemoveOutcome = async (profile: string, id: number) => {
-    await removeOutcome(profile, id);
-    refreshData();  // Actualiza los datos después de eliminar
-  };
+  const keyExtractor = useCallback((item: OutcomeData) => item.id?.toString() || '', []);
 
   return (
     <View style={styles.container}>
       <FlatList
-          data={outcomeData}
+          data={sortedOutcomeData}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id?.toString() || ''}
+          keyExtractor={keyExtractor}
           showsVerticalScrollIndicator={false}
       />
     </View>
@@ -64,11 +71,6 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 20,
     paddingHorizontal: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
   },
   card: {
     flexDirection: 'row',

@@ -1,7 +1,8 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
+
 import { removeIncome, IncomeData, getBalance } from '../api/api';
 
 import { FontAwesome } from '@expo/vector-icons';
@@ -16,23 +17,32 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
   // For deleting
   const [selectedIncome, setSelectedIncome] = useState<IncomeData | null>(null);
 
+  const sortedIncomeData = useMemo(() => {
+    return incomeData?.slice().sort((a, b) => 
+      new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime()
+    ) ?? [];
+  }, [incomeData]);
+
   // Remove category
-  const handleLongPress = (income: IncomeData) => {
+  const handleLongPress = useCallback((income: IncomeData) => {
     setSelectedIncome(income);
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (income) {
-          handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id ?? 0)
-        }
+        if (income) handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", income.id ?? 0)
       }
     }]);
+  }, [incomeData]);
+
+  const handleRemoveIncome = async (profile: string, id: number) => {
+    await removeIncome(profile, id);
+    refreshData();  // Actualiza los datos después de eliminar
   };
 
-  const renderItem = ({ item }: { item: IncomeData }) => (
+  const renderItem = useCallback(({ item }: { item: IncomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
         <View style={styles.card}>
             <View style={styles.iconContainer}>
-                <FontAwesome name="dollar" size={24} color="green" />
+                <FontAwesome name="dollar" size={24} color="green"/>
             </View>
             <View style={styles.textContainer}>
                 <ThemedText style={styles.description}>{item.description}</ThemedText>
@@ -41,19 +51,16 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData 
             <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
         </View>
     </TouchableOpacity>
-  );
+  ), [handleLongPress]);
 
-  const handleRemoveIncome = async (profile: string, id: number) => {
-    await removeIncome(profile, id);
-    refreshData();  // Actualiza los datos después de eliminar
-  };
+  const keyExtractor = useCallback((item: IncomeData) => item.id?.toString() || '', []);
 
   return (
     <View style={styles.container}>
       <FlatList
-          data={incomeData}
+          data={sortedIncomeData}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id?.toString() || ''}
+          keyExtractor={keyExtractor}
           showsVerticalScrollIndicator={false}
       />
     </View>
@@ -64,11 +71,6 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 20,
         paddingHorizontal: 16,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
     },
     card: {
         flexDirection: 'row',
