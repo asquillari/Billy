@@ -1,143 +1,18 @@
 import React, { useState } from "react";
 import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Box from '@/components/box';
-
-const data = [
-  {
-    month: "Enero",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-  {
-    month: "Febrero",
-    amount: 1200,
-    categories: [
-      { name: "Transporte", amount: -200 },
-      { name: "Comida", amount: -400 },
-      { name: "Entretenimiento", amount: -300 },
-    ],
-  },
-  {
-    month: "Marzo",
-    amount: 1500,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -600 },
-      { name: "Servicios", amount: -200 },
-    ],
-  },
-  {
-    month: "Abril",
-    amount: 1100,
-    categories: [
-      { name: "Comida", amount: -500 },
-      { name: "Nafta", amount: -300 },
-      { name: "Salud", amount: -200 },
-    ],
-  },
-  {
-    month: "Mayo",
-    amount: 1300,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -400 },
-      { name: "Transporte", amount: -100 },
-    ],
-  },
-  {
-  month: "Junio",
-    amount: 850,
-    categories: [
-      { name: "Nafta", amount: -200 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -500 },
-    ],
-  },
-  {
-    month: "Julio",
-    amount: 1000,
-    categories: [
-      { name: "Nafta", amount: -300 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Agosto",
-    amount: 1150,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -700 },
-    ],
-  },
-  {
-    month: "Septiembre",
-    amount: 1250,
-    categories: [
-      { name: "Nafta", amount: -400 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -800 },
-    ],
-  },
-  {
-    month: "Octubre",
-    amount: 1350,
-    categories: [
-      { name: "Nafta", amount: -450 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -900 },
-    ],
-  },
-  {
-    month: "Noviembre",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Diciembre",
-    amount: 2000,
-    categories: [
-      { name: "Nafta", amount: -500 },
-      { name: "Comida", amount: -600 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-];
+import Box from '@/components/boxBorrador';
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const years = [2022, 2023, 2024, 2025];
+const years = [2022, 2023, 2024];
 
-const Estadsticas = ({ selectedMonth, selectedYear }) => {
-  const currentData = data[selectedMonth]; // Update to match selected month
-
-  // Prepare pie chart data
-  const chartData = currentData.categories.map((category) => ({
-    name: category.name,
-    amount: Math.abs(category.amount), // Use absolute value for positive representation
-    color: "#7F7F7F",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  }));
-
+const Estadsticas = ({selectedMonth, selectedYear}:{selectedMonth:number,selectedYear:number}) => {
 
   return (
     <View>
     <View style={styles.card}>
-      <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text>
       <Text> </Text>
-
-       {/* <PieChart2 data={data} /> */}
-       <Box/>
+       <Box Month={selectedMonth} Year={selectedYear}/>
 
     </View>
   </View>
@@ -147,16 +22,9 @@ const Estadsticas = ({ selectedMonth, selectedYear }) => {
 const App = () => {
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
-  const [showMonthSelector, setShowMonthSelector] = useState(false);
+  const [showMonthSelector, setShowMonthSelector] = useState(true);
   const [showYearSelector, setShowYearSelector] = useState(false);
   const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
-
-  const data = [
-    { amount: 200, color: "rgba(249, 91, 81, 1)" }, // 20%
-    { amount: 400, color: "rgba(102, 204, 255, 1)" }, // 40%
-    { amount: 300, color: "rgba(255, 215, 0, 1)" }, // 30%
-    { amount: 100, color: "rgba(0, 255, 0, 1)" }, // 10%
-  ];
 
 
   const toggleMonthSelector = () => {
@@ -164,7 +32,7 @@ const App = () => {
     setShowMonthSelector(true);
     setShowYearSelector(false);
   };
-
+  
   const toggleYearSelector = () => {
     setSelectedButton('year');
     setShowYearSelector(true);
@@ -195,13 +63,15 @@ const App = () => {
         end={{ x: 0, y: 1 }}
         style={styles.gradientContainer}
       >
+        {/* Barra Superior */}
         <View style={styles.barraSuperior}>
           <Image
-            source={require('@/assets/images/Billy/logo2.png')}
+            source={require('@/assets/images/Billy/logo1.png')}
             style={styles.logoBilly}
           />
+          {/* cambiar la imagen de esta parte. Deberia decir billy */}
           <Image
-            source={require('@/assets/images/icons/UserIcon.png')}
+            source={require('@/assets/images/Billy/logo1.png')}
             style={styles.usuario}
           />
         </View>
@@ -211,8 +81,8 @@ const App = () => {
           <Text style={styles.subtituloTexto}>Mirá tu actividad mensual o anual.</Text>
         </View>
 
-         {/* zona selector mes anio */}
-         <View style={styles.selectorContainer}>
+            {/* zona selector mes anio */}
+        <View style={styles.selectorContainer}>
           <TouchableOpacity
             onPress={toggleMonthSelector}
             style={[
@@ -244,7 +114,7 @@ const App = () => {
               <TouchableOpacity onPress={prevMonth} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{"<"}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
+              <Text style={styles.selectorText2}>{months[selectedMonth]}</Text>
               <TouchableOpacity onPress={nextMonth} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{">"}</Text>
               </TouchableOpacity>
@@ -256,49 +126,15 @@ const App = () => {
               <TouchableOpacity onPress={prevYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{"<"}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectorText}>{years[selectedYear]}</Text>
+              <Text style={styles.selectorText2}>{years[selectedYear]}</Text>
               <TouchableOpacity onPress={nextYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{">"}</Text>
               </TouchableOpacity>
             </View>
           )}
-
-        {/* <View style={styles.statsContainer}>
-          <View style={styles.selectorContainer}>
-            <TouchableOpacity onPress={toggleMonthSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={toggleYearSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Año</Text>
-            </TouchableOpacity>
-          </View>
-
-          {showMonthSelector && (
-            <View style={styles.selectorContainer}>
-              <TouchableOpacity onPress={prevMonth} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{"<"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
-              <TouchableOpacity onPress={nextMonth} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{">"}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {showYearSelector && (
-            <View style={styles.selectorContainer}>
-              <TouchableOpacity onPress={prevYear} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{"<"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.selectorText}>{years[selectedYear]}</Text>
-              <TouchableOpacity onPress={nextYear} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{">"}</Text>
-              </TouchableOpacity>
-            </View>
-          )} */}
 
           <Estadsticas selectedMonth={selectedMonth} selectedYear={years[selectedYear]} />
-       
+  
       </LinearGradient>
     </SafeAreaView>
   );
@@ -307,21 +143,27 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
+    //justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#000',
+    
   },
   card: {
-    width: 393,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 70,
     padding: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
-    marginBottom: 20,
-    flex:1
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    flex: 1,
+    width: '85%',
+    marginLeft:40,
+    position: 'relative', // Added relative positioning
+    
   },
   monthText: {
     fontSize: 28,
@@ -337,29 +179,15 @@ const styles = StyleSheet.create({
   categoryList: {
     marginVertical: 10,
   },
-  category: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  categoryName: {
-    fontSize: 18,
-    color: '#3c3c3c',
-  },
-  categoryAmount: {
-    fontSize: 18,
-    color: '#3c3c3c',
-  },
   statsContainer: {
-   // backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 100,
+    padding: 50,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    flex: 1,
     width: '100%',
     marginTop:0,
   },
@@ -367,18 +195,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 0,
+    marginTop: 0,
   },
   arrowButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    paddingHorizontal: 100,
+    paddingVertical: 10,
+    
   },
   arrowText: {
-    fontSize: 24,
+    fontSize: 36,
     color: '#fff',
   },
   selectorText: {
-    fontSize: 18,
+    fontSize: 14,
+    color: '#4A00E0',
+    marginHorizontal: 10,
+    fontWeight: 'bold',
+  },
+  selectorText2: {
+    fontSize: 24,
     color: '#fff',
     marginHorizontal: 10,
   },
@@ -395,6 +230,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
+
   gradientContainer: {
     flex: 1,
     paddingTop: 10,
@@ -414,6 +250,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     marginHorizontal: 10,
     marginBottom: 10,
+    left: 43.5,
+    //position:'absolute',
+    width: '95%', 
+    top:0
   },
   logoBilly: {
     width: 80,
@@ -440,6 +280,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
+    left:43.5
   },
   subtituloTexto: {
     color: '#ffffff',
@@ -448,10 +289,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.12,
     marginTop: 5,
-  },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
+    left:43.5,
+    marginBottom: 10
   },
 });
 
