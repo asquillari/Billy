@@ -29,10 +29,10 @@ export default function TabLayout() {
         },
       })}
     >
-      <Tabs.Screen name="profiles" options={{ title: 'Perfiles' }} />
       <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
       <Tabs.Screen name="statistics" options={{ title: 'Estadísticas' }} />
       <Tabs.Screen name="calendar" options={{ title: 'Calendario' }} />
+      <Tabs.Screen name="profiles" options={{ title: 'Perfiles' }} />
     </Tabs>
   );
 }
