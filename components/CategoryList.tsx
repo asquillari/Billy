@@ -20,6 +20,7 @@ interface CategoryListProps {
     categoryData: CategoryData[] | null;
     refreshCategoryData: () => void;
     refreshAllData: () => void;
+    showAddButton?: boolean; // Nueva prop
 }
 
 const gradients = [
@@ -46,7 +47,7 @@ const parseGradient = (color: string): string[] => {
     }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData }) => {
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, showAddButton = true }) => {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -156,15 +157,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                     </TouchableOpacity>
                 );
             })}
-
-            {/* Add button */}
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
-                <Text style={[
-                    styles.addCategoryText,
-                    { color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }
-                ]}>+</Text>
-            </TouchableOpacity>
-
+            {showAddButton && ( // Condicional para mostrar el botón de agregar
+                <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
+                    <Text style={styles.addCategoryButtonText}>+</Text>
+                </TouchableOpacity>
+            )}
             {/* Modal for details */}
             <Modal animationType="slide" transparent={true} visible={detailsModalVisible} onRequestClose={() => { setDetailsModalVisible(false); }}>
                 <View style={styles.detailsModalBackground}>
@@ -244,17 +241,15 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 10,
     },
     addCategoryButton: {
-        padding: 16,
-        backgroundColor: '#FF6347',
-        borderRadius: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 150,
+        width: 40,
         height: 80,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
     },
-    addCategoryText: {
+    addCategoryButtonText: {
         fontSize: 24,
-        // El color se aplicará dinámicamente
+        color: '#370185',
     },
     outcomeItem: {
         marginBottom: 8,

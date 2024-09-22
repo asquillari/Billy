@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
 import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes } from '../../api/api';
-import AddButton from '../../components/addButton';
+
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {

@@ -60,7 +60,12 @@ export default function HomeScreen() {
         <>
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
           <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData}/>
-          <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData}/>
+          <CategoryList 
+            categoryData={categoryData} 
+            refreshCategoryData={getCategoryData} 
+            refreshAllData={refreshAllData}
+            showAddButton={true} // Esto es opcional, ya que true es el valor por defecto
+          />
           <View>
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
             <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}
