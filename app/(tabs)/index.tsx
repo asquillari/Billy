@@ -21,13 +21,11 @@ export default function HomeScreen() {
   async function getIncomeData() {
     const data = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setIncomeData(data);
-    navigation.navigate('Calendar', { refresh: true });
   };
 
   async function getOutcomeData() {
     const data = await fetchOutcomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setOutcomeData(data);
-    navigation.navigate('Calendar', { refresh: true });
   };
 
   async function getCategoryData() {
@@ -40,11 +38,13 @@ export default function HomeScreen() {
     setBalanceData(data);
   };
 
-  const refreshAllData = useCallback(() => {
-    getIncomeData();
-    getOutcomeData();
-    getBalanceData();
-    getCategoryData();
+  const refreshAllData = useCallback(async () => {
+    await Promise.all([
+      getIncomeData(),
+      getOutcomeData(),
+      getBalanceData(),
+      getCategoryData()
+    ]);
   }, []);
 
   useEffect(() => {
@@ -64,7 +64,12 @@ export default function HomeScreen() {
       }>
         <>
           <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-          <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData}/>
+          <AddButton 
+            refreshIncomeData={getIncomeData} 
+            refreshOutcomeData={getOutcomeData} 
+            refreshCategoryData={getCategoryData}
+            categories={categoryData || []}  // Añade esta línea
+          />
           <CategoryList 
             categoryData={categoryData} 
             refreshCategoryData={getCategoryData} 
@@ -73,7 +78,13 @@ export default function HomeScreen() {
           />
           <View>
             <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData = {getCategoryData} scrollEnabled={false}
+            <TransactionList 
+              incomeData={incomeData} 
+              outcomeData={outcomeData} 
+              refreshIncomeData={getIncomeData} 
+              refreshOutcomeData={getOutcomeData} 
+              refreshCategoryData={getCategoryData} 
+              scrollEnabled={false}
             />
           </View>
         </>

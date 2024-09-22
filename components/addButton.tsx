@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -9,9 +9,10 @@ interface AddButtonProps {
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
+  categories: CategoryData[];  // Añade esta línea
 }
 
-const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData }: AddButtonProps) => {
+const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData, categories }: AddButtonProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
   const [amount, setAmount] = useState('');
@@ -19,7 +20,6 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
   const [bubbleAnimation] = useState(new Animated.Value(0));
-  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
@@ -35,20 +35,24 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
   };
 
   async function handleSubmit(): Promise<void> {
+    const formattedDate = date.toISOString();
     if (type === 'Income') {
-      await addIncome("juancito@gmail.com", parseFloat(amount), description);
+      await addIncome("0f58d714-0ec2-40df-8dae-668caf357ac3", parseFloat(amount), description, formattedDate);
       refreshIncomeData();
     } else {
-      await addOutcome("juancito@gmail.com", selectedCategory, parseFloat(amount), description);
+      if (!selectedCategory) {
+        Alert.alert("Error", "Por favor, selecciona una categoría para el gasto.");
+        return;
+      }
+      await addOutcome("0f58d714-0ec2-40df-8dae-668caf357ac3", selectedCategory, parseFloat(amount), description, formattedDate);
       refreshOutcomeData();
-      refreshCategoryData();
     }
-
+    refreshCategoryData();
+    setModalVisible(false);
     setAmount('');
     setDescription('');
-    setDate(new Date());
     setSelectedCategory('');
-    setModalVisible(false);
+    setDate(new Date()); // Resetear la fecha al valor actual
   }
 
   const switchType = (newType: 'Income' | 'Outcome') => {

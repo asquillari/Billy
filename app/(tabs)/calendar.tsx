@@ -6,7 +6,7 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
-import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes } from '../../api/api';
+import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 
@@ -121,23 +121,34 @@ const App = () => {
   };
 
   const processTransactions = useCallback(async () => {
-    const incomes = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
-    const outcomes = await fetchOutcomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
-    
-    const allTransactions = [...incomes, ...outcomes];
-    const marked: { [key: string]: { dots: { key: number; color: string }[] } } = {};
+    const startOfMonth = moment(currentDate).startOf('month').toDate();
+    const endOfMonth = moment(currentDate).endOf('month').toDate();
 
-    allTransactions.forEach(transaction => {
-      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+    const incomes = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
+    const outcomes = await getOutcomesFromDateRange('0f58d714-0ec2-40df-8dae-668caf357ac3', startOfMonth, endOfMonth) || [];
+    
+    const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
+
+    incomes.forEach(income => {
+      const date = moment(income.created_at).format('YYYY-MM-DD');
       if (marked[date]) {
-        marked[date].dots.push({key: marked[date].dots.length, color: 'blue'});
+        marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
       } else {
-        marked[date] = {dots: [{key: 0, color: 'blue'}]};
+        marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
+      }
+    });
+
+    outcomes.forEach(outcome => {
+      const date = moment(outcome.created_at).format('YYYY-MM-DD');
+      if (marked[date]) {
+        marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
+      } else {
+        marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
       }
     });
 
     setMarkedDates(marked);
-  }, []);
+  }, [currentDate]);
 
   useEffect(() => {
     processTransactions();

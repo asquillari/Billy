@@ -31,50 +31,70 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   }, [incomeData, outcomeData]);
 
   // Remove category
-  const handleLongPress = (transaction: IncomeData | OutcomeData) => {
-    setSelectedTransaction(transaction);
-    Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
-      onPress: async () => {
-        if ((transaction as any).type === "income") {
-          handleRemoveIncome("f5267f06-d68b-4185-a911-19f44b4dc216", transaction.id ?? 0);
+  const handleLongPress = (item: IncomeData | OutcomeData) => {
+    setSelectedTransaction(item);
+    Alert.alert(
+      "Eliminar transacción",
+      "¿Está seguro de que quiere eliminar esta transacción?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            if ('category' in item) {
+              // Es un gasto
+              await handleRemoveOutcome('0f58d714-0ec2-40df-8dae-668caf357ac3', item.id ?? 0);
+            } else {
+              // Es un ingreso
+              await handleRemoveIncome('0f58d714-0ec2-40df-8dae-668caf357ac3', item.id ?? 0);
+            }
+          }
         }
-        else {
-          handleRemoveOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", transaction.id ?? 0);
-        }
-      }
-    }]);
+      ]
+    );
   };
 
   const renderTransactionItem = ({ item }: { item: (IncomeData | OutcomeData) }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
-        <View style={styles.card}>
-            <View style={styles.iconContainer}>
-                <FontAwesome 
-                  name={(item as any).type === 'income' ? "dollar" : "shopping-cart"} 
-                  size={24} 
-                  color={(item as any).type === 'income' ? "green" : "red"} 
-                />
-            </View>
-            <View style={styles.textContainer}>
-                <ThemedText style={styles.description}>{item.description}</ThemedText>
-                <ThemedText style={styles.date}>{new Date(item.created_at??"").toLocaleDateString()}</ThemedText>
-            </View>
-            <ThemedText style={[styles.amount, (item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
-              {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
-            </ThemedText>
+      <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <FontAwesome 
+            name={'category' in item ? "shopping-cart" : "dollar"} 
+            size={24} 
+            color={'category' in item ? "red" : "green"} 
+          />
         </View>
+        <View style={styles.textContainer}>
+          <ThemedText style={styles.description}>{item.description}</ThemedText>
+          <ThemedText style={styles.date}>{new Date(item.created_at ?? "").toLocaleDateString()}</ThemedText>
+        </View>
+        <ThemedText style={[styles.amount, 'category' in item ? styles.outcomeAmount : styles.incomeAmount]}>
+          {'category' in item ? '-' : '+'} ${item.amount.toFixed(2)}
+        </ThemedText>
+      </View>
     </TouchableOpacity>
   );
 
   const handleRemoveIncome = async (profile: string, id: number) => {
-    await removeIncome(profile, id);
-    refreshIncomeData();  // Actualiza los datos después de eliminar
+    try {
+      await removeIncome(profile, id);
+      refreshIncomeData();
+    } catch (error) {
+      console.error("Error al eliminar ingreso:", error);
+      Alert.alert("Error", "No se pudo eliminar el ingreso. Por favor, intente de nuevo.");
+    }
   };
 
   const handleRemoveOutcome = async (profile: string, id: number) => {
-    await removeOutcome(profile, id);
-    refreshOutcomeData();  // Actualiza los datos después de eliminar
-    refreshCategoryData();
+    try {
+      await removeOutcome(profile, id);
+      refreshOutcomeData();
+      refreshCategoryData();
+    } catch (error) {
+      console.error("Error al eliminar gasto:", error);
+      Alert.alert("Error", "No se pudo eliminar el gasto. Por favor, intente de nuevo.");
+    }
   };
 
   return (
