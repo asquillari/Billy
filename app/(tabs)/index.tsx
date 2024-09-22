@@ -38,7 +38,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <View style={styles.headerContainer}>
-          <BillyHeader />
+          <BillyHeader/>
         </View>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
