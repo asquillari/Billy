@@ -5,18 +5,17 @@ import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 
-const EMAIL = "juancito@gmail.com";
-
 interface ProfileListProps {
     profileData: ProfileData[] | null;
     refreshData: () => void;
     onAddProfile: () => void;
+    email: string;
 }
 
-export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile }) => {
+export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email }) => {
   
   const handleProfilePress = useCallback((profile: ProfileData) => {
-    changeCurrentProfile(EMAIL, profile.id ?? "null");
+    changeCurrentProfile(email, profile.id ?? "null");
   }, []);
 
   const handleRemoveProfile = async (id: string) => {

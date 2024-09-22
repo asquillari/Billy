@@ -3,16 +3,21 @@ import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'rea
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { logIn } from '@/api/api';
+import { useUser } from '../UserContext';
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setUserEmail } = useUser();
 
   const handleLogin = async () => {
     try {
-      const user = await logIn(email, password);
-      if (user) navigation.navigate('(tabs)' as never); 
+      const result = await logIn(email, password);
+      if (result.user) { 
+        setUserEmail(email);
+        navigation.navigate('(tabs)' as never);
+      } 
       else Alert.alert('Login Failed', 'Invalid email or password');
     } catch (error) {
       Alert.alert('Login Error', 'An error occurred during login');
