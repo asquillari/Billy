@@ -199,7 +199,7 @@ export async function removeCategory(profile: string, category: string | undefin
 
 export async function getCategoryFromOutcome(outcome: number) {
   const { data } = await supabase
-      .from('Expenses')
+      .from('Outcomes')
       .select('category')
       .eq('id', outcome)
       .single();
@@ -330,17 +330,6 @@ async function updateBalance(profile: string, added: number) {
 
 /* User */
 
-//Hasheo de contraseña
-export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 10;
-  return new Promise((resolve, reject) => {
-    bcrypt.hash(password, saltRounds, (err, hash) => {
-      if (err) reject(err);
-      hash ? resolve(hash) : reject('Error hashing password');
-    });
-  });
-}
-
 // Agregar usuario
 export async function addUser(email: string, password: string, name: string, surname: string) {
   const newUser: UserData = {
@@ -352,6 +341,7 @@ export async function addUser(email: string, password: string, name: string, sur
   const { data, error } = await supabase
     .from('Users')
     .insert(newUser);
+
   if (error) {
     console.error('Error adding user:', error);
     return null;
@@ -361,36 +351,65 @@ export async function addUser(email: string, password: string, name: string, sur
 
 //Sign Up
 export async function signUp(email: string, password: string, name: string, surname: string) {
-  const hashedPassword = await hashPassword(password);
   const { data, error } = await supabase.auth.signUp({
     email: email,
-    password: hashedPassword
+    password: password
   });
+
   if (error) {
-    console.log(error);
-    return error;
-  } else {
-    const { user, session } = data;
-    await addUser(email, hashedPassword, name, surname);
-    return user;
+    console.error("Error during sign up:", error);
+    return { error };
   }
+
+  const { user, session } = data;
+
+  if (!user) {
+    console.error("User is null during sign up");
+    return { error: "User is null" };
+  }
+
+  // Insertar en la tabla `users` personalizada
+  const { error: insertError } = await supabase
+    .from('Users')
+    .insert([{ email: email, name: name, surname: surname }]);
+
+  if (insertError) {
+    console.error("Error creating user profile:", insertError);
+    return { error: insertError };
+  }
+
+  return { user, session };
 }
+
 
 //Login 
 export async function logIn(email: string, password: string) {
-  const hashedPassword = await hashPassword(password);
+  // Autenticar al usuario
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
-    password: hashedPassword
+    password: password
   });
 
   if (error) {
-    console.log(error);
-    return error;
-  } else {
-    const { user, session } = data;
-    return user;
+    console.error("Error during login:", error);
+    return { error: "Invalid login credentials" };
   }
+
+  const { user, session } = data;
+
+  // Obtener datos del perfil personalizado desde la tabla `Users`
+  const { data: profile, error: profileError } = await supabase
+    .from('Users')
+    .select('email, name, surname')
+    .eq('email', user.email)
+    .single();
+
+  if (profileError) {
+    console.error("Error fetching user profile:", profileError);
+    return { error: profileError };
+  }
+
+  return { user, profile, session };
 }
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {
@@ -416,7 +435,6 @@ export async function fetchCurrentProfile(user: string) {
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
   const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
   const endISO = end.toISOString();
-
   const { data } = await supabase
     .from('Outcomes')
     .select()
@@ -428,7 +446,14 @@ export async function getOutcomesFromDateRange(profile: string, start: Date, end
 
 // Get outcomes from date range and category
 export async function getOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
-  const dateData = await getOutcomesFromDateRange(profile, start, end);
-  const categoryData = await fetchOutcomesByCategory(profile, category);
-  return categoryData;
+  const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
+  const endISO = end.toISOString();
+  const { data } = await supabase
+    .from('Outcomes')
+    .select()
+    .eq('profile', profile)
+    .gte('created_at', startISO)
+    .lte('created_at', endISO)
+    .eq('category', category);
+  return data;
 }

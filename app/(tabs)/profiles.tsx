@@ -6,15 +6,15 @@ import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StatusBar } from 'react-native';
-
-const EMAIL = "juancito@gmail.com";
+import { useUser } from '../UserContext';
 
 export default function Profiles() {
+    const { userEmail } = useUser();
     const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     
     const getProfileData = useCallback(async () => {
-        const data = await fetchProfiles(EMAIL);
+        const data = await fetchProfiles(userEmail);
         setProfileData(data);
     }, []);
 
@@ -40,6 +40,7 @@ export default function Profiles() {
             profileData={profileData} 
             refreshData={getProfileData}
             onAddProfile={handleAddProfile}
+            email={userEmail}
         />
     ), [profileData, getProfileData, handleAddProfile]);
 
@@ -55,7 +56,7 @@ export default function Profiles() {
                     </View>
                 </View>
             </LinearGradient>
-            <AddProfileModal isVisible={isModalVisible} onClose={handleCloseModal} onProfileAdded={handleProfileAdded}/>
+            <AddProfileModal isVisible={isModalVisible} onClose={handleCloseModal} onProfileAdded={handleProfileAdded} email={userEmail}/>
         </View>
     );
 }

@@ -4,25 +4,26 @@ import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
-import AddButton from '@/components/AddButton';
+import AddButton from '@/components/addButton';
 import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StatusBar } from 'react-native';
-
-const EMAIL = "juancito@gmail.com";
+import { useUser } from '../UserContext';
 
 export default function HomeScreen() {
-
+  const { userEmail } = useUser();
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
-
+  
   const fetchProfile = useCallback(async () => {
-    const profileData = await fetchCurrentProfile(EMAIL);
-    setCurrentProfileId(profileData?.current_profile || null);
-  }, [setCurrentProfileId]);
+    if (userEmail) {
+      const profileData = await fetchCurrentProfile(userEmail);
+      setCurrentProfileId(profileData?.current_profile || null);
+    }
+  }, [userEmail]);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,7 +39,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <View style={styles.headerContainer}>
-          <BillyHeader />
+          <BillyHeader/>
         </View>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>

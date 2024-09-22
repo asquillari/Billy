@@ -1,143 +1,21 @@
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Box from '@/components/box';
+import Box from '@/components/boxBorrador';
 
-const data = [
-  {
-    month: "Enero",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-  {
-    month: "Febrero",
-    amount: 1200,
-    categories: [
-      { name: "Transporte", amount: -200 },
-      { name: "Comida", amount: -400 },
-      { name: "Entretenimiento", amount: -300 },
-    ],
-  },
-  {
-    month: "Marzo",
-    amount: 1500,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -600 },
-      { name: "Servicios", amount: -200 },
-    ],
-  },
-  {
-    month: "Abril",
-    amount: 1100,
-    categories: [
-      { name: "Comida", amount: -500 },
-      { name: "Nafta", amount: -300 },
-      { name: "Salud", amount: -200 },
-    ],
-  },
-  {
-    month: "Mayo",
-    amount: 1300,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -400 },
-      { name: "Transporte", amount: -100 },
-    ],
-  },
-  {
-  month: "Junio",
-    amount: 850,
-    categories: [
-      { name: "Nafta", amount: -200 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -500 },
-    ],
-  },
-  {
-    month: "Julio",
-    amount: 1000,
-    categories: [
-      { name: "Nafta", amount: -300 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Agosto",
-    amount: 1150,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -700 },
-    ],
-  },
-  {
-    month: "Septiembre",
-    amount: 1250,
-    categories: [
-      { name: "Nafta", amount: -400 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -800 },
-    ],
-  },
-  {
-    month: "Octubre",
-    amount: 1350,
-    categories: [
-      { name: "Nafta", amount: -450 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -900 },
-    ],
-  },
-  {
-    month: "Noviembre",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Diciembre",
-    amount: 2000,
-    categories: [
-      { name: "Nafta", amount: -500 },
-      { name: "Comida", amount: -600 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-];
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const years = [2022, 2023, 2024, 2025];
 
-const Estadsticas = ({ selectedMonth, selectedYear }) => {
-  const currentData = data[selectedMonth]; // Update to match selected month
-
-  // Prepare pie chart data
-  const chartData = currentData.categories.map((category) => ({
-    name: category.name,
-    amount: Math.abs(category.amount), // Use absolute value for positive representation
-    color: "#7F7F7F",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  }));
-
+const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, selectedYear:number}) => {
 
   return (
     <View>
     <View style={styles.card}>
-      <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text>
+      <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
       <Text> </Text>
 
-       {/* <PieChart2 data={data} /> */}
-       <Box/>
+       <Box month={selectedMonth} year={selectedYear}/>
 
     </View>
   </View>
@@ -148,22 +26,17 @@ const App = () => {
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
   const [showMonthSelector, setShowMonthSelector] = useState(false);
-  const [showYearSelector, setShowYearSelector] = useState(false);
-
-  const data = [
-    { amount: 200, color: "rgba(249, 91, 81, 1)" }, // 20%
-    { amount: 400, color: "rgba(102, 204, 255, 1)" }, // 40%
-    { amount: 300, color: "rgba(255, 215, 0, 1)" }, // 30%
-    { amount: 100, color: "rgba(0, 255, 0, 1)" }, // 10%
-  ];
-
+  const [showYearSelector, setShowYearSelector] = useState(true);
+  const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
 
   const toggleMonthSelector = () => {
+    setSelectedButton('month');
     setShowMonthSelector(true);
     setShowYearSelector(false);
   };
 
   const toggleYearSelector = () => {
+    setSelectedButton('year');
     setShowYearSelector(true);
     setShowMonthSelector(false);
   };
@@ -194,11 +67,11 @@ const App = () => {
       >
         <View style={styles.barraSuperior}>
           <Image
-            source={require('@/assets/images/Billy/logo1.png')}
+            source={require('@/assets/images/Billy/logo2.png')}
             style={styles.logoBilly}
           />
           <Image
-            source={require('@/assets/images/Billy/logo1.png')}
+            source={require('@/assets/images/icons/UserIcon.png')}
             style={styles.usuario}
           />
         </View>
@@ -208,15 +81,33 @@ const App = () => {
           <Text style={styles.subtituloTexto}>Mirá tu actividad mensual o anual.</Text>
         </View>
 
-        <View style={styles.statsContainer}>
-          <View style={styles.selectorContainer}>
-            <TouchableOpacity onPress={toggleMonthSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={toggleYearSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Año</Text>
-            </TouchableOpacity>
-          </View>
+         {/* zona selector mes anio */}
+         <View style={styles.selectorContainer}>
+          <TouchableOpacity
+            onPress={toggleMonthSelector}
+            style={[
+              styles.selectorButton,
+              { backgroundColor: selectedButton === 'month' ? '#4B00B8' : '#fff' }
+            ]}
+          >
+            <Text style={[
+              styles.selectorText,
+              { color: selectedButton === 'month' ? '#fff' : '#4A00E0' }
+            ]}>Mes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleYearSelector}
+            style={[
+              styles.selectorButton,
+              { backgroundColor: selectedButton === 'year' ? '#4B00B8' : '#fff' }
+            ]}
+          >
+            <Text style={[
+              styles.selectorText,
+              { color: selectedButton === 'year' ? '#fff' : '#4A00E0' }
+            ]}>Año</Text>
+          </TouchableOpacity>
+        </View>
 
           {showMonthSelector && (
             <View style={styles.selectorContainer}>
@@ -241,9 +132,9 @@ const App = () => {
               </TouchableOpacity>
             </View>
           )}
-
+          
           <Estadsticas selectedMonth={selectedMonth} selectedYear={years[selectedYear]} />
-        </View>
+       
       </LinearGradient>
     </SafeAreaView>
   );
@@ -254,7 +145,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
   },
   card: {
     width: 393,
@@ -266,6 +157,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     marginBottom: 20,
+    flex:1
   },
   monthText: {
     fontSize: 28,
@@ -295,7 +187,7 @@ const styles = StyleSheet.create({
     color: '#3c3c3c',
   },
   statsContainer: {
-    backgroundColor: '#fff',
+   // backgroundColor: '#fff',
     borderRadius: 10,
     padding: 10,
     shadowColor: '#000',
@@ -319,16 +211,25 @@ const styles = StyleSheet.create({
   },
   arrowText: {
     fontSize: 24,
-    color: '#4A00E0',
+    color: '#fff',
   },
   selectorText: {
     fontSize: 18,
-    color: '#4A00E0',
+    color: '#fff',
     marginHorizontal: 10,
   },
   selectorButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#4B00B8',
+    marginHorizontal: 5,
+    alignItems: 'center',
+    elevation: 5, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   gradientContainer: {
     flex: 1,
