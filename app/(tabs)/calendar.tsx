@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
 import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes } from '../../api/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 // Configuración personalizada de las flechas
@@ -35,8 +36,8 @@ const App = () => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
-  const [incomes, setIncomes] = useState([]);
-  const [outcomes, setOutcomes] = useState([]);
+  const [incomes, setIncomes] = useState<any[]>([]);
+  const [outcomes, setOutcomes] = useState<any[]>([]);
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -61,7 +62,7 @@ const App = () => {
     console.log('Fecha actual actualizada:', currentDate);
   }, [currentDate]);
 
-  const renderCustomHeader = (date) => {
+  const renderCustomHeader = (date: any) => {
     const month = date.toString('MMMM');
     const year = date.toString('yyyy');
     return (
@@ -111,13 +112,42 @@ const App = () => {
 
   const fetchIncomeData = async () => {
     const data = await fetchIncomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
-    setIncomes(data);
+    setIncomes(data || []);
   };
 
   const fetchOutcomeData = async () => {
     const data = await fetchOutcomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
-    setOutcomes(data);
+    setOutcomes(data || []);
   };
+
+  const processTransactions = useCallback(async () => {
+    const incomes = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
+    const outcomes = await fetchOutcomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
+    
+    const allTransactions = [...incomes, ...outcomes];
+    const marked: { [key: string]: { dots: { key: number; color: string }[] } } = {};
+
+    allTransactions.forEach(transaction => {
+      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+      if (marked[date]) {
+        marked[date].dots.push({key: marked[date].dots.length, color: 'blue'});
+      } else {
+        marked[date] = {dots: [{key: 0, color: 'blue'}]};
+      }
+    });
+
+    setMarkedDates(marked);
+  }, []);
+
+  useEffect(() => {
+    processTransactions();
+  }, [processTransactions]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      processTransactions();
+    }, [processTransactions])
+  );
 
   return (
     <View style={styles.container}>
@@ -151,7 +181,7 @@ const App = () => {
                   key={key}
                   current={currentDate}
                   markedDates={markedDates}
-                  markingType={'period'}
+                  markingType={'multi-dot'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
                   onMonthChange={(month: { dateString: string }) => {

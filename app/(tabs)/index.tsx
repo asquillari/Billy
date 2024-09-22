@@ -7,8 +7,11 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
 import { fetchIncomes, fetchOutcomes, getBalance, IncomeData, OutcomeData, CategoryData, fetchCategories } from '../../api/api';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
@@ -18,11 +21,13 @@ export default function HomeScreen() {
   async function getIncomeData() {
     const data = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setIncomeData(data);
+    navigation.navigate('Calendar', { refresh: true });
   };
 
   async function getOutcomeData() {
     const data = await fetchOutcomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setOutcomeData(data);
+    navigation.navigate('Calendar', { refresh: true });
   };
 
   async function getCategoryData() {
