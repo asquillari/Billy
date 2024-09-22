@@ -33,7 +33,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
 
   useEffect(() => {
     if (isVisible) {
-      fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216")
+      fetchCategories("juancito@gmail.com")
         .then(categories => setCategories(categories || []));
     }
   }, [isVisible]);
@@ -95,10 +95,10 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
     }
 
     if (type === 'Income') {
-      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", amountNumber, description);
+      await addIncome("juancito@gmail.com", amountNumber, description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory, amountNumber, description);
+      await addOutcome("juancito@gmail.com", selectedCategory, amountNumber, description);
       refreshOutcomeData();
     }
     refreshCategoryData();

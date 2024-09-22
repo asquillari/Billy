@@ -6,7 +6,8 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
-import { fetchCategories, CategoryData } from '../../api/api';
+import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes } from '../../api/api';
+import AddButton from '../../components/addButton';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -34,6 +35,8 @@ const App = () => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
+  const [incomes, setIncomes] = useState([]);
+  const [outcomes, setOutcomes] = useState([]);
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -89,22 +92,32 @@ const App = () => {
     setPopupVisible(true);
   };
 
-  const refreshIncomeData = () => {
-    // Implementa la lógica para actualizar los datos de ingresos
-  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const refreshOutcomeData = () => {
-    // Implementa la lógica para actualizar los datos de gastos
+  const fetchData = async () => {
+    await Promise.all([
+      fetchCategoryData(),
+      fetchIncomeData(),
+      fetchOutcomeData()
+    ]);
   };
 
   const fetchCategoryData = async () => {
-    const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
+    const data = await fetchCategories("juancito@gmail.com");
     setCategoryData(data);
   };
 
-  useEffect(() => {
-    fetchCategoryData();
-  }, []);
+  const fetchIncomeData = async () => {
+    const data = await fetchIncomes("juancito@gmail.com");
+    setIncomes(data);
+  };
+
+  const fetchOutcomeData = async () => {
+    const data = await fetchOutcomes("juancito@gmail.com");
+    setOutcomes(data);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -175,12 +188,12 @@ const App = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Añadir CategoryList aquí */}
             <View style={styles.categoryListContainer}>
               <CategoryList 
                 categoryData={categoryData} 
                 refreshCategoryData={fetchCategoryData}
-                refreshAllData={fetchCategoryData}
+                refreshAllData={fetchData}
+                showAddButton={false}
               />
             </View>
           </View>
@@ -191,8 +204,14 @@ const App = () => {
         isVisible={popupVisible}
         onClose={() => setPopupVisible(false)}
         initialType={popupType}
-        refreshIncomeData={refreshIncomeData}
-        refreshOutcomeData={refreshOutcomeData}
+        refreshIncomeData={fetchIncomeData}
+        refreshOutcomeData={fetchOutcomeData}
+        refreshCategoryData={fetchCategoryData}
+      />
+
+      <AddButton
+        refreshIncomeData={fetchIncomeData}
+        refreshOutcomeData={fetchOutcomeData}
         refreshCategoryData={fetchCategoryData}
       />
     </SafeAreaView>

@@ -24,7 +24,7 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
 
   useEffect(() => {
     if (modalVisible) {
-      fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216")
+      fetchCategories("juancito@gmail.com")
         .then(categories => setCategories(categories || []));
     }
   }, [modalVisible]);
@@ -36,10 +36,10 @@ const AddButton = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData 
 
   async function handleSubmit(): Promise<void> {
     if (type === 'Income') {
-      await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", parseFloat(amount), description);
+      await addIncome("juancito@gmail.com", parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", selectedCategory, parseFloat(amount), description);
+      await addOutcome("juancito@gmail.com", selectedCategory, parseFloat(amount), description);
       refreshOutcomeData();
       refreshCategoryData();
     }
