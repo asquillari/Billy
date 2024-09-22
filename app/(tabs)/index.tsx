@@ -16,22 +16,22 @@ export default function HomeScreen() {
 
   // Recupero información
   async function getIncomeData() {
-    const data = await fetchIncomes("juancito@gmail.com");
+    const data = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setIncomeData(data);
   };
 
   async function getOutcomeData() {
-    const data = await fetchOutcomes("juancito@gmail.com");
+    const data = await fetchOutcomes('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setOutcomeData(data);
   };
 
   async function getCategoryData() {
-    const data = await fetchCategories("juancito@gmail.com");
+    const data = await fetchCategories('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setCategoryData(data);
   };
   
   async function getBalanceData() {
-    const data = await getBalance("juancito@gmail.com");
+    const data = await getBalance('0f58d714-0ec2-40df-8dae-668caf357ac3');
     setBalanceData(data);
   };
 

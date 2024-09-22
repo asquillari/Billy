@@ -77,7 +77,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const handleCategoryPress = (category: CategoryData) => {
         setSelectedCategory(category);
         // This is needed for everything to work
-        getOutcomeData("juancito@gmail.com", category.id ?? "null").then(() => {setDetailsModalVisible(true);});
+        getOutcomeData("0f58d714-0ec2-40df-8dae-668caf357ac3", category.id ?? "null").then(() => {setDetailsModalVisible(true);});
     };
 
     // For deleting
@@ -92,7 +92,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
                 if (category) {
-                    await removeCategory("juancito@gmail.com", category.id);
+                    await removeCategory("0f58d714-0ec2-40df-8dae-668caf357ac3", category.id);
                     refreshCategoryData();
                 }
             }
@@ -127,7 +127,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         if (!validateCategoryName()) return;
 
         const gradient = getNextGradient();
-        const result = await addCategory("juancito@gmail.com", name, JSON.stringify(gradient), parseFloat(limit));
+        const result = await addCategory("0f58d714-0ec2-40df-8dae-668caf357ac3", name, JSON.stringify(gradient), parseFloat(limit));
         setName('');
         setLimit('');
         setModalVisible(false);
@@ -172,7 +172,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                         {selectedCategory && (
                             <>
                                 <Text style={styles.detailsModalTitle}>{selectedCategory.name} (${selectedCategory.spent})</Text>
-                                <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData("juancito@gmail.com", selectedCategory?.id ?? "null")} />
+                                <OutcomeList outcomeData={outcomeData} refreshData={() => getOutcomeData("0f58d714-0ec2-40df-8dae-668caf357ac3", selectedCategory?.id ?? "null")} />
                                 <View style={styles.buttonContainer}>
                                     <Button title="Close" onPress={() => setDetailsModalVisible(false)} color="#FF0000" />
                                 </View>

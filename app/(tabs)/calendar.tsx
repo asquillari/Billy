@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated } from "react-native";
+import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
@@ -105,46 +105,46 @@ const App = () => {
   };
 
   const fetchCategoryData = async () => {
-    const data = await fetchCategories("juancito@gmail.com");
+    const data = await fetchCategories("0f58d714-0ec2-40df-8dae-668caf357ac3");
     setCategoryData(data);
   };
 
   const fetchIncomeData = async () => {
-    const data = await fetchIncomes("juancito@gmail.com");
+    const data = await fetchIncomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
     setIncomes(data);
   };
 
   const fetchOutcomeData = async () => {
-    const data = await fetchOutcomes("juancito@gmail.com");
+    const data = await fetchOutcomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
     setOutcomes(data);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#4B00B8', '#20014E']}
         start={{x: 1, y: 0}}
         end={{x: 0, y: 1}}
         style={styles.gradientContainer}
       >
-        <View style={styles.barraSuperior}>
-          <Image
-            source={require('../../assets/images/Billy/logo2.png')}
-            style={styles.logoBilly}
-          />
-          <Image
-            source={require('../../assets/images/icons/UserIcon.png')}
-            style={styles.usuario}
-          />
-        </View>
-        
-        <View style={styles.tituloContainer}>
-          <Text style={styles.tituloTexto}>Calendario</Text>
-          <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.barraSuperior}>
+            <Image
+              source={require('../../assets/images/Billy/logo2.png')}
+              style={styles.logoBilly}
+            />
+            <Image
+              source={require('../../assets/images/icons/UserIcon.png')}
+              style={styles.usuario}
+            />
+          </View>
+          
+          <View style={styles.tituloContainer}>
+            <Text style={styles.tituloTexto}>Calendario</Text>
+            <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
+          </View>
 
-        <View style={styles.contentContainer}>
-          <View style={styles.rectangleFondo}>
+          <View style={styles.contentContainer}>
             <View style={styles.calendarContainer}>
               {viewMode === 'month' ? (
                 <Calendar
@@ -196,32 +196,44 @@ const App = () => {
                 showAddButton={false}
               />
             </View>
+        
+
           </View>
-        </View>
+        </SafeAreaView>
+
+        <CobroPagoPopUp
+          isVisible={popupVisible}
+          onClose={() => setPopupVisible(false)}
+          initialType={popupType}
+          refreshIncomeData={fetchIncomeData}
+          refreshOutcomeData={fetchOutcomeData}
+          refreshCategoryData={fetchCategoryData}
+        />
+
       </LinearGradient>
-
-      <CobroPagoPopUp
-        isVisible={popupVisible}
-        onClose={() => setPopupVisible(false)}
-        initialType={popupType}
-        refreshIncomeData={fetchIncomeData}
-        refreshOutcomeData={fetchOutcomeData}
-        refreshCategoryData={fetchCategoryData}
-      />
-
-      <AddButton
-        refreshIncomeData={fetchIncomeData}
-        refreshOutcomeData={fetchOutcomeData}
-        refreshCategoryData={fetchCategoryData}
-      />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
+  },
+  gradientContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingHorizontal: 10,
   },
   barraSuperior: {
     height: 61,
@@ -251,27 +263,6 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
     borderRadius: 20,
-    alignSelf: 'center',
-  },
-  gradientContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  rectangleFondo: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-    height: '97%',
-    width: '95%',
     alignSelf: 'center',
   },
   calendarContainer: {
