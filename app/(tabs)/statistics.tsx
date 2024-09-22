@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Box from '@/components/box';
+import Box from '@/components/boxBorrador';
 
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -26,16 +26,8 @@ const App = () => {
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
   const [showMonthSelector, setShowMonthSelector] = useState(false);
-  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [showYearSelector, setShowYearSelector] = useState(true);
   const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
-
-  const data = [
-    { amount: 200, color: "rgba(249, 91, 81, 1)" }, // 20%
-    { amount: 400, color: "rgba(102, 204, 255, 1)" }, // 40%
-    { amount: 300, color: "rgba(255, 215, 0, 1)" }, // 30%
-    { amount: 100, color: "rgba(0, 255, 0, 1)" }, // 10%
-  ];
-
 
   const toggleMonthSelector = () => {
     setSelectedButton('month');
