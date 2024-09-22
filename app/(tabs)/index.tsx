@@ -63,7 +63,7 @@ export default function HomeScreen() {
   async function handleAddUser(): Promise<void> {
     // Inserta en la tabla
     try {
-      await signUp("agos@gmail.com", "1234", "agos", "squillari");
+      await signUp("agossquillari@gmail.com", "123456", "agos", "squillari");
       setSignUpMessage("Sign up successful!");
     } catch (error) {
       setSignUpMessage("Sign up failed.");
@@ -72,7 +72,7 @@ export default function HomeScreen() {
 
   async function handleLogin(): Promise<void> {
     try {
-      await logIn("agos@gmail.com", "1234");
+      await logIn("agossquillari@gmail.com", "123456");
       setLoginMessage("Login successful!");
     } catch (error) {
       setLoginMessage("Login failed.");
@@ -138,14 +138,14 @@ export default function HomeScreen() {
       <OutcomeList outcomeData={outcomeData} refreshData={getOutcomeData} />
 
       {/* Botones para Sign Up y Login */}
-     {/* <View style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         <Button title="Sign Up" onPress={handleAddUser} />
         {signUpMessage && <Text>{signUpMessage}</Text>}
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Login" onPress={handleLogin} />
         {loginMessage && <Text>{loginMessage}</Text>}
-      </View>*/}
+      </View>
 
     </ParallaxScrollView>
   );
