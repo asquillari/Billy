@@ -199,7 +199,7 @@ export async function removeCategory(profile: string, category: string | undefin
 
 export async function getCategoryFromOutcome(outcome: number) {
   const { data } = await supabase
-      .from('Expenses')
+      .from('Outcomes')
       .select('category')
       .eq('id', outcome)
       .single();
@@ -435,7 +435,6 @@ export async function fetchCurrentProfile(user: string) {
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
   const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
   const endISO = end.toISOString();
-
   const { data } = await supabase
     .from('Outcomes')
     .select()
@@ -447,7 +446,14 @@ export async function getOutcomesFromDateRange(profile: string, start: Date, end
 
 // Get outcomes from date range and category
 export async function getOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
-  const dateData = await getOutcomesFromDateRange(profile, start, end);
-  const categoryData = await fetchOutcomesByCategory(profile, category);
-  return categoryData;
+  const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
+  const endISO = end.toISOString();
+  const { data } = await supabase
+    .from('Outcomes')
+    .select()
+    .eq('profile', profile)
+    .gte('created_at', startISO)
+    .lte('created_at', endISO)
+    .eq('category', category);
+  return data;
 }
