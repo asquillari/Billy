@@ -3,111 +3,44 @@ import { Image, StyleSheet, View, Dimensions, Text } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
-import { IncomeList } from '@/components/IncomeList';
-import { OutcomeList } from '@/components/OutcomeList';
-import AddButton from '@/components/addButton';
+import AddButton from '@/components/AddButton';
+import useProfileData from '@/hooks/useProfileData';
+import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
+import BillyHeader from '@/components/BillyHeader';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Platform, StatusBar } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
 
-import { signUp, logIn, fetchIncomes, getIncome, addIncome, removeIncome, fetchOutcomes, getOutcome, addOutcome, removeOutcome, getBalance, IncomeData, OutcomeData } from '../../api/api';
-import { Button } from 'react-native';
+type RouteParams = {
+  userEmail: string;
+};
 
 //obtengo el porcentaje de la pantalla
 const { height } = Dimensions.get('window');
 
 export default function HomeScreen() {
+  const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
+  const userEmail = route.params?.userEmail as string | undefined;
 
-  // Importante! (nota para quien vea esto) los archivos index (este archivo) y explore son de el proyecto predeterminado
-  // Habría que cambiarle el nombre
-  // Ya que tengo tu atención, otra cosa: Es muy importante separar todas los los componentes del pseudo-xml de abajo, que
-  // deberían ir en la carpeta de "components" (era adivinable, sí). Por ejemplo, si tenemos dos botones iguales deberíamos 
-  // agregarlo en components para no reutilizar el código (y hacerlo más modular)
-  const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
-  const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
-  const [balance, setBalanceData] = useState<number | null>(null);
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
 
-  const [signUpMessage, setSignUpMessage] = useState<string | null>(null);
-  const [loginMessage, setLoginMessage] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProfile = async () => {
+        if (userEmail) {
+          const profile = await fetchCurrentProfile(userEmail);
+          setCurrentProfileId(profile?.current_profile || null);
+        }
+      };
+      fetchProfile();
+    }, [userEmail])
+  );
 
-  // Recupero información
-  async function getIncomeData() {
-    const data = await fetchIncomes("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setIncomeData(data);
-  };
+  const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
 
-  // Recupero información
-  async function getOutcomeData() {
-    const data = await fetchOutcomes("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setOutcomeData(data);
-  };
-
-  // Recupero información
-  async function getBalanceData() {
-    const data = await getBalance("f5267f06-d68b-4185-a911-19f44b4dc216");
-    setBalanceData(data);
-  };
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
-    getIncomeData();
-  }, [])
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
-    getOutcomeData();
-  }, [])
-
-  // Hace que se vea desde el principio
-  useEffect(() => {
-    getBalanceData();
-  }, [])
-
-  async function handleAddUser(): Promise<void> {
-    // Inserta en la tabla
-    try {
-      await signUp("agos@gmail.com", "1234", "agos", "squillari");
-      setSignUpMessage("Sign up successful!");
-    } catch (error) {
-      setSignUpMessage("Sign up failed.");
-    }
-  }
-
-  async function handleLogin(): Promise<void> {
-    try {
-      await logIn("agos@gmail.com", "1234");
-      setLoginMessage("Login successful!");
-    } catch (error) {
-      setLoginMessage("Login failed.");
-    }
-  }
-
-  async function handleAddIncome(): Promise<void> {
-    // Inserta en la tabla
-    await addIncome("f5267f06-d68b-4185-a911-19f44b4dc216", 123, "Ganando");
-    // Actualizo los ingresos
-    getIncomeData();
-    // Actualizo el balance
-    getBalanceData();
-  };
-
-  async function handleRemoveIncome(id: number | undefined): Promise<void> {
-    // Remueve
-    await removeIncome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
-    // Actualizo
-    getIncomeData();
-  };
-
-  async function handleAddOutcome(): Promise<void> {
-    // Inserta en la tabla
-    await addOutcome("f5267f06-d68b-4185-a911-19f44b4dc216", 321, "f9ab4221-1b2e-45e8-b167-bb288c97995c", "Gastando");
-    // Actualizo
-    getOutcomeData();
-  };
-
-  async function handleRemoveOutcome(id: number | undefined): Promise<void> {
-    // Remueve
-    await removeOutcome(id, "f5267f06-d68b-4185-a911-19f44b4dc216");
-    // Actualizo
-    getOutcomeData();
-  };
+  const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
 
   return (
     <ParallaxScrollView
