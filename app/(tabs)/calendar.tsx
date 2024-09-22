@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
+import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -19,106 +20,6 @@ const customArrowRight = () => {
     <View style={styles.arrowContainer}>
       <View style={[styles.arrow, styles.arrowRight]} />
     </View>
-  );
-};
-
-interface CobroPagoPopUpProps {
-  isVisible: boolean;
-  onClose: () => void;
-  initialType: 'cobro' | 'pago';
-}
-
-const CobroPagoPopUp: React.FC<CobroPagoPopUpProps> = ({ isVisible, onClose, initialType }) => {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-  const [repeat, setRepeat] = useState('Nunca');
-  const [type, setType] = useState(initialType);
-  const [bubblePosition] = useState(new Animated.Value(initialType === 'cobro' ? 0 : 1));
-
-  useEffect(() => {
-    setType(initialType);
-    Animated.spring(bubblePosition, {
-      toValue: initialType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  }, [initialType]);
-
-  const toggleType = (newType: 'cobro' | 'pago') => {
-    setType(newType);
-    Animated.spring(bubblePosition, {
-      toValue: newType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const bubbleLeft = bubblePosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['2%', '52%'],
-  });
-
-  return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="slide"
-    >
-      <View style={styles.popupContainer}>
-        <View style={styles.popup}>
-          <View style={styles.header}>
-            <View style={styles.toggleContainer}>
-              <Animated.View style={[styles.bubble, { left: bubbleLeft }]} />
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('cobro')}
-              >
-                <Text style={[styles.toggleText, type === 'cobro' ? styles.activeToggleText : null]}>Cobro</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('pago')}
-              >
-                <Text style={[styles.toggleText, type === 'pago' ? styles.activeToggleText : null]}>Pago</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.title}>Agregar fecha de {type}</Text>
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Descripción"
-            value={description}
-            onChangeText={setDescription}
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Monto"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{date || 'Seleccionar fecha'}</Text>
-            <Ionicons name="calendar" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{repeat}</Text>
-            <Ionicons name="chevron-forward" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Aceptar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
   );
 };
 
@@ -183,6 +84,18 @@ const App = () => {
   const openPopup = (type: 'cobro' | 'pago') => {
     setPopupType(type);
     setPopupVisible(true);
+  };
+
+  const refreshIncomeData = () => {
+    // Implementa la lógica para actualizar los datos de ingresos
+  };
+
+  const refreshOutcomeData = () => {
+    // Implementa la lógica para actualizar los datos de gastos
+  };
+
+  const refreshCategoryData = () => {
+    // Implementa la lógica para actualizar los datos de categorías
   };
 
   return (
@@ -261,6 +174,9 @@ const App = () => {
         isVisible={popupVisible}
         onClose={() => setPopupVisible(false)}
         initialType={popupType}
+        refreshIncomeData={refreshIncomeData}
+        refreshOutcomeData={refreshOutcomeData}
+        refreshCategoryData={refreshCategoryData}
       />
     </SafeAreaView>
   );

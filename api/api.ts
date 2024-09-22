@@ -1,5 +1,14 @@
 import { supabase } from '../lib/supabase';
 import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'react-native-bcrypt';
+import * as Crypto from 'expo-crypto';
+
+bcrypt.setRandomFallback((len: number) => {
+  const buf = new Uint8Array(len);
+  Crypto.getRandomValues(buf);
+  return Array.from(buf);
+});
 
 export interface UserData {
   email: string;
@@ -26,10 +35,12 @@ export interface OutcomeData {
 }
 
 export interface CategoryData {
+  id?: string
   name: string;
   profile: string;
-  balance? : number;
+  spent? : number;
   limit?: number;
+  color: string;
   created_at?: Timestamp;
 }
 
@@ -40,6 +51,8 @@ export interface ProfileData {
   user: string;
 }
 
+
+
 /* Incomes */
 
 export async function fetchIncomes(profile: string) {
@@ -47,16 +60,18 @@ export async function fetchIncomes(profile: string) {
   const { data } = await supabase
     .from('Incomes')
     .select()
-    .match({profile});
+    .eq('profile', profile)
   return data;
 };
- 
-export async function getIncome(id: number | undefined, profile: string) {
+
+export async function getIncome(profile: string, id: number | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Incomes')
     .select('*')
-    .match({id, profile});
+    .eq('id', id)
+    .eq('profile', profile)
+    .single();
   return data;
 };
 
@@ -66,20 +81,21 @@ export async function addIncome(profile: string, amount: number, description: st
     amount: amount,
     description: description
   };
-  // Inserto información  
-  const { data } = await supabase
-    .from('Incomes')
-    .insert(newIncome)
-  updateBalance(profile, amount);
-  return data;
+  const [insertResult] = await Promise.all([
+    supabase.from('Incomes').insert(newIncome).select(),
+    updateBalance(profile, amount)
+  ]);
+  return insertResult.data;
 };
 
-export async function removeIncome(id: number | undefined, profile: string) {
-    // Borro información
-    await supabase
-      .from('Incomes')
-      .delete()
-      .match({id, profile});
+export async function removeIncome(profile: string, id: number | undefined) {
+  const income = await getIncome(profile, id);
+  // Borro información
+  const [deleteResult] = await Promise.all([
+    supabase.from('Incomes').delete().eq('profile', profile).eq('id', id),
+    updateBalance(profile, -income.amount)
+  ]);
+  return deleteResult;
 }
 
 
@@ -91,41 +107,64 @@ export async function fetchOutcomes(profile: string) {
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
-    .match({profile});
+    .eq('profile', profile)
   return data;
 };
 
-export async function getOutcome(id: number | undefined, profile: string) {
+export async function fetchOutcomesByCategory(profile: string, category: string) {
   // Recupero información
   const { data } = await supabase
-    .from('Outcome')
-    .select()
-    .match({id, profile});
+    .from('Outcomes')
+    .select('*')
+    .eq('profile', profile)
+    .eq('category', category);
   return data;
 };
 
-export async function addOutcome(profile: string, amount: number, category: string, description: string) {
+export async function getOutcome(profile: string, id: number | undefined) {
+  // Recupero información
+  const { data } = await supabase
+    .from('Outcomes')
+    .select()
+    .eq('id', id)
+    .eq('profile', profile)
+    .single();  
+  return data;
+};
+
+export async function addOutcome(profile: string, category: string, amount: number, description: string) {
   const newOutcome: OutcomeData = {
     profile: profile,
     amount: amount,
     category: category,
     description: description
   };
-  // Inserto información
-  const { data } = await supabase
-    .from('Outcomes')
-    .insert(newOutcome);
-  updateBalance(profile, -amount);
-  updateCategorySpent(category, amount);
-  return data;
+  if (await checkCategoryLimit(category, amount) == false) {
+    console.log("Couldn't add due to category limit");
+    return;
+  }
+  if (category == "") {
+    console.log("Category missing");
+    return;
+  }
+  const [insertResult] = await Promise.all([
+    checkCategoryLimit(category, amount),
+    supabase.from('Outcomes').insert(newOutcome).select(),
+    updateBalance(profile, -amount),
+    updateCategorySpent(category, amount)
+  ]);
+  return insertResult;
 };
 
-export async function removeOutcome(id: number | undefined, profile: string) {
+export async function removeOutcome(profile: string, id: number | undefined) {
+  const outcome = await getOutcome(profile, id);
   // Borro información
-  await supabase
-    .from('Outcomes')
-    .delete()
-    .match({id, profile});
+  const [deleteResult] = await Promise.all([
+    supabase.from('Outcomes').delete().eq('profile', profile).eq('id', id),
+    updateBalance(profile, outcome.amount),
+    updateCategorySpent(outcome.category, -outcome.amount)
+  ]);
+  return deleteResult;
 }
 
 
@@ -141,44 +180,56 @@ export async function fetchCategories(profile: string) {
   return data;
 };
 
-export async function getCategory(category: string | undefined, profile: string) {
+export async function getCategory(profile: string, category: string | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
     .eq('id', category)
-    .eq('profile', profile);
+    .eq('profile', profile)
+    .single();
   return data;
 };
 
-export async function addCategory(profile: string, name: string, limit?: number) {
-  const newCategory: CategoryData = {
-    profile: profile,
-    name: name,
-    limit: limit
-  };
-  // Inserto información
-  const { data } = await supabase
-    .from('Categories')
-    .insert(newCategory);
-  return data;
-};
+export async function addCategory(profile: string, name: string, color: string, limit?: number) {
+    const newCategory: CategoryData = {
+      profile: profile,
+      name: name,
+      limit: limit,
+      color: color
+    };
+    const { data } = await supabase
+      .from('Categories')
+      .insert(newCategory);
+    return data;
+}
 
-export async function removeCategory(category: string | undefined, profile: string) {
+export async function removeCategory(profile: string, category: string | undefined) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
       .eq('id', category)
-      .eq('profile', profile);
+      .eq('profile', profile)
+      .single();
 }
 
-export async function getCategoryFromExpense(expense: string) {
+export async function getCategoryFromOutcome(outcome: number) {
   const { data } = await supabase
       .from('Expenses')
       .select('category')
-      .eq('id', expense);
-  return data;
+      .eq('id', outcome)
+      .single();
+  return data?.category ?? "null";
+}
+
+async function getCategoryLimit(category: string): Promise<number> {
+  const { data } = await supabase
+    .from('Categories')
+    .select('limit')
+    .eq('id', category)
+    .single();
+  return data?.limit ?? 0;
 }
 
 async function getCategorySpent(category: string): Promise<number> {
@@ -200,9 +251,18 @@ async function putCategorySpent(category: string, newSpent: number) {
   const { data } = await supabase
     .from('Categories')
     .update({spent: newSpent})
-    .match({id: category}); 
+    .eq('id', category)
+    .single();
   return data;
 }
+
+async function checkCategoryLimit(category: string, amount: number) {
+  const limit = await getCategoryLimit(category);
+  if (limit <= 0) return true;
+  const spent = await getCategorySpent(category);
+  return (spent + amount <= limit);
+}
+
 
 
 /* Profiles */
@@ -272,25 +332,30 @@ export async function getBalance(profile: string): Promise<number> {
   return data?.balance ?? 0;
 }
 
-// Update the balance for a given profile
-async function putBalance(profile: string, newBalance: number) {
-  const { data } = await supabase
-    .from('Profiles')
-    .update({balance: newBalance})
-    .match({id: profile}); 
-  return data;
-}
-
 // Update the balance based on an added or subtracted value
 async function updateBalance(profile: string, added: number) {
-  var currentBalance = await getBalance(profile);
-  const newBalance = currentBalance + added;
-  await putBalance(profile, newBalance);
+  // Calls atomic function to avoid the infamous race condition
+  const { data } = await supabase.rpc('update_balance', { 
+    profile_id: profile, 
+    amount: added 
+  });
+  return data;
 }
 
 
 
 /* User */
+
+//Hasheo de contraseña
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+      if (err) reject(err);
+      hash ? resolve(hash) : reject('Error hashing password');
+    });
+  });
+}
 
 // Agregar usuario
 export async function addUser(email: string, password: string, name: string, surname: string) {
@@ -313,25 +378,27 @@ export async function addUser(email: string, password: string, name: string, sur
 
 //Sign Up
 export async function signUp(email: string, password: string, name: string, surname: string) {
+  const hashedPassword = await hashPassword(password);
   const { data, error } = await supabase.auth.signUp({
     email: email,
-    password: password
+    password: hashedPassword
   });
   if (error) {
     console.log(error);
     return error;
   } else {
     const { user, session } = data;
-    await addUser(email, password, name, surname);
+    await addUser(email, hashedPassword, name, surname);
     return user;
   }
 }
 
 //Login 
-export async function login(email: string, password: string) {
+export async function logIn(email: string, password: string) {
+  const hashedPassword = await hashPassword(password);
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
-    password: password
+    password: hashedPassword
   });
 
   if (error) {
