@@ -1,133 +1,18 @@
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/box';
 
-const data = [
-  {
-    month: "Enero",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-  {
-    month: "Febrero",
-    amount: 1200,
-    categories: [
-      { name: "Transporte", amount: -200 },
-      { name: "Comida", amount: -400 },
-      { name: "Entretenimiento", amount: -300 },
-    ],
-  },
-  {
-    month: "Marzo",
-    amount: 1500,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -600 },
-      { name: "Servicios", amount: -200 },
-    ],
-  },
-  {
-    month: "Abril",
-    amount: 1100,
-    categories: [
-      { name: "Comida", amount: -500 },
-      { name: "Nafta", amount: -300 },
-      { name: "Salud", amount: -200 },
-    ],
-  },
-  {
-    month: "Mayo",
-    amount: 1300,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -400 },
-      { name: "Transporte", amount: -100 },
-    ],
-  },
-  {
-  month: "Junio",
-    amount: 850,
-    categories: [
-      { name: "Nafta", amount: -200 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -500 },
-    ],
-  },
-  {
-    month: "Julio",
-    amount: 1000,
-    categories: [
-      { name: "Nafta", amount: -300 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Agosto",
-    amount: 1150,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -700 },
-    ],
-  },
-  {
-    month: "Septiembre",
-    amount: 1250,
-    categories: [
-      { name: "Nafta", amount: -400 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -800 },
-    ],
-  },
-  {
-    month: "Octubre",
-    amount: 1350,
-    categories: [
-      { name: "Nafta", amount: -450 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -900 },
-    ],
-  },
-  {
-    month: "Noviembre",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Diciembre",
-    amount: 2000,
-    categories: [
-      { name: "Nafta", amount: -500 },
-      { name: "Comida", amount: -600 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-];
-
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const years = [2022, 2023, 2024, 2025];
+const years = [2022, 2023, 2024];
 
-const Estadsticas = ({ selectedMonth, selectedYear }) => {
-  const currentData = data[selectedMonth]; // Update to match selected month
-
+const Estadsticas = ({selectedMonth, selectedYear}:{selectedMonth:number,selectedYear:number}) => {
 
   return (
     <View>
     <View style={styles.card}>
-      {/* <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text> */}
       <Text> </Text>
-
-       <Box/>
+       <Box Month={selectedMonth} Year={selectedYear}/>
 
     </View>
   </View>
@@ -141,13 +26,6 @@ const App = () => {
   const [showYearSelector, setShowYearSelector] = useState(false);
   const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
 
-  const data = [
-    { amount: 200, color: "rgba(249, 91, 81, 1)" }, // 20%
-    { amount: 400, color: "rgba(102, 204, 255, 1)" }, // 40%
-    { amount: 300, color: "rgba(255, 215, 0, 1)" }, // 30%
-    { amount: 100, color: "rgba(0, 255, 0, 1)" }, // 10%
-  ];
-
 
   const toggleMonthSelector = () => {
     setSelectedButton('month');
@@ -160,7 +38,6 @@ const App = () => {
     setShowYearSelector(true);
     setShowMonthSelector(false);
   };
-  
 
   const nextMonth = () => {
     setSelectedMonth((prev) => (prev + 1) % months.length);
@@ -186,11 +63,13 @@ const App = () => {
         end={{ x: 0, y: 1 }}
         style={styles.gradientContainer}
       >
+        {/* Barra Superior */}
         <View style={styles.barraSuperior}>
           <Image
             source={require('@/assets/images/Billy/logo1.png')}
             style={styles.logoBilly}
           />
+          {/* cambiar la imagen de esta parte. Deberia decir billy */}
           <Image
             source={require('@/assets/images/Billy/logo1.png')}
             style={styles.usuario}
@@ -202,6 +81,7 @@ const App = () => {
           <Text style={styles.subtituloTexto}>Mirá tu actividad mensual o anual.</Text>
         </View>
 
+            {/* zona selector mes anio */}
         <View style={styles.selectorContainer}>
           <TouchableOpacity
             onPress={toggleMonthSelector}
@@ -275,13 +155,14 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     padding: 20,
     shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    //elevation: 5,
+    elevation: 5,
     flex: 1,
     width: '85%',
     marginLeft:40,
+    position: 'relative', // Added relative positioning
     
   },
   monthText: {
@@ -298,19 +179,6 @@ const styles = StyleSheet.create({
   categoryList: {
     marginVertical: 10,
   },
-  category: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  categoryName: {
-    fontSize: 18,
-    color: '#3c3c3c',
-  },
-  categoryAmount: {
-    fontSize: 18,
-    color: '#3c3c3c',
-  },
   statsContainer: {
     backgroundColor: '#fff',
     borderRadius: 100,
@@ -320,7 +188,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    // flex: 1,
     width: '100%',
     marginTop:0,
   },
@@ -329,11 +196,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 0,
-  //  backgroundColor:'#fff'
   },
   arrowButton: {
     paddingHorizontal: 100,
     paddingVertical: 10,
+    
   },
   arrowText: {
     fontSize: 36,
@@ -424,10 +291,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     left:43.5,
     marginBottom: 10
-  },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
   },
 });
 
