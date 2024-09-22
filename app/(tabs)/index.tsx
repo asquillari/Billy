@@ -4,7 +4,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
-import AddButton from '@/components/AddButton';
+import AddButton from '@/components/addButton';
 import useProfileData from '@/hooks/useProfileData';
 import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
