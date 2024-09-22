@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/box';
 
@@ -194,11 +194,11 @@ const App = () => {
       >
         <View style={styles.barraSuperior}>
           <Image
-            source={require('@/assets/images/Billy/logo1.png')}
+            source={require('@/assets/images/Billy/logo2.png')}
             style={styles.logoBilly}
           />
           <Image
-            source={require('@/assets/images/Billy/logo1.png')}
+            source={require('@/assets/images/icons/UserIcon.png')}
             style={styles.usuario}
           />
         </View>
@@ -266,6 +266,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     marginBottom: 20,
+    flex:1
   },
   monthText: {
     fontSize: 28,

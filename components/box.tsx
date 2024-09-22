@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 20, // Space between pie chart and boxes
     position: "absolute", // Position it absolutely
-    top: "50%", // Move it above the center
+    top: "0%", // Move it above the center
     left: "50%", // Center horizontally
     marginLeft: -125, // Half of the pie chart width (125)
   },
