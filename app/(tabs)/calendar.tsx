@@ -5,6 +5,8 @@ import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
+import { CategoryList } from '../../components/CategoryList';
+import { fetchCategories, CategoryData } from '../../api/api';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -31,6 +33,7 @@ const App = () => {
   const [viewMode, setViewMode] = useState('month');
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
+  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -94,9 +97,14 @@ const App = () => {
     // Implementa la lógica para actualizar los datos de gastos
   };
 
-  const refreshCategoryData = () => {
-    // Implementa la lógica para actualizar los datos de categorías
+  const fetchCategoryData = async () => {
+    const data = await fetchCategories("f5267f06-d68b-4185-a911-19f44b4dc216");
+    setCategoryData(data);
   };
+
+  useEffect(() => {
+    fetchCategoryData();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -166,6 +174,15 @@ const App = () => {
                 <Text style={styles.buttonTextPago}>Fecha de pago</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Añadir CategoryList aquí */}
+            <View style={styles.categoryListContainer}>
+              <CategoryList 
+                categoryData={categoryData} 
+                refreshCategoryData={fetchCategoryData}
+                refreshAllData={fetchCategoryData}
+              />
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -176,7 +193,7 @@ const App = () => {
         initialType={popupType}
         refreshIncomeData={refreshIncomeData}
         refreshOutcomeData={refreshOutcomeData}
-        refreshCategoryData={refreshCategoryData}
+        refreshCategoryData={fetchCategoryData}
       />
     </SafeAreaView>
   );
@@ -473,6 +490,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontFamily: 'Amethysta',
     fontSize: 16,
+  },
+  categoryListContainer: {
+    marginTop: 20,
+    paddingHorizontal: 10,
   },
 });
 
