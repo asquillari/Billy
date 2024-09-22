@@ -3,141 +3,19 @@ import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "r
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/box';
 
-const data = [
-  {
-    month: "Enero",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-  {
-    month: "Febrero",
-    amount: 1200,
-    categories: [
-      { name: "Transporte", amount: -200 },
-      { name: "Comida", amount: -400 },
-      { name: "Entretenimiento", amount: -300 },
-    ],
-  },
-  {
-    month: "Marzo",
-    amount: 1500,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -600 },
-      { name: "Servicios", amount: -200 },
-    ],
-  },
-  {
-    month: "Abril",
-    amount: 1100,
-    categories: [
-      { name: "Comida", amount: -500 },
-      { name: "Nafta", amount: -300 },
-      { name: "Salud", amount: -200 },
-    ],
-  },
-  {
-    month: "Mayo",
-    amount: 1300,
-    categories: [
-      { name: "Renta", amount: -800 },
-      { name: "Comida", amount: -400 },
-      { name: "Transporte", amount: -100 },
-    ],
-  },
-  {
-  month: "Junio",
-    amount: 850,
-    categories: [
-      { name: "Nafta", amount: -200 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -500 },
-    ],
-  },
-  {
-    month: "Julio",
-    amount: 1000,
-    categories: [
-      { name: "Nafta", amount: -300 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Agosto",
-    amount: 1150,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -700 },
-    ],
-  },
-  {
-    month: "Septiembre",
-    amount: 1250,
-    categories: [
-      { name: "Nafta", amount: -400 },
-      { name: "Comida", amount: -200 },
-      { name: "Expensas", amount: -800 },
-    ],
-  },
-  {
-    month: "Octubre",
-    amount: 1350,
-    categories: [
-      { name: "Nafta", amount: -450 },
-      { name: "Comida", amount: -250 },
-      { name: "Expensas", amount: -900 },
-    ],
-  },
-  {
-    month: "Noviembre",
-    amount: 900,
-    categories: [
-      { name: "Nafta", amount: -350 },
-      { name: "Comida", amount: -150 },
-      { name: "Expensas", amount: -600 },
-    ],
-  },
-  {
-    month: "Diciembre",
-    amount: 2000,
-    categories: [
-      { name: "Nafta", amount: -500 },
-      { name: "Comida", amount: -600 },
-      { name: "Expensas", amount: -1000 },
-    ],
-  },
-];
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const years = [2022, 2023, 2024, 2025];
 
-const Estadsticas = ({ selectedMonth, selectedYear }) => {
-  const currentData = data[selectedMonth]; // Update to match selected month
-
-  // Prepare pie chart data
-  const chartData = currentData.categories.map((category) => ({
-    name: category.name,
-    amount: Math.abs(category.amount), // Use absolute value for positive representation
-    color: "#7F7F7F",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  }));
-
+const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, selectedYear:number}) => {
 
   return (
     <View>
     <View style={styles.card}>
-      <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text>
+      <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
       <Text> </Text>
 
-       {/* <PieChart2 data={data} /> */}
-       <Box/>
+       <Box month={selectedMonth} year={selectedYear}/>
 
     </View>
   </View>
@@ -262,41 +140,7 @@ const App = () => {
               </TouchableOpacity>
             </View>
           )}
-
-        {/* <View style={styles.statsContainer}>
-          <View style={styles.selectorContainer}>
-            <TouchableOpacity onPress={toggleMonthSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={toggleYearSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Año</Text>
-            </TouchableOpacity>
-          </View>
-
-          {showMonthSelector && (
-            <View style={styles.selectorContainer}>
-              <TouchableOpacity onPress={prevMonth} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{"<"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
-              <TouchableOpacity onPress={nextMonth} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{">"}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {showYearSelector && (
-            <View style={styles.selectorContainer}>
-              <TouchableOpacity onPress={prevYear} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{"<"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.selectorText}>{years[selectedYear]}</Text>
-              <TouchableOpacity onPress={nextYear} style={styles.arrowButton}>
-                <Text style={styles.arrowText}>{">"}</Text>
-              </TouchableOpacity>
-            </View>
-          )} */}
-
+          
           <Estadsticas selectedMonth={selectedMonth} selectedYear={years[selectedYear]} />
        
       </LinearGradient>

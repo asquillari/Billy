@@ -55,7 +55,7 @@ const PieChart2 = ({ data }) => {
 };
 
 // Box component
-export const Box = () => {
+export const Box = ({month, year}:{month:number, year:number}) => {
   const expenses = [
     { label: "Nafta", amount: 350, color: "#48ece2" },
     { label: "Comida", amount: 150, color: "#94a9ff" },
@@ -98,22 +98,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     padding: 10,
-    paddingTop: 260, // Add some top padding for the overall container
+    paddingTop: 260,
   },
   box: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     width: "100%",
-    maxWidth: 400, // Optional: Set a max width for the expense items
-    marginTop: 20, // Space between pie chart and expense items
+    maxWidth: 400, 
+    marginTop: 20, 
   },
   expenseItem: {
-    width: "48%", // Adjust width to fit two boxes
+    width: "48%", 
     height: 80,
     backgroundColor: "#ffffff",
     borderRadius: 12,
-    elevation: 4, // Adds shadow on Android
+    elevation: 4, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10, // Space between text and colored bar
+    marginBottom: 10, 
   },
   textWrapper: {
     color: "#3c3c3c",
@@ -145,11 +145,11 @@ const styles = StyleSheet.create({
   pieContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20, // Space between pie chart and boxes
-    position: "absolute", // Position it absolutely
-    top: "0%", // Move it above the center
-    left: "50%", // Center horizontally
-    marginLeft: -125, // Half of the pie chart width (125)
+    marginBottom: 20, 
+    position: "absolute", 
+    top: "0%",
+    left: "50%",
+    marginLeft: -125, 
   },
   valueContainer: {
     position: "absolute",
