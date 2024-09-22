@@ -120,23 +120,13 @@ const years = [2022, 2023, 2024, 2025];
 const Estadsticas = ({ selectedMonth, selectedYear }) => {
   const currentData = data[selectedMonth]; // Update to match selected month
 
-  // Prepare pie chart data
-  const chartData = currentData.categories.map((category) => ({
-    name: category.name,
-    amount: Math.abs(category.amount), // Use absolute value for positive representation
-    color: "#7F7F7F",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  }));
-
 
   return (
     <View>
     <View style={styles.card}>
-      <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text>
+      {/* <Text style={styles.monthText}>{currentData.month} {selectedYear}</Text> */}
       <Text> </Text>
 
-       {/* <PieChart2 data={data} /> */}
        <Box/>
 
     </View>
@@ -147,8 +137,9 @@ const Estadsticas = ({ selectedMonth, selectedYear }) => {
 const App = () => {
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
-  const [showMonthSelector, setShowMonthSelector] = useState(false);
+  const [showMonthSelector, setShowMonthSelector] = useState(true);
   const [showYearSelector, setShowYearSelector] = useState(false);
+  const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
 
   const data = [
     { amount: 200, color: "rgba(249, 91, 81, 1)" }, // 20%
@@ -159,14 +150,17 @@ const App = () => {
 
 
   const toggleMonthSelector = () => {
+    setSelectedButton('month');
     setShowMonthSelector(true);
     setShowYearSelector(false);
   };
-
+  
   const toggleYearSelector = () => {
+    setSelectedButton('year');
     setShowYearSelector(true);
     setShowMonthSelector(false);
   };
+  
 
   const nextMonth = () => {
     setSelectedMonth((prev) => (prev + 1) % months.length);
@@ -208,22 +202,39 @@ const App = () => {
           <Text style={styles.subtituloTexto}>Mirá tu actividad mensual o anual.</Text>
         </View>
 
-        <View style={styles.statsContainer}>
-          <View style={styles.selectorContainer}>
-            <TouchableOpacity onPress={toggleMonthSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={toggleYearSelector} style={styles.selectorButton}>
-              <Text style={styles.selectorText}>Año</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.selectorContainer}>
+          <TouchableOpacity
+            onPress={toggleMonthSelector}
+            style={[
+              styles.selectorButton,
+              { backgroundColor: selectedButton === 'month' ? '#4B00B8' : '#fff' }
+            ]}
+          >
+            <Text style={[
+              styles.selectorText,
+              { color: selectedButton === 'month' ? '#fff' : '#4A00E0' }
+            ]}>Mes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleYearSelector}
+            style={[
+              styles.selectorButton,
+              { backgroundColor: selectedButton === 'year' ? '#4B00B8' : '#fff' }
+            ]}
+          >
+            <Text style={[
+              styles.selectorText,
+              { color: selectedButton === 'year' ? '#fff' : '#4A00E0' }
+            ]}>Año</Text>
+          </TouchableOpacity>
+        </View>
 
           {showMonthSelector && (
             <View style={styles.selectorContainer}>
               <TouchableOpacity onPress={prevMonth} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{"<"}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
+              <Text style={styles.selectorText2}>{months[selectedMonth]}</Text>
               <TouchableOpacity onPress={nextMonth} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{">"}</Text>
               </TouchableOpacity>
@@ -235,7 +246,7 @@ const App = () => {
               <TouchableOpacity onPress={prevYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{"<"}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectorText}>{years[selectedYear]}</Text>
+              <Text style={styles.selectorText2}>{years[selectedYear]}</Text>
               <TouchableOpacity onPress={nextYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{">"}</Text>
               </TouchableOpacity>
@@ -243,7 +254,7 @@ const App = () => {
           )}
 
           <Estadsticas selectedMonth={selectedMonth} selectedYear={years[selectedYear]} />
-        </View>
+  
       </LinearGradient>
     </SafeAreaView>
   );
@@ -252,20 +263,26 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    //justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    
+  },
+  card: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-  },
-  card: {
-    width: 393,
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 70,
     padding: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
-    marginBottom: 20,
+    //shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    //elevation: 5,
+    flex: 1,
+    width: '85%',
+    marginLeft:40,
+    
   },
   monthText: {
     fontSize: 28,
@@ -296,14 +313,14 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 100,
+    padding: 50,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    flex: 1,
+    // flex: 1,
     width: '100%',
     marginTop:0,
   },
@@ -311,25 +328,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 0,
+    marginTop: 0,
+  //  backgroundColor:'#fff'
   },
   arrowButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    paddingHorizontal: 100,
+    paddingVertical: 10,
   },
   arrowText: {
-    fontSize: 24,
-    color: '#4A00E0',
+    fontSize: 36,
+    color: '#fff',
   },
   selectorText: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#4A00E0',
+    marginHorizontal: 10,
+    fontWeight: 'bold',
+  },
+  selectorText2: {
+    fontSize: 24,
+    color: '#fff',
     marginHorizontal: 10,
   },
   selectorButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#4B00B8',
+    marginHorizontal: 5,
+    alignItems: 'center',
+    elevation: 5, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
+
   gradientContainer: {
     flex: 1,
     paddingTop: 10,
@@ -349,6 +383,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     marginHorizontal: 10,
     marginBottom: 10,
+    left: 43.5,
+    //position:'absolute',
+    width: '95%', 
+    top:0
   },
   logoBilly: {
     width: 80,
@@ -375,6 +413,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
+    left:43.5
   },
   subtituloTexto: {
     color: '#ffffff',
@@ -383,6 +422,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.12,
     marginTop: 5,
+    left:43.5,
+    marginBottom: 10
   },
   chartContainer: {
     alignItems: 'center',
