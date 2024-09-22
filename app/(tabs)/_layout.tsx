@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +16,6 @@ export default function TabLayout() {
         headerShown: false,
         tabBarIcon: ({ color, focused, size }) => {
           let iconName: IconName | undefined;
-
           if (route.name === 'index') {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'statistics') {
@@ -27,35 +25,14 @@ export default function TabLayout() {
           } else if (route.name === 'profiles') {
             iconName = focused ? 'people' : 'people-outline';
           }
-
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-      })}>
-        
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Inicio',
-        }}
-      />
-      <Tabs.Screen
-        name="statistics"
-        options={{
-          title: 'Estadísticas',
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'Calendario',
-        }}
-      />
-      <Tabs.Screen
-        name="profiles"
-        options={{
-          title: 'Perfiles',
-        }}
-      />
+      })}
+    >
+      <Tabs.Screen name="profiles" options={{ title: 'Perfiles' }} />
+      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
+      <Tabs.Screen name="statistics" options={{ title: 'Estadísticas' }} />
+      <Tabs.Screen name="calendar" options={{ title: 'Calendario' }} />
     </Tabs>
   );
 }

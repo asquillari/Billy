@@ -1,53 +1,37 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
+import { logIn } from '@/api/api';
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const handleLogin = async () => {
+    try {
+      const user = await logIn(email, password);
+      if (user) navigation.navigate('(tabs)' as never); 
+      else Alert.alert('Login Failed', 'Invalid email or password');
+    } catch (error) {
+      Alert.alert('Login Error', 'An error occurred during login');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
       </TouchableOpacity>
-
-      <Image
-        source={require('../../assets/images/Billy/logo2.png')}
-        style={styles.logo}
-      />
-
-      <Image
-        //source={require('@/assets/images/billy-illustration.png')}
-        style={styles.illustration}
-      />
-
+      <Image style={styles.logo} source={require('../../assets/images/Billy/logo1.png')}/>
       <ThemedText style={styles.title}>Inicio de sesión</ThemedText>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Mail o Número de teléfono"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
+      <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
+      <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
       <TouchableOpacity>
         <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
       </TouchableOpacity>
     </View>

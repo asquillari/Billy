@@ -8,30 +8,15 @@ export default function Start() {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/images/Billy/logo2.png')}
-        style={styles.logo}
-      />
-      <Image
-        //Source={require('@/assets/images/billy-illustration.png')}
-        style={styles.illustration}
-      />
-      <ThemedText style={styles.title}>Manejar tu plata nunca fue tan fácil</ThemedText>
-      <ThemedText style={styles.subtitle}>
-        Lleva el control de tus ingresos y gastos de manera simple y rápida.
-      </ThemedText>
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => navigation.navigate('Login' as never)}
-      >
-        <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => navigation.navigate('Signup' as never)}
-      >
-        <ThemedText style={styles.secondaryButtonText}>Registrarme</ThemedText>
-      </TouchableOpacity>
+        <Image style={styles.logo} source={require('../../assets/images/Billy/logo1.png')}/>
+        <ThemedText style={styles.title}>Manejar tu plata nunca fue tan fácil</ThemedText>
+        <ThemedText style={styles.subtitle}>Llevá el control de tus ingresos y gastos de manera simple y rápida.</ThemedText>
+        <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('login' as never)}>
+            <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('signup' as never)}>
+            <ThemedText style={styles.secondaryButtonText}>Registrarme</ThemedText>
+        </TouchableOpacity>
     </View>
   );
 }

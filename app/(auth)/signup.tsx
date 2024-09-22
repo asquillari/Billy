@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
+import { signUp } from '@/api/api';
 
 export default function Signup() {
   const navigation = useNavigation();
@@ -11,58 +12,34 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    try {
+      const user = await signUp(email, password, name, lastName);
+      if (user) navigation.navigate('(tabs)' as never);
+      else Alert.alert('Error de registro', 'No se pudo crear la cuenta');
+    } catch (error) {
+      Alert.alert('Error de registro', 'Ocurrió un error durante el registro');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
       </TouchableOpacity>
-      <Image
-        source={require('../../assets/images/Billy/logo2.png')}
-        style={styles.logo}
-      />
-      <Image
-        //source={require('@/assets/images/billy-illustration.png')}
-        style={styles.illustration}
-      />
+      <Image source={require('../../assets/images/Billy/logo1.png')} style={styles.logo}/>
       <ThemedText style={styles.title}>Comenza en Billy</ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        placeholderTextColor="#999"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Apellido"
-        placeholderTextColor="#999"
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Mail"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Repetir Contraseña"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-      <TouchableOpacity style={styles.signupButton}>
+      <TextInput style={styles.input} placeholder="Nombre" placeholderTextColor="#999" value={name} onChangeText={setName}/>
+      <TextInput style={styles.input} placeholder="Apellido" placeholderTextColor="#999" value={lastName} onChangeText={setLastName}/>
+      <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
+      <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
+      <TextInput style={styles.input} placeholder="Repetir Contraseña" placeholderTextColor="#999" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword}/>
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
         <ThemedText style={styles.buttonText}>Registrarme</ThemedText>
       </TouchableOpacity>
     </View>
