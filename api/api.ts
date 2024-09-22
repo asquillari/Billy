@@ -67,11 +67,12 @@ export async function getIncome(profile: string, id: number | undefined) {
   return data;
 };
 
-export async function addIncome(profile: string, amount: number, description: string) : Promise<IncomeData[] | null> {
+export async function addIncome(profile: string, amount: number, description: string, created_at?: Timestamp) : Promise<IncomeData[] | null> {
   const newIncome: IncomeData = {
     profile: profile,
     amount: amount,
-    description: description
+    description: description,
+    created_at: created_at
   };
   const [insertResult] = await Promise.all([
     supabase.from('Incomes').insert(newIncome).select(),
@@ -120,7 +121,7 @@ export async function getOutcome(profile: string, id: number | undefined) {
   return data;
 };
 
-export async function addOutcome(profile: string, category: string, amount: number, description: string) {
+export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Timestamp) {
   if (category === "" || !(await checkCategoryLimit(category, amount))) {
     console.log("Couldn't add due to category limit or missing category");
     return;
@@ -129,7 +130,8 @@ export async function addOutcome(profile: string, category: string, amount: numb
     profile: profile,
     amount: amount,
     category: category,
-    description: description
+    description: description,
+    created_at: created_at
   };
   const [insertResult] = await Promise.all([
     checkCategoryLimit(category, amount),
