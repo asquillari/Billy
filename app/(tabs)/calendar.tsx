@@ -6,7 +6,7 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
-import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes, getOutcomesFromDateRange } from '../../api/api';
+import { fetchIncomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
@@ -35,7 +35,7 @@ const App = () => {
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
   const [popupVisible, setPopupVisible] = useState(false);
-  const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
+  const [popupType, setPopupType] = useState<'income' | 'outcome'>('outcome');
   const { currentProfileId } = useProfile();
   const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
@@ -83,7 +83,7 @@ const App = () => {
     );
   };
 
-  const openPopup = (type: 'cobro' | 'pago') => {
+  const openPopup = (type: 'income' | 'outcome') => {
     setPopupType(type);
     setPopupVisible(true);
   };
@@ -190,13 +190,13 @@ const App = () => {
             </View>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('cobro')}>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('income')}>
                 <Ionicons name="add-circle" size={24} color="white" />
-                <Text style={styles.buttonTextCobro}>Fecha de cobro</Text>
+                <Text style={styles.buttonTextCobro}>Fecha de ingreso</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('pago')}>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('outcome')}>
                 <Ionicons name="add-circle" size={24} color="#370185" />
-                <Text style={styles.buttonTextPago}>Fecha de pago</Text>
+                <Text style={styles.buttonTextPago}>Fecha de gasto</Text>
               </TouchableOpacity>
             </View>
 
