@@ -6,20 +6,26 @@ import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../UserContext';
+import useProfileData from '@/hooks/useProfileData';
+import { useProfile } from '../ProfileContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Profiles() {
     const { userEmail } = useUser();
+    const { currentProfileId, setCurrentProfileId } = useProfile();
     const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const { balance, getBalanceData } = useProfileData(currentProfileId || "");
     
     const getProfileData = useCallback(async () => {
         const data = await fetchProfiles(userEmail);
         setProfileData(data);
     }, []);
 
-    useEffect(() => {
+    useFocusEffect(() => {
+        getBalanceData();
         getProfileData();
-    }, [getProfileData]);
+    }, );
 
     const handleAddProfile = useCallback(() => {
         setIsModalVisible(true);
