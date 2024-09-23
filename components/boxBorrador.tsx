@@ -25,7 +25,7 @@ function generateRandomColor(): string {
 
 
 // Box component
-
+//month starts in 0 to 11.
 export const Box = ({ month, year }: { month: number; year: number }) => {
 
   const { userEmail } = useUser();
@@ -63,34 +63,54 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
       const calculatedExpenses = await Promise.all(
         categoryData.map(async (category) => {
           let colorRegistered: string | undefined; 
+          
+
           const isRegistered = idColor.some(item => item.id === category.id);
     
-          // If the ID is already registered, use the same color
           if (isRegistered) {
             colorRegistered = idColor.find(item => item.id === category.id)?.color;
             
           } else {
 
-            // Parse the JSON string to get an array of colors
             const colors = JSON.parse(category.color);
-            const Color = colors[1]; // Use the first color (adjust index if needed)
+            const Color = colors[1]; 
     
-            // Check if the color is already registered
             if (colorsRegistered.includes(Color)) {
-              // Generate a new random color if the color is already used
               colorRegistered = generateRandomColor();
               colorsRegistered.push(colorRegistered);
             } else {
-              colorRegistered = Color; // Use the color if it's not already registered
+              colorRegistered = Color; 
               colorsRegistered.push(colorRegistered||'');
             }
     
             idColor.push({ id: category.id || "", color: colorRegistered || "" });
           }
+
+          const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(
+              currentProfileId || '',
+              //new Date('2024-09-01'),
+              parseDate(month, year, 1),
+              //new Date('2024-09-30'),
+              parseDate(month, year, 30), 
+                category.id || ''
+            ); 
+
+            let total = 0;
+
+            OutcomeFromCategory?.forEach(outcome => {
+
+              total += outcome.amount;
+
+              // console.log('outcome.profile,outcome.category,outcome.amount, outcome.description,outcome.created_at');
+              // console.log(outcome.profile,outcome.category,outcome.amount, outcome.description,outcome.created_at);
+              
+            }, [currentProfileId]);
+
+
   
           return {
             label: category.name,
-            amount: category.spent,
+            amount: total,
             color: colorRegistered,
           } as Expense;
         })
@@ -101,38 +121,8 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
     }
     
 
-      //       // const amountCategory = await getOutcomesFromDateRangeAndCategory(
-      //       //    currentProfileId || '',
-      //       //   new Date('2024-09-01'),
-      //       //   //parseDate(month, year, 1),
-      //       //   new Date('2024-09-30'),
-      //       //   //parseDate(month, year, 30), 
-      //       //     category.id || '82678c1b-c0f1-4002-a1cc-a9e1f2e9909c'
-      //       // );
+        
 
-      //      // console.log(`Category paso 1: ${amountCategory.spent || null}`);
-      //      // setCategoryData2(amountCategory);
-      //      // console.log(`Category paso 2: ${categoryData2}`);
-
-            
-             
-
-      //       // amountCategory?.forEach(category => {
-      //       //   //const date = category.id;
-      //       //   console.log('category.id,category.name,category.color,category.spent,category.profile');
-
-      //       //   console.log(category.id,category.name,category.color,category.spent, category.profile,category.limit);
-      //       //   console.log(category.id,category.name,category.color,category.spent);
-              
-      //       // }, [currentProfileId]);
-
-            
-      //   );
-
-      //    setExpenses(calculatedExpenses);
-        // console.log("Calculated expenses:", calculatedExpenses);
-
-      // }
     };
 
     fetchExpenses();
@@ -212,7 +202,7 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
 };
 
 function parseDate(month: number, year: number, init: number): Date {
-  return new Date(Date.UTC(year, month, init));
+  return new Date(year, month, init);
 }
 
 // ExpenseItem component
