@@ -121,6 +121,7 @@ export default function CalendarScreen() {
 
   useFocusEffect(
     useCallback(() => { 
+      getCategoryData();
       processTransactions(); 
   }, [processTransactions]));
 

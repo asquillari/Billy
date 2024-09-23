@@ -28,6 +28,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      getCategoryData();
       getIncomeData();
       getOutcomeData();
     }, [fetchProfile])
