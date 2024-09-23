@@ -64,14 +64,12 @@ const styles = StyleSheet.create({
   },
   tituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
   },
   subtituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 12,
     fontWeight: '400',
     letterSpacing: -0.12,
