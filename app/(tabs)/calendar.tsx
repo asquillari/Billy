@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated, ScrollView } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
@@ -8,7 +8,7 @@ import CobroPagoPopUp from '../../components/CobroPagoPopUp';
 import { CategoryList } from '../../components/CategoryList';
 import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
-
+import { useProfile } from '../ProfileContext';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -38,6 +38,7 @@ const App = () => {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [incomes, setIncomes] = useState<any[]>([]);
   const [outcomes, setOutcomes] = useState<any[]>([]);
+  const { currentProfileId } = useProfile();
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -101,17 +102,17 @@ const App = () => {
   };
 
   const fetchCategoryData = async () => {
-    const data = await fetchCategories("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    const data = await fetchCategories(currentProfileId || "");
     setCategoryData(data);
   };
 
   const fetchIncomeData = async () => {
-    const data = await fetchIncomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    const data = await fetchIncomes(currentProfileId || "");
     setIncomes(data || []);
   };
 
   const fetchOutcomeData = async () => {
-    const data = await fetchOutcomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    const data = await fetchOutcomes(currentProfileId || "");
     setOutcomes(data || []);
   };
 
@@ -119,8 +120,8 @@ const App = () => {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
 
-    const incomes = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
-    const outcomes = await getOutcomesFromDateRange('0f58d714-0ec2-40df-8dae-668caf357ac3', startOfMonth, endOfMonth) || [];
+    const incomes = await fetchIncomes(currentProfileId || "") || [];
+    const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
     
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
@@ -140,7 +141,7 @@ const App = () => {
       } else {
         marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
       }
-    });
+    }, [currentProfileId]);
 
     setMarkedDates(marked);
   }, [currentDate]);
@@ -228,11 +229,11 @@ const App = () => {
                 categoryData={categoryData} 
                 refreshCategoryData={fetchCategoryData}
                 refreshAllData={fetchData}
+                currentProfileId={currentProfileId || ""}
                 showAddButton={false}
               />
             </View>
         
-
           </View>
         </SafeAreaView>
 
@@ -243,6 +244,7 @@ const App = () => {
           refreshIncomeData={fetchIncomeData}
           refreshOutcomeData={fetchOutcomeData}
           refreshCategoryData={fetchCategoryData}
+          currentProfileId={currentProfileId || ""}
         />
 
       </LinearGradient>

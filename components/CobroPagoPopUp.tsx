@@ -13,9 +13,10 @@ interface CobroPagoPopUpProps {
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
+  currentProfileId: string;
 }
 
-const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData }: CobroPagoPopUpProps) => {
+const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }: CobroPagoPopUpProps) => {
   const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'cobro' ? 'Income' : 'Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
@@ -33,7 +34,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
 
   useEffect(() => {
     if (isVisible) {
-      fetchCategories("0f58d714-0ec2-40df-8dae-668caf357ac3")
+      fetchCategories(currentProfileId)
         .then(categories => setCategories(categories || []));
     }
   }, [isVisible]);
@@ -95,10 +96,10 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
     }
 
     if (type === 'Income') {
-      await addIncome("0f58d714-0ec2-40df-8dae-668caf357ac3", amountNumber, description);
+      await addIncome(currentProfileId, amountNumber, description);
       refreshIncomeData();
     } else {
-      await addOutcome("0f58d714-0ec2-40df-8dae-668caf357ac3", selectedCategory, amountNumber, description);
+      await addOutcome(currentProfileId, selectedCategory, amountNumber, description);
       refreshOutcomeData();
     }
     refreshCategoryData();

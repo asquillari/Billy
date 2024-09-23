@@ -12,10 +12,11 @@ import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StatusBar } from 'react-native';
 import { useUser } from '../UserContext';
+import { useProfile } from '../ProfileContext';
 
 export default function HomeScreen() {
   const { userEmail } = useUser();
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const { currentProfileId, setCurrentProfileId } = useProfile();
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
   
   const fetchProfile = useCallback(async () => {
@@ -23,7 +24,7 @@ export default function HomeScreen() {
       const profileData = await fetchCurrentProfile(userEmail);
       setCurrentProfileId(profileData?.current_profile || null);
     }
-  }, [userEmail]);
+  }, [userEmail, setCurrentProfileId]);
 
   useFocusEffect(
     useCallback(() => {

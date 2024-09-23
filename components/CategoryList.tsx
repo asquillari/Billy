@@ -4,7 +4,6 @@ import { CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import AddCategoryModal from './modals/AddCategoryModal';
 import CategoryDetailsModal from './modals/CategoryDetailsModal';
 
