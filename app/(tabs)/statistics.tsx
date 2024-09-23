@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "r
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/boxBorrador';
 import { BillyHeader } from "@/components/BillyHeader";
+import { Dimensions } from "react-native";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const years = [2022, 2023, 2024, 2025];
@@ -117,13 +118,15 @@ const App = () => {
   );
 };
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     alignItems: 'center',
   },
   card: {
-    width: 393,
+    width: SCREEN_WIDTH,
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
@@ -161,19 +164,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#3c3c3c',
   },
-  statsContainer: {
-   // backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    flex: 1,
-    width: '100%',
-    marginTop:0,
-  },
   selectorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -208,53 +198,6 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-  },
-  barraSuperior: {
-    height: 61,
-    backgroundColor: '#ffffff',
-    borderRadius: 30,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 28,
-    marginHorizontal: 10,
-    marginBottom: 10,
-  },
-  usuario: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  tituloContainer: {
-    height: 55,
-    marginHorizontal: 20,
-    marginBottom: 10,
-  },
-  tituloTexto: {
-    color: '#ffffff',
-    fontFamily: "Amethysta",
-    fontSize: 32,
-    fontWeight: '400',
-    letterSpacing: -1.6,
-  },
-  subtituloTexto: {
-    color: '#ffffff',
-    fontFamily: "Amethysta",
-    fontSize: 12,
-    fontWeight: '400',
-    letterSpacing: -0.12,
-    marginTop: 5,
-  },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
   },
 });
 
