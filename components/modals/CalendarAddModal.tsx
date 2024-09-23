@@ -66,41 +66,33 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
 
   async function handleSubmit(): Promise<void> {
     if (!selectedCategory && type === 'Outcome') {
-      Alert.alert(
-        "Error de categoría",
-        "Por favor, selecciona una categoría antes de continuar.",
-        [{ text: "OK" }]
-      );
+      Alert.alert("Error de categoría", "Por favor, selecciona una categoría antes de continuar.", [{ text: "OK" }]);
       return;
     }
 
     if (dateType === 'Periodo') {
       if (startDate >= endDate) {
-        Alert.alert(
-          "Error de fecha",
-          "La fecha 'Desde' debe ser anterior a la fecha 'Hasta'.",
-          [{ text: "OK" }]
-        );
+        Alert.alert("Error de fecha", "La fecha 'Desde' debe ser anterior a la fecha 'Hasta'.", [{ text: "OK" }]);
         return;
       }
     }
 
     const amountNumber = parseFloat(amount);
     if (isNaN(amountNumber)) {
-      Alert.alert(
-        "Error de monto",
-        "Por favor, ingresa un monto válido.",
-        [{ text: "OK" }]
-      );
+      Alert.alert("Error de monto", "Por favor, ingresa un monto válido.", [{ text: "OK" }]);
       return;
     }
+
     if (type === 'Income') {
       await addIncome(currentProfileId, amountNumber, description);
       refreshIncomeData();
-    } else {
+    } 
+    
+    else {
       await addOutcome(currentProfileId, selectedCategory, amountNumber, description);
       refreshOutcomeData();
     }
+
     refreshCategoryData();
     refreshTransactions();
     setAmount('');
@@ -122,10 +114,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     }).start();
   };
 
-  const bubbleInterpolation = bubbleAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['2%', '48%'],
-  });
+  const bubbleInterpolation = bubbleAnimation.interpolate({ inputRange: [0, 1], outputRange: ['2%', '48%'] });
 
   const getTextColor = (buttonType: 'Income' | 'Outcome') => {
     return type === buttonType ? '#000000' : '#FFFFFF';
