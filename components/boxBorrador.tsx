@@ -33,9 +33,6 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
 
   // const [categoryData2, setCategoryData2] = useState<CategoryData[] | null>(null);
-  //const colors = ["#48ece2", "#94a9ff", "#7d90f7"];
-  //let index = 0; 
-  //const colorsUsed[id:string, color: string];
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -90,7 +87,7 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
     
             idColor.push({ id: category.id || "", color: colorRegistered || "" });
           }
-    
+  
           return {
             label: category.name,
             amount: category.spent,
@@ -146,7 +143,6 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
   return (
     <View style={styles.container}>
       <PieChart2 data={expenses} />
-      {/* <PieChartExample data={expenses} /> */}
       <View style={styles.box}>
         {expenses.map((expense) => (
           <ExpenseItem key={expense.label} {...expense} maxAmount={maxAmount} />
@@ -169,8 +165,6 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
 
   let offset = 0;
 
- // console.log("Total amount for PieChart2:", numericTotal);
-
   return (
     <View style={styles.pieContainer}>
       <Svg height={250} width={250}>
@@ -186,13 +180,11 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
 
           if (!item.color || typeof item.color !== 'string') {
             console.warn(`Invalid color for item at index ${index}:`, item.color);
-            return null; // Skip rendering this segment
+            return null; 
           }
 
           const percentage = item.amount !== null ? item.amount / total : 0;
-          //console.log(percentage);
-          const strokeDashoffset = circumference * percentage;
-          //console.log(strokeDashoffset);
+          const strokeDashoffset = circumference * (1 - percentage);;
           const segment = (
             <Circle
               key={index}
@@ -203,19 +195,16 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
               strokeWidth={strokeWidth}
               fill="transparent"
               strokeDasharray={`${circumference} ${circumference}`}
-              //strokeDasharray="5, 3"
               strokeDashoffset={offset}
             />
           );
 
-          offset = strokeDashoffset;
-          //console.log(`Circumference: ${circumference}, StrokeDasharray: ${circumference} ${circumference}, StrokeDashoffset: ${offset}`);
-          //console.log(`Segment ${item.label}: ${item.amount} (${percentage * 100}%)`);
+          offset -= circumference * percentage;
           return segment;
         })}
       </Svg>
       <View style={styles.valueContainer}>
-        <Text style={styles.valueText}>${numericTotal.toFixed(2)}</Text>
+        <Text style={styles.valueText}>${numericTotal.toFixed(0)}</Text>
 
       </View>
     </View>
@@ -230,8 +219,6 @@ function parseDate(month: number, year: number, init: number): Date {
 const ExpenseItem = ({ label, amount, color, maxAmount }: { label: string; amount: number | null; color: string; maxAmount: number }) => {
   const barWidth = maxAmount > 0 ? ((amount ?? 0) / maxAmount) * 100 : 0;
 
- // console.log(`Expense Item - Label: ${label}, Amount: ${amount}, Bar Width: ${barWidth}%`);
-
   return (
     <View style={styles.expenseItem}>
       <View style={styles.textContainer}>
@@ -242,44 +229,6 @@ const ExpenseItem = ({ label, amount, color, maxAmount }: { label: string; amoun
     </View>
   );
 };
-
-const screenWidth = Dimensions.get('window').width;
-
-const PieChartExample = ({ data }) => {
-  const chartData = data.map(item => ({
-    name: item.label,
-    amount: item.amount,
-    color: item.color,
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  }));
-
-  return (
-    <View style={styles.pieContainer}>
-      <PieChart
-        data={chartData}
-        width={screenWidth}
-        height={220}
-        chartConfig={{
-          backgroundColor: "#ffffff",
-          backgroundGradientFrom: "#ffffff",
-          backgroundGradientTo: "#ffffff",
-          decimalPlaces: 2, // optional, defaults to 2
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-        }}
-        accessor="amount"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute // If you want absolute values
-      />
-    </View>
-  );
-};
-
 
 // Styles
 const styles = StyleSheet.create({
