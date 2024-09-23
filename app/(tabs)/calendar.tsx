@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
@@ -30,6 +30,8 @@ const customArrowRight = () => {
 };
 
 export default function CalendarScreen() {
+  const { currentProfileId, setCurrentProfileId } = useProfile();
+
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -37,7 +39,6 @@ export default function CalendarScreen() {
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
-  const { currentProfileId } = useProfile();
   const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
