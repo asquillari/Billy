@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
-import CobroPagoPopUp from '../../components/CobroPagoPopUp';
+import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
 import { fetchIncomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -35,8 +35,8 @@ export default function CalendarScreen() {
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupType, setPopupType] = useState<'income' | 'outcome'>('outcome');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
   const { currentProfileId } = useProfile();
   const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
@@ -84,9 +84,9 @@ export default function CalendarScreen() {
     );
   };
 
-  const openPopup = (type: 'income' | 'outcome') => {
-    setPopupType(type);
-    setPopupVisible(true);
+  const openModal = (type: 'income' | 'outcome') => {
+    setModalType(type);
+    setModalVisible(true);
   };
 
   const processTransactions = useCallback(async () => {
@@ -100,20 +100,14 @@ export default function CalendarScreen() {
 
     incomes?.forEach(income => {
       const date = moment(income.created_at).format('YYYY-MM-DD');
-      if (marked[date]) {
-        marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
-      } else {
-        marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
-      }
+      if (marked[date]) marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
+      else marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
     });
 
     outcomes?.forEach(outcome => {
       const date = moment(outcome.created_at).format('YYYY-MM-DD');
-      if (marked[date]) {
-        marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
-      } else {
-        marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
-      }
+      if (marked[date]) marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
+      else marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
     }, [currentProfileId]);
 
     setMarkedDates(marked);
@@ -124,10 +118,8 @@ export default function CalendarScreen() {
   }, [processTransactions]);
 
   useFocusEffect(
-    useCallback(() => {
-      processTransactions();
-    }, [processTransactions])
-  );
+    useCallback(() => { processTransactions(); 
+  }, [processTransactions]));
 
   return (
     <View style={styles.container}>
@@ -135,6 +127,7 @@ export default function CalendarScreen() {
         <SafeAreaView style={styles.safeArea}>
         <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
           <View style={styles.contentContainer}>
+            
             <View style={styles.calendarContainer}>
               {viewMode === 'month' ? (
                 <Calendar
@@ -144,16 +137,11 @@ export default function CalendarScreen() {
                   markingType={'multi-dot'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-                  onMonthChange={(month: { dateString: string }) => {
-                    setCurrentDate(month.dateString);
-                  }}
+                  onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
                   renderHeader={renderCustomHeader}
                   theme={{
                     'stylesheet.calendar.header': {
-                      monthText: {
-                        ...styles.monthText,
-                        color: '#735BF2',
-                      },
+                      monthText: { ...styles.monthText, color: '#735BF2' },
                     },
                   }}
                   onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
@@ -167,33 +155,27 @@ export default function CalendarScreen() {
             </View>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('income')}>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('income')}>
                 <Ionicons name="add-circle" size={24} color="white"/>
                 <Text style={styles.buttonTextCobro}>Ingreso</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('outcome')}>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('outcome')}>
                 <Ionicons name="add-circle" size={24} color="#370185"/>
                 <Text style={styles.buttonTextPago}>Gasto</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.categoryListContainer}>
-              <CategoryList 
-                categoryData={categoryData} 
-                refreshCategoryData={getCategoryData}
-                refreshAllData={refreshAllData}
-                currentProfileId={currentProfileId || ""}
-                showAddButton={false}
-              />
+              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId || ""} showAddButton={false}/>
             </View>
         
           </View>
         </SafeAreaView>
 
-        <CobroPagoPopUp
-          isVisible={popupVisible}
-          onClose={() => setPopupVisible(false)}
-          initialType={popupType}
+        <CalendarAddModal
+          isVisible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          initialType={modalType}
           refreshIncomeData={getIncomeData}
           refreshOutcomeData={getOutcomeData}
           refreshCategoryData={getCategoryData}
@@ -309,12 +291,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#735BF2',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
   yearItem: {
     flex: 1,
     aspectRatio: 1.5,
@@ -403,13 +379,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 10,
   },
-  popupContainer: {
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  popup: {
+  modal: {
     backgroundColor: '#ffffff',
     borderRadius: 17,
     padding: 20,

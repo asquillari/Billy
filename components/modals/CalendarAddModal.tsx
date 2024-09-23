@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
+import { View, Text, TextInput, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome, fetchCategories, CategoryData } from '../api/api';
-import { styles } from './estilos/calendarStyles';
+import { addIncome, addOutcome, fetchCategories, CategoryData } from '../../api/api';
+import { styles } from '../estilos/calendarStyles';
 
 interface CobroPagoPopUpProps {
   isVisible: boolean;
@@ -17,7 +17,7 @@ interface CobroPagoPopUpProps {
   currentProfileId: string;
 }
 
-const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
+const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
   const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'income' ? 'Income' : 'Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
@@ -35,8 +35,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
 
   useEffect(() => {
     if (isVisible) {
-      fetchCategories(currentProfileId)
-        .then(categories => setCategories(categories || []));
+      fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
     }
   }, [isVisible]);
 
@@ -95,7 +94,6 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
       );
       return;
     }
-
     if (type === 'Income') {
       await addIncome(currentProfileId, amountNumber, description);
       refreshIncomeData();
@@ -281,4 +279,5 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
     </Modal>
   );
 };
-export default CobroPagoPopUp;
+
+export default CalendarAddModal;
