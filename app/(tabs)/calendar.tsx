@@ -6,7 +6,7 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
-import { fetchIncomes, getOutcomesFromDateRange } from '../../api/api';
+import { getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
@@ -120,7 +120,8 @@ export default function CalendarScreen() {
   }, [processTransactions]);
 
   useFocusEffect(
-    useCallback(() => { processTransactions(); 
+    useCallback(() => { 
+      processTransactions(); 
   }, [processTransactions]));
 
   return (
