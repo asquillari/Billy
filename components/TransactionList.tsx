@@ -4,6 +4,7 @@ import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-nativ
 import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData, removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
+import moment from 'moment';
 
 interface TransactionListProps {
   incomeData: IncomeData[] | null;
@@ -62,7 +63,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>
-          <ThemedText style={styles.date}>{new Date(item.created_at??"").toLocaleDateString()}</ThemedText>
+          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
         </View>
         <ThemedText style={[styles.amount, (item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
           {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
