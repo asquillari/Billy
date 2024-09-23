@@ -25,7 +25,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => 
   );
 };
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : (StatusBar.currentHeight ?? 0) + 10;
 
 const styles = StyleSheet.create({
   barraSuperior: {

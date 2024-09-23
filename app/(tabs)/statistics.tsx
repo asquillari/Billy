@@ -58,15 +58,15 @@ const App = () => {
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual."/>
-         {/* zona selector mes año */}
-         <View style={styles.selectorContainer}>
+        {/* zona selector mes año */}
+        <View style={styles.selectorContainer}>
           <TouchableOpacity
             onPress={toggleMonthSelector}
             style={[
               styles.selectorButton,
               { backgroundColor: selectedButton === 'month' ? '#4B00B8' : '#fff' }
             ]}
-          >
+            >
             <Text style={[
               styles.selectorText,
               { color: selectedButton === 'month' ? '#fff' : '#4A00E0' }
@@ -78,7 +78,7 @@ const App = () => {
               styles.selectorButton,
               { backgroundColor: selectedButton === 'year' ? '#4B00B8' : '#fff' }
             ]}
-          >
+            >
             <Text style={[
               styles.selectorText,
               { color: selectedButton === 'year' ? '#fff' : '#4A00E0' }
@@ -120,9 +120,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
   },
   card: {
     width: 393,
@@ -226,13 +224,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     marginHorizontal: 10,
     marginBottom: 10,
-  },
-  logoBilly: {
-    width: 80,
-    height: 40,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 10,
   },
   usuario: {
     width: 40,
