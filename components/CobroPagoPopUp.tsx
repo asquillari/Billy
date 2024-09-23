@@ -9,20 +9,21 @@ import { styles } from './estilos/calendarStyles';
 interface CobroPagoPopUpProps {
   isVisible: boolean;
   onClose: () => void;
-  initialType: 'cobro' | 'pago';
+  initialType: 'income' | 'outcome';
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
+  refreshTransactions: () => void;
   currentProfileId: string;
 }
 
-const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }: CobroPagoPopUpProps) => {
-  const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'cobro' ? 'Income' : 'Outcome');
+const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
+  const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'income' ? 'Income' : 'Outcome');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
-  const [bubbleAnimation] = useState(new Animated.Value(initialType === 'cobro' ? 0 : 1));
+  const [bubbleAnimation] = useState(new Animated.Value(initialType === 'outcome' ? 0 : 1));
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [dateType, setDateType] = useState('Fecha Exacta');
@@ -42,11 +43,11 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
   useEffect(() => {
     // Actualizar la posición del bubble cuando cambia initialType
     Animated.timing(bubbleAnimation, {
-      toValue: initialType === 'cobro' ? 0 : 1,
+      toValue: initialType === 'income' ? 0 : 1,
       duration: 0, // Sin animación para el cambio inicial
       useNativeDriver: false,
     }).start();
-    setType(initialType === 'cobro' ? 'Income' : 'Outcome');
+    setType(initialType === 'income' ? 'Income' : 'Outcome');
   }, [initialType]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -103,7 +104,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
       refreshOutcomeData();
     }
     refreshCategoryData();
-
+    refreshTransactions();
     setAmount('');
     setDescription('');
     setDate(new Date());
@@ -147,11 +148,11 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
               </View>
               
               <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Cobro</Text>
+                <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Pago</Text>
+                <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
               </TouchableOpacity>
             </View>
 
@@ -172,7 +173,8 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
               placeholderTextColor="#AAAAAA"
             />
 
-            <View style={styles.pickerContainer}>
+            {type === 'Outcome' && (
+              <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={selectedCategory}
                 onValueChange={(itemValue) => setSelectedCategory(itemValue)}
@@ -185,6 +187,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
                 ))}
               </Picker>
             </View>
+            )}
 
             <View style={styles.pickerContainer}>
               <Picker

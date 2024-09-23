@@ -5,6 +5,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
 import { UserProvider } from './UserContext';
 import { ProfileProvider } from './ProfileContext';
+import { TransactionProvider } from './TransactionContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -12,12 +13,14 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <ProfileProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          </Stack>
-        </ThemeProvider>
+        <TransactionProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            </Stack>
+          </ThemeProvider>
+        </TransactionProvider>
       </ProfileProvider>
     </UserProvider>
   );

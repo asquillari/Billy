@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, StyleSheet, View, SafeAreaView } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -29,6 +29,8 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      getIncomeData();
+      getOutcomeData();
     }, [fetchProfile])
   );
 

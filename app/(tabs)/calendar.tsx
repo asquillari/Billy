@@ -220,6 +220,7 @@ const App = () => {
           refreshIncomeData={getIncomeData}
           refreshOutcomeData={getOutcomeData}
           refreshCategoryData={getCategoryData}
+          refreshTransactions={processTransactions}
           currentProfileId={currentProfileId || ""}
         />
 
