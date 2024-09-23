@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet,Dimensions  } from "react-native";
+import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
 import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
 import { useUser } from '@/app/UserContext';
 import { useProfile } from '@/app/ProfileContext';
-import { PieChart } from 'react-native-chart-kit';
     
 interface Expense {
   label: string;
@@ -23,10 +22,8 @@ function generateRandomColor(): string {
   return `#${randomColor.padStart(6, '0')}`; // Ensure the color is always 6 digits
 }
 
-
-// Box component
 //month starts in 0 to 11.
-export const Box = ({ month, year }: { month: number; year: number }) => {
+export const StatsComponent = ({ month, year }: { month: number; year: number }) => {
 
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
@@ -174,7 +171,6 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
           }
 
           const percentage = item.amount !== null ? item.amount / total : 0;
-          const strokeDashoffset = circumference * (1 - percentage);;
           const segment = (
             <Circle
               key={index}
@@ -291,4 +287,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Box;
+export default StatsComponent;

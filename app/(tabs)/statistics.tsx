@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-import Box from '@/components/boxBorrador';
+import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
 import { Dimensions } from "react-native";
 
@@ -14,7 +14,7 @@ const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, se
     <View>
       <View style={styles.card}>
         <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-        <Box month={selectedMonth} year={selectedYear}/>
+        <StatsComponent month={selectedMonth} year={selectedYear}/>
       </View>
     </View>
   );
