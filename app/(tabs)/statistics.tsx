@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/boxBorrador';
-
+import { BillyHeader } from "@/components/BillyHeader";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 const years = [2022, 2023, 2024, 2025];
@@ -11,14 +11,11 @@ const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, se
 
   return (
     <View>
-    <View style={styles.card}>
-      <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-      <Text> </Text>
-
-       <Box month={selectedMonth} year={selectedYear}/>
-
+      <View style={styles.card}>
+        <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
+        <Box month={selectedMonth} year={selectedYear}/>
+      </View>
     </View>
-  </View>
   );
 };
 
@@ -59,29 +56,9 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#4B00B8', '#20014E']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.gradientContainer}
-      >
-        <View style={styles.barraSuperior}>
-          <Image
-            source={require('@/assets/images/Billy/logo2.png')}
-            style={styles.logoBilly}
-          />
-          <Image
-            source={require('@/assets/images/icons/UserIcon.png')}
-            style={styles.usuario}
-          />
-        </View>
-
-        <View style={styles.tituloContainer}>
-          <Text style={styles.tituloTexto}>Estadísticas</Text>
-          <Text style={styles.subtituloTexto}>Mirá tu actividad mensual o anual.</Text>
-        </View>
-
-         {/* zona selector mes anio */}
+      <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
+        <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual."/>
+         {/* zona selector mes año */}
          <View style={styles.selectorContainer}>
           <TouchableOpacity
             onPress={toggleMonthSelector}
@@ -157,7 +134,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     marginBottom: 20,
-    flex:1
+    flex: 1
   },
   monthText: {
     fontSize: 28,
@@ -233,7 +210,6 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-    paddingTop: 10,
   },
   barraSuperior: {
     height: 61,
