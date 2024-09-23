@@ -9,6 +9,7 @@ import { CategoryList } from '../../components/CategoryList';
 import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../ProfileContext';
+import useProfileData from '@/hooks/useProfileData';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -35,10 +36,8 @@ const App = () => {
   const [viewMode, setViewMode] = useState('month');
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
-  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
-  const [incomes, setIncomes] = useState<any[]>([]);
-  const [outcomes, setOutcomes] = useState<any[]>([]);
   const { currentProfileId } = useProfile();
+  const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -90,31 +89,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    refreshAllData();
   }, []);
-
-  const fetchData = async () => {
-    await Promise.all([
-      fetchCategoryData(),
-      fetchIncomeData(),
-      fetchOutcomeData()
-    ]);
-  };
-
-  const fetchCategoryData = async () => {
-    const data = await fetchCategories(currentProfileId || "");
-    setCategoryData(data);
-  };
-
-  const fetchIncomeData = async () => {
-    const data = await fetchIncomes(currentProfileId || "");
-    setIncomes(data || []);
-  };
-
-  const fetchOutcomeData = async () => {
-    const data = await fetchOutcomes(currentProfileId || "");
-    setOutcomes(data || []);
-  };
 
   const processTransactions = useCallback(async () => {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
@@ -125,7 +101,7 @@ const App = () => {
     
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
-    incomes.forEach(income => {
+    incomes?.forEach(income => {
       const date = moment(income.created_at).format('YYYY-MM-DD');
       if (marked[date]) {
         marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
@@ -134,7 +110,7 @@ const App = () => {
       }
     });
 
-    outcomes.forEach(outcome => {
+    outcomes?.forEach(outcome => {
       const date = moment(outcome.created_at).format('YYYY-MM-DD');
       if (marked[date]) {
         marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
@@ -227,8 +203,8 @@ const App = () => {
             <View style={styles.categoryListContainer}>
               <CategoryList 
                 categoryData={categoryData} 
-                refreshCategoryData={fetchCategoryData}
-                refreshAllData={fetchData}
+                refreshCategoryData={getCategoryData}
+                refreshAllData={refreshAllData}
                 currentProfileId={currentProfileId || ""}
                 showAddButton={false}
               />
@@ -241,9 +217,9 @@ const App = () => {
           isVisible={popupVisible}
           onClose={() => setPopupVisible(false)}
           initialType={popupType}
-          refreshIncomeData={fetchIncomeData}
-          refreshOutcomeData={fetchOutcomeData}
-          refreshCategoryData={fetchCategoryData}
+          refreshIncomeData={getIncomeData}
+          refreshOutcomeData={getOutcomeData}
+          refreshCategoryData={getCategoryData}
           currentProfileId={currentProfileId || ""}
         />
 

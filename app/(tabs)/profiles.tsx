@@ -7,7 +7,6 @@ import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StatusBar } from 'react-native';
 import { useUser } from '../UserContext';
-import { useProfile } from '../ProfileContext';
 
 export default function Profiles() {
     const { userEmail } = useUser();
