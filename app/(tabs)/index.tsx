@@ -10,7 +10,6 @@ import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, StatusBar } from 'react-native';
 import { useUser } from '../UserContext';
 import { useProfile } from '../ProfileContext';
 
@@ -41,9 +40,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <View style={styles.headerContainer}>
-          <BillyHeader/>
-        </View>
+        <BillyHeader/>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
@@ -68,7 +65,6 @@ export default function HomeScreen() {
   );
 }
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
 const styles = StyleSheet.create({
   container: {
@@ -76,9 +72,6 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-  },
-  headerContainer: {
-    paddingTop: STATUSBAR_HEIGHT,
   },
   contentContainer: {
     flex: 1,

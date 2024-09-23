@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { View, StyleSheet, TouchableOpacity, Text, FlatList, Image, SafeAreaView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
@@ -10,6 +10,7 @@ import { fetchIncomes, getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
+import BillyHeader from "@/components/BillyHeader";
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -28,7 +29,7 @@ const customArrowRight = () => {
   );
 };
 
-const App = () => {
+export default function CalendarScreen() {
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -40,7 +41,7 @@ const App = () => {
   const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
-  const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
+  const years = useMemo(() => Array.from({ length: 24 }, (_, i) => currentYear - 20 + i), [currentYear]);
 
   const onMonthChange = (month: { dateString: string }) => {
     setCurrentDate(month.dateString);
@@ -88,10 +89,6 @@ const App = () => {
     setPopupVisible(true);
   };
 
-  useEffect(() => {
-    refreshAllData();
-  }, []);
-
   const processTransactions = useCallback(async () => {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
@@ -127,36 +124,16 @@ const App = () => {
   }, [processTransactions]);
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       processTransactions();
     }, [processTransactions])
   );
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#4B00B8', '#20014E']}
-        start={{x: 1, y: 0}}
-        end={{x: 0, y: 1}}
-        style={styles.gradientContainer}
-      >
+      <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.barraSuperior}>
-            <Image
-              source={require('../../assets/images/Billy/logo2.png')}
-              style={styles.logoBilly}
-            />
-            <Image
-              source={require('../../assets/images/icons/UserIcon.png')}
-              style={styles.usuario}
-            />
-          </View>
-          
-          <View style={styles.tituloContainer}>
-            <Text style={styles.tituloTexto}>Calendario</Text>
-            <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
-          </View>
-
+        <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
           <View style={styles.contentContainer}>
             <View style={styles.calendarContainer}>
               {viewMode === 'month' ? (
@@ -191,12 +168,12 @@ const App = () => {
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('income')}>
-                <Ionicons name="add-circle" size={24} color="white" />
-                <Text style={styles.buttonTextCobro}>Fecha de ingreso</Text>
+                <Ionicons name="add-circle" size={24} color="white"/>
+                <Text style={styles.buttonTextCobro}>Ingreso</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('outcome')}>
-                <Ionicons name="add-circle" size={24} color="#370185" />
-                <Text style={styles.buttonTextPago}>Fecha de gasto</Text>
+                <Ionicons name="add-circle" size={24} color="#370185"/>
+                <Text style={styles.buttonTextPago}>Gasto</Text>
               </TouchableOpacity>
             </View>
 
@@ -235,19 +212,17 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-    width: '100%',
-    height: '100%',
   },
   safeArea: {
     flex: 1,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 20,
-    paddingHorizontal: 10,
+    marginTop: 10,
+    marginHorizontal: '2.5%',
   },
   barraSuperior: {
     height: 61,
@@ -264,13 +239,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     marginHorizontal: 10,
     marginBottom: 10,
-  },
-  logoBilly: {
-    width: 80,
-    height: 40,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 10,
   },
   usuario: {
     width: 40,
@@ -513,5 +481,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 });
-
-export default App;

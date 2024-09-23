@@ -5,7 +5,6 @@ import { fetchProfiles, ProfileData } from '@/api/api';
 import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, StatusBar } from 'react-native';
 import { useUser } from '../UserContext';
 
 export default function Profiles() {
@@ -47,21 +46,15 @@ export default function Profiles() {
     return(
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
-                <View style={styles.headerContainer}>
-                    <BillyHeader title="Perfiles" subtitle="Gestioná tus perfiles individuales y grupales."/>
-                </View>
+                <BillyHeader title="Perfiles" subtitle="Gestioná tus perfiles individuales y grupales."/>
                 <View style={styles.contentContainer}>
-                    <View style={styles.rectangle}>
-                        {memoizedProfileList}
-                    </View>
+                    {memoizedProfileList}
                 </View>
             </LinearGradient>
             <AddProfileModal isVisible={isModalVisible} onClose={handleCloseModal} onProfileAdded={handleProfileAdded} email={userEmail}/>
         </View>
     );
 }
-
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
 const styles = StyleSheet.create ({
     displayText : {
@@ -72,9 +65,6 @@ const styles = StyleSheet.create ({
         marginBottom: 20,
         marginTop: 20,
     },
-    headerContainer: {
-        paddingTop: STATUSBAR_HEIGHT,
-    },
     container: {
         flex: 1,
     },
@@ -83,19 +73,10 @@ const styles = StyleSheet.create ({
     },
     contentContainer: {
         flex: 1,
-        justifyContent: 'flex-end',
-    },
-    rectangle: {
         backgroundColor: '#ffffff',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 5,
-        height: '97%',
-        width: '95%',
-        alignSelf: 'center',
+        marginTop: 10,
+        marginHorizontal: '2.5%',
     },
 });

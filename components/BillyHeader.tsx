@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 
 interface BillyHeaderProps {
   title?: string;
@@ -8,7 +9,7 @@ interface BillyHeaderProps {
 
 export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => {
   return (
-    <View>
+    <View style={styles.headerContainer}>
       <View style={styles.barraSuperior}>
         <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
         <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario}/>
@@ -24,8 +25,9 @@ export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => 
   );
 };
 
-const styles = StyleSheet.create({
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
+const styles = StyleSheet.create({
   barraSuperior: {
     height: 60,
     backgroundColor: '#ffffff',
@@ -74,6 +76,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.12,
     marginTop: 5,
+  },
+  headerContainer: {
+    paddingTop: STATUSBAR_HEIGHT,
   },
 });
 
