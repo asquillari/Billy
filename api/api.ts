@@ -1,6 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { Timestamp } from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
-import bcrypt from 'react-native-bcrypt';
 
 export interface UserData {
   email: string;
@@ -15,7 +13,7 @@ export interface IncomeData {
   profile: string;
   amount: number;
   description: string;
-  created_at?: Timestamp;
+  created_at?: Date;
 }
 
 export interface OutcomeData {
@@ -24,7 +22,7 @@ export interface OutcomeData {
   category: string; 
   amount: number;
   description: string;
-  created_at?: Timestamp;
+  created_at?: Date;
 }
 
 export interface CategoryData {
@@ -34,14 +32,14 @@ export interface CategoryData {
   spent? : number;
   limit?: number;
   color: string;
-  created_at?: Timestamp;
+  created_at?: Date;
 }
 
 export interface ProfileData {
   id?: string;
   name: string;
   balance?: number;
-  created_at?: Timestamp;
+  created_at?: Date;
   user: string;
 }
 
@@ -67,11 +65,12 @@ export async function getIncome(profile: string, id: number | undefined) {
   return data;
 };
 
-export async function addIncome(profile: string, amount: number, description: string) : Promise<IncomeData[] | null> {
+export async function addIncome(profile: string, amount: number, description: string, created_at?: Date) : Promise<IncomeData[] | null> {
   const newIncome: IncomeData = {
     profile: profile,
     amount: amount,
-    description: description
+    description: description,
+    created_at: created_at
   };
   const [insertResult] = await Promise.all([
     supabase.from('Incomes').insert(newIncome).select(),
@@ -120,7 +119,7 @@ export async function getOutcome(profile: string, id: number | undefined) {
   return data;
 };
 
-export async function addOutcome(profile: string, category: string, amount: number, description: string) {
+export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date) {
   if (category === "" || !(await checkCategoryLimit(category, amount))) {
     console.log("Couldn't add due to category limit or missing category");
     return;
@@ -129,7 +128,8 @@ export async function addOutcome(profile: string, category: string, amount: numb
     profile: profile,
     amount: amount,
     category: category,
-    description: description
+    description: description,
+    created_at: created_at
   };
   const [insertResult] = await Promise.all([
     checkCategoryLimit(category, amount),

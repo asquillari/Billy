@@ -4,6 +4,7 @@ import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-nativ
 import { ThemedText } from '@/components/ThemedText';
 import { removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
+import moment from 'moment';
 
 interface OutcomeListProps {
   outcomeData: OutcomeData[] | null;
@@ -40,13 +41,12 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
   const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
         <View style={styles.card}>
-
             <View style={styles.iconContainer}>
                 <FontAwesome name="dollar" size={24} color="red"/>
             </View>
             <View style={styles.textContainer}>
                 <ThemedText style={styles.description}>{item.description}</ThemedText>
-                <ThemedText style={styles.date}>{new Date(item.created_at??"null").toLocaleDateString()}</ThemedText>
+                <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
             </View>
             <ThemedText style={styles.amount}>- ${item.amount.toFixed(2)}</ThemedText>
         </View>

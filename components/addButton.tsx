@@ -10,12 +10,7 @@ interface AddButtonProps {
   currentProfileId: string;
 }
 
-const AddButton: React.FC<AddButtonProps> = ({
-  refreshIncomeData,
-  refreshOutcomeData,
-  refreshCategoryData,
-  currentProfileId
-}) => {
+const AddButton: React.FC<AddButtonProps> = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -23,15 +18,7 @@ const AddButton: React.FC<AddButtonProps> = ({
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
         <Icon name="add" size={24} color="#B29CCA"/>
       </TouchableOpacity>
-
-      <AddTransactionModal
-        isVisible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        refreshIncomeData={refreshIncomeData}
-        refreshOutcomeData={refreshOutcomeData}
-        refreshCategoryData={refreshCategoryData}
-        currentProfileId={currentProfileId}
-      />
+      <AddTransactionModal isVisible={modalVisible} onClose={() => setModalVisible(false)} refreshIncomeData={refreshIncomeData} refreshOutcomeData={refreshOutcomeData} refreshCategoryData={refreshCategoryData} currentProfileId={currentProfileId}/>
     </View>
   );
 };
@@ -46,7 +33,7 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     top: -70,
-    right: 30,
+    right: 40,
     backgroundColor: '#FFFFFF',
     width: 75,
     height: 75,
@@ -54,9 +41,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     elevation: 4,
   },
 });

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, StyleSheet, View, SafeAreaView } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -10,12 +10,12 @@ import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, StatusBar } from 'react-native';
 import { useUser } from '../UserContext';
+import { useProfile } from '../ProfileContext';
 
 export default function HomeScreen() {
   const { userEmail } = useUser();
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const { currentProfileId, setCurrentProfileId } = useProfile();
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
   
   const fetchProfile = useCallback(async () => {
@@ -23,11 +23,14 @@ export default function HomeScreen() {
       const profileData = await fetchCurrentProfile(userEmail);
       setCurrentProfileId(profileData?.current_profile || null);
     }
-  }, [userEmail]);
+  }, [userEmail, setCurrentProfileId]);
 
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      getCategoryData();
+      getIncomeData();
+      getOutcomeData();
     }, [fetchProfile])
   );
 
@@ -38,11 +41,10 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <View style={styles.headerContainer}>
-          <BillyHeader/>
-        </View>
+        <BillyHeader/>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
+            
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
             
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
@@ -54,16 +56,9 @@ export default function HomeScreen() {
 
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList 
-                incomeData={incomeData} 
-                outcomeData={outcomeData} 
-                refreshIncomeData={getIncomeData} 
-                refreshOutcomeData={getOutcomeData} 
-                refreshCategoryData={getCategoryData} 
-                currentProfileId={currentProfileId??""} 
-                scrollEnabled={false}
-              />
+              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
             </View>
+
           </ScrollView>
         </View>
       </LinearGradient>
@@ -71,7 +66,6 @@ export default function HomeScreen() {
   );
 }
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
 const styles = StyleSheet.create({
   container: {
@@ -79,9 +73,6 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-  },
-  headerContainer: {
-    paddingTop: STATUSBAR_HEIGHT,
   },
   contentContainer: {
     flex: 1,

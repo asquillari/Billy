@@ -4,6 +4,7 @@ import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-nativ
 import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData, removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
+import moment from 'moment';
 
 interface TransactionListProps {
   incomeData: IncomeData[] | null;
@@ -51,8 +52,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const handleRemoveOutcome = async (profile: string, id: number) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();   // Actualiza los datos después de eliminar
-    refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas
-
+    refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
   };
 
   const renderTransactionItem = useCallback(({ item }: { item: (IncomeData | OutcomeData) }) => (
@@ -63,7 +63,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>
-          <ThemedText style={styles.date}>{new Date(item.created_at??"").toLocaleDateString()}</ThemedText>
+          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
         </View>
         <ThemedText style={[styles.amount, (item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
           {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
@@ -75,13 +75,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const keyExtractor = useCallback((item: IncomeData | OutcomeData) => `${(item as any).type}-${item.id}`, []);
 
   return (
-    <FlatList
-      data={combinedTransactions}
-      renderItem={renderTransactionItem}
-      keyExtractor={keyExtractor}
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={scrollEnabled}
-    />
+    <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
   );
 };
 

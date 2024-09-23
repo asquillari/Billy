@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated } from "react-native";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
+import CalendarAddModal from '../../components/modals/CalendarAddModal';
+import { CategoryList } from '../../components/CategoryList';
+import { getOutcomesFromDateRange } from '../../api/api';
+import { useFocusEffect } from '@react-navigation/native';
+import { useProfile } from '../ProfileContext';
+import useProfileData from '@/hooks/useProfileData';
+import BillyHeader from "@/components/BillyHeader";
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -22,120 +29,22 @@ const customArrowRight = () => {
   );
 };
 
-interface CobroPagoPopUpProps {
-  isVisible: boolean;
-  onClose: () => void;
-  initialType: 'cobro' | 'pago';
-}
+export default function CalendarScreen() {
+  const { currentProfileId, setCurrentProfileId } = useProfile();
 
-const CobroPagoPopUp: React.FC<CobroPagoPopUpProps> = ({ isVisible, onClose, initialType }) => {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-  const [repeat, setRepeat] = useState('Nunca');
-  const [type, setType] = useState(initialType);
-  const [bubblePosition] = useState(new Animated.Value(initialType === 'cobro' ? 0 : 1));
-
-  useEffect(() => {
-    setType(initialType);
-    Animated.spring(bubblePosition, {
-      toValue: initialType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  }, [initialType]);
-
-  const toggleType = (newType: 'cobro' | 'pago') => {
-    setType(newType);
-    Animated.spring(bubblePosition, {
-      toValue: newType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const bubbleLeft = bubblePosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['2%', '52%'],
-  });
-
-  return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="slide"
-    >
-      <View style={styles.popupContainer}>
-        <View style={styles.popup}>
-          <View style={styles.header}>
-            <View style={styles.toggleContainer}>
-              <Animated.View style={[styles.bubble, { left: bubbleLeft }]} />
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('cobro')}
-              >
-                <Text style={[styles.toggleText, type === 'cobro' ? styles.activeToggleText : null]}>Cobro</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('pago')}
-              >
-                <Text style={[styles.toggleText, type === 'pago' ? styles.activeToggleText : null]}>Pago</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.title}>Agregar fecha de {type}</Text>
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Descripción"
-            value={description}
-            onChangeText={setDescription}
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Monto"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{date || 'Seleccionar fecha'}</Text>
-            <Ionicons name="calendar" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{repeat}</Text>
-            <Ionicons name="chevron-forward" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Aceptar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
-const App = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
+  const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
-  const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
+  const years = useMemo(() => Array.from({ length: 24 }, (_, i) => currentYear - 20 + i), [currentYear]);
 
   const onMonthChange = (month: { dateString: string }) => {
-    console.log('Mes cambiado a:', month.dateString);
     setCurrentDate(month.dateString);
   };
 
@@ -150,11 +59,7 @@ const App = () => {
     setKey(prevKey => prevKey + 1);
   };
 
-  useEffect(() => {
-    console.log('Fecha actual actualizada:', currentDate);
-  }, [currentDate]);
-
-  const renderCustomHeader = (date) => {
+  const renderCustomHeader = (date: any) => {
     const month = date.toString('MMMM');
     const year = date.toString('yyyy');
     return (
@@ -180,59 +85,66 @@ const App = () => {
     );
   };
 
-  const openPopup = (type: 'cobro' | 'pago') => {
-    setPopupType(type);
-    setPopupVisible(true);
+  const openModal = (type: 'income' | 'outcome') => {
+    setModalType(type);
+    setModalVisible(true);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#4B00B8', '#20014E']}
-        start={{x: 1, y: 0}}
-        end={{x: 0, y: 1}}
-        style={styles.gradientContainer}
-      >
-        <View style={styles.barraSuperior}>
-          <Image
-            source={require('../../assets/images/Billy/logo2.png')}
-            style={styles.logoBilly}
-          />
-          <Image
-            source={require('../../assets/images/icons/UserIcon.png')}
-            style={styles.usuario}
-          />
-        </View>
-        
-        <View style={styles.tituloContainer}>
-          <Text style={styles.tituloTexto}>Calendario</Text>
-          <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
-        </View>
+  const processTransactions = useCallback(async () => {
+    const startOfMonth = moment(currentDate).startOf('month').toDate();
+    const endOfMonth = moment(currentDate).endOf('month').toDate();
 
-        <View style={styles.contentContainer}>
-          <View style={styles.rectangleFondo}>
+    const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
+    
+    const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
+
+    incomeData?.forEach(income => {
+      const date = moment(income.created_at).format('YYYY-MM-DD');
+      if (marked[date]) marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
+      else marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
+    });
+
+    outcomes?.forEach(outcome => {
+      const date = moment(outcome.created_at).format('YYYY-MM-DD');
+      if (marked[date]) marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
+      else marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
+    }, [currentProfileId]);
+
+    setMarkedDates(marked);
+  }, [currentDate]);
+
+  useEffect(() => {
+    getIncomeData();
+    getOutcomeData();
+    getCategoryData();
+    processTransactions();
+  }, [processTransactions]);
+
+  useFocusEffect(
+    useCallback(() => { 
+      getCategoryData();
+      processTransactions(); 
+  }, [processTransactions]));
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
+        <SafeAreaView style={styles.safeArea}>
+        <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
+          <View style={styles.contentContainer}>
+            
             <View style={styles.calendarContainer}>
               {viewMode === 'month' ? (
                 <Calendar
                   key={key}
                   current={currentDate}
                   markedDates={markedDates}
-                  markingType={'period'}
+                  markingType={'multi-dot'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-                  onMonthChange={(month: { dateString: string }) => {
-                    console.log('Mes cambiado a:', month.dateString);
-                    setCurrentDate(month.dateString);
-                  }}
+                  onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
                   renderHeader={renderCustomHeader}
-                  theme={{
-                    'stylesheet.calendar.header': {
-                      monthText: {
-                        ...styles.monthText,
-                        color: '#735BF2',
-                      },
-                    },
-                  }}
+                  theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
                   onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
                   onPressArrowRight={(addMonth: () => void) => addMonth()}
                 />
@@ -244,32 +156,56 @@ const App = () => {
             </View>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro} onPress={() => openPopup('cobro')}>
-                <Ionicons name="add-circle" size={24} color="white" />
-                <Text style={styles.buttonTextCobro}>Fecha de cobro</Text>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('income')}>
+                <Ionicons name="add-circle" size={24} color="white"/>
+                <Text style={styles.buttonTextCobro}>Ingreso</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago} onPress={() => openPopup('pago')}>
-                <Ionicons name="add-circle" size={24} color="#370185" />
-                <Text style={styles.buttonTextPago}>Fecha de pago</Text>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('outcome')}>
+                <Ionicons name="add-circle" size={24} color="#370185"/>
+                <Text style={styles.buttonTextPago}>Gasto</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </LinearGradient>
 
-      <CobroPagoPopUp
-        isVisible={popupVisible}
-        onClose={() => setPopupVisible(false)}
-        initialType={popupType}
-      />
-    </SafeAreaView>
+            <View style={styles.categoryListContainer}>
+              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId || ""} showAddButton={false}/>
+            </View>
+        
+          </View>
+        </SafeAreaView>
+
+        <CalendarAddModal
+          isVisible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          initialType={modalType}
+          refreshIncomeData={getIncomeData}
+          refreshOutcomeData={getOutcomeData}
+          refreshCategoryData={getCategoryData}
+          refreshTransactions={processTransactions}
+          currentProfileId={currentProfileId || ""}
+        />
+
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
+  },
+  gradientContainer: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 10,
+    marginHorizontal: '2.5%',
   },
   barraSuperior: {
     height: 61,
@@ -287,39 +223,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 10,
   },
-  logoBilly: {
-    width: 80,
-    height: 40,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 10,
-  },
   usuario: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
     borderRadius: 20,
-    alignSelf: 'center',
-  },
-  gradientContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  rectangleFondo: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-    height: '97%',
-    width: '95%',
     alignSelf: 'center',
   },
   calendarContainer: {
@@ -384,12 +292,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#735BF2',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
   yearItem: {
     flex: 1,
     aspectRatio: 1.5,
@@ -416,14 +318,12 @@ const styles = StyleSheet.create({
   },
   tituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
   },
   subtituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 12,
     fontWeight: '400',
     letterSpacing: -0.12,
@@ -472,23 +372,21 @@ const styles = StyleSheet.create({
   },
   buttonTextCobro: {
     color: '#FFFFFF',
-    fontFamily: "Amethysta",
     fontSize: 14,
     marginLeft: 10,
   },
   buttonTextPago: {
     color: '#370185',
-    fontFamily: "Amethysta",
     fontSize: 14,
     marginLeft: 10,
   },
-  popupContainer: {
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  popup: {
+  modal: {
     backgroundColor: '#ffffff',
     borderRadius: 17,
     padding: 20,
@@ -523,7 +421,6 @@ const styles = StyleSheet.create({
     top: '5%',
   },
   toggleText: {
-    fontFamily: 'Amethysta',
     fontSize: 12,
     color: '#370185',
   },
@@ -531,7 +428,6 @@ const styles = StyleSheet.create({
     color: '#370185',
   },
   title: {
-    fontFamily: 'Amethysta',
     fontSize: 20,
     textAlign: 'center',
     marginBottom: 20,
@@ -555,9 +451,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
-    fontFamily: 'Amethysta',
     fontSize: 16,
   },
+  categoryListContainer: {
+    marginTop: 20,
+    paddingHorizontal: 10,
+  },
 });
-
-export default App;

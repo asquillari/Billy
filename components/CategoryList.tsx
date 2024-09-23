@@ -4,7 +4,6 @@ import { CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import AddCategoryModal from './modals/AddCategoryModal';
 import CategoryDetailsModal from './modals/CategoryDetailsModal';
 
@@ -13,6 +12,7 @@ interface CategoryListProps {
     refreshCategoryData: () => void;
     refreshAllData: () => void;
     currentProfileId: string;
+    showAddButton?: boolean;
 }
 
 const parseGradient = (color: string): string[] => {
@@ -20,7 +20,7 @@ const parseGradient = (color: string): string[] => {
     catch { return ['#48ECE2', '#62D29C']; }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId }) => {    
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
     const getDefaultOtrosCategory = useCallback((): CategoryData => ({
         id: 'otros-default',
         profile: currentProfileId,
@@ -31,7 +31,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     }), [currentProfileId]);
 
     const [modalVisible, setModalVisible] = useState(false);
-    const colorScheme = useColorScheme();
 
     // For details
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
@@ -98,12 +97,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
             {sortedCategories.map(renderCategory)}
 
             {/* Add button */}
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.category}>
-                <Text style={[
-                    styles.addCategoryText,
-                    { color: colorScheme === 'dark' ? '#3B3B3B' : '#000000' }
-                ]}>+</Text>
-            </TouchableOpacity>
+            {showAddButton && ( // Condicional para mostrar el botón de agregar
+                <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
+                    <Text style={styles.addCategoryButtonText}>+</Text>
+                </TouchableOpacity>
+            )}
 
             <CategoryDetailsModal
                 isVisible={detailsModalVisible}
@@ -153,5 +151,16 @@ const styles = StyleSheet.create({
     },
     categoryAmount: {
         color: '#3B3B3B',
+    },
+    addCategoryButton: {
+        width: 40,
+        height: 80,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    addCategoryButtonText: {
+        fontSize: 24,
+        color: '#370185',
     },
 });
