@@ -20,26 +20,14 @@ const CategoryDetailsModal: React.FC<CategoryDetailsModalProps> = ({ isVisible, 
     if (!selectedCategory) return null;
 
     return (
-        <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isVisible}
-            onRequestClose={handleClose}
-        >
+        <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={handleClose}>
             <View style={styles.detailsModalBackground}>
                 <View style={styles.detailsModalContainer}>
                     <Text style={styles.detailsModalTitle}>
                         {selectedCategory.name} (${selectedCategory.spent?.toFixed(2) || 0})
                     </Text>
-                    <OutcomeList
-                        outcomeData={outcomeData}
-                        refreshData={refreshData}
-                        currentProfileId={currentProfileId}
-                    />
-                    <TouchableOpacity 
-                        style={styles.closeButton} 
-                        onPress={handleClose}
-                    >
+                    <OutcomeList outcomeData={outcomeData} refreshData={refreshData} currentProfileId={currentProfileId}/>
+                    <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>
                 </View>

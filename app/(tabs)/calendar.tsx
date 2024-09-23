@@ -93,12 +93,11 @@ export default function CalendarScreen() {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
 
-    const incomes = await fetchIncomes(currentProfileId || "") || [];
     const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
     
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
-    incomes?.forEach(income => {
+    incomeData?.forEach(income => {
       const date = moment(income.created_at).format('YYYY-MM-DD');
       if (marked[date]) marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
       else marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
@@ -114,6 +113,9 @@ export default function CalendarScreen() {
   }, [currentDate]);
 
   useEffect(() => {
+    getIncomeData();
+    getOutcomeData();
+    getCategoryData();
     processTransactions();
   }, [processTransactions]);
 
@@ -139,11 +141,7 @@ export default function CalendarScreen() {
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
                   onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
                   renderHeader={renderCustomHeader}
-                  theme={{
-                    'stylesheet.calendar.header': {
-                      monthText: { ...styles.monthText, color: '#735BF2' },
-                    },
-                  }}
+                  theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
                   onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
                   onPressArrowRight={(addMonth: () => void) => addMonth()}
                 />
