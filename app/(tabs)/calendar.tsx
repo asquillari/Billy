@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, StyleSheet, Dimensions, TouchableOpacity, Text, FlatList, Image, SafeAreaView, Modal, TextInput, Animated, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
+import CobroPagoPopUp from '../../components/CobroPagoPopUp';
+import { CategoryList } from '../../components/CategoryList';
+import { fetchCategories, CategoryData, fetchIncomes, fetchOutcomes, getOutcomesFromDateRange } from '../../api/api';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -22,106 +27,6 @@ const customArrowRight = () => {
   );
 };
 
-interface CobroPagoPopUpProps {
-  isVisible: boolean;
-  onClose: () => void;
-  initialType: 'cobro' | 'pago';
-}
-
-const CobroPagoPopUp: React.FC<CobroPagoPopUpProps> = ({ isVisible, onClose, initialType }) => {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-  const [repeat, setRepeat] = useState('Nunca');
-  const [type, setType] = useState(initialType);
-  const [bubblePosition] = useState(new Animated.Value(initialType === 'cobro' ? 0 : 1));
-
-  useEffect(() => {
-    setType(initialType);
-    Animated.spring(bubblePosition, {
-      toValue: initialType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  }, [initialType]);
-
-  const toggleType = (newType: 'cobro' | 'pago') => {
-    setType(newType);
-    Animated.spring(bubblePosition, {
-      toValue: newType === 'cobro' ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const bubbleLeft = bubblePosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['2%', '52%'],
-  });
-
-  return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="slide"
-    >
-      <View style={styles.popupContainer}>
-        <View style={styles.popup}>
-          <View style={styles.header}>
-            <View style={styles.toggleContainer}>
-              <Animated.View style={[styles.bubble, { left: bubbleLeft }]} />
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('cobro')}
-              >
-                <Text style={[styles.toggleText, type === 'cobro' ? styles.activeToggleText : null]}>Cobro</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => toggleType('pago')}
-              >
-                <Text style={[styles.toggleText, type === 'pago' ? styles.activeToggleText : null]}>Pago</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.title}>Agregar fecha de {type}</Text>
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Descripción"
-            value={description}
-            onChangeText={setDescription}
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Monto"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{date || 'Seleccionar fecha'}</Text>
-            <Ionicons name="calendar" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.input}>
-            <Text>{repeat}</Text>
-            <Ionicons name="chevron-forward" size={24} color="black" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Aceptar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
 const App = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -130,6 +35,9 @@ const App = () => {
   const [viewMode, setViewMode] = useState('month');
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState<'cobro' | 'pago'>('cobro');
+  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
+  const [incomes, setIncomes] = useState<any[]>([]);
+  const [outcomes, setOutcomes] = useState<any[]>([]);
 
   const currentYear = moment().year();
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
@@ -154,7 +62,7 @@ const App = () => {
     console.log('Fecha actual actualizada:', currentDate);
   }, [currentDate]);
 
-  const renderCustomHeader = (date) => {
+  const renderCustomHeader = (date: any) => {
     const month = date.toString('MMMM');
     const year = date.toString('yyyy');
     return (
@@ -185,39 +93,106 @@ const App = () => {
     setPopupVisible(true);
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    await Promise.all([
+      fetchCategoryData(),
+      fetchIncomeData(),
+      fetchOutcomeData()
+    ]);
+  };
+
+  const fetchCategoryData = async () => {
+    const data = await fetchCategories("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    setCategoryData(data);
+  };
+
+  const fetchIncomeData = async () => {
+    const data = await fetchIncomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    setIncomes(data || []);
+  };
+
+  const fetchOutcomeData = async () => {
+    const data = await fetchOutcomes("0f58d714-0ec2-40df-8dae-668caf357ac3");
+    setOutcomes(data || []);
+  };
+
+  const processTransactions = useCallback(async () => {
+    const startOfMonth = moment(currentDate).startOf('month').toDate();
+    const endOfMonth = moment(currentDate).endOf('month').toDate();
+
+    const incomes = await fetchIncomes('0f58d714-0ec2-40df-8dae-668caf357ac3') || [];
+    const outcomes = await getOutcomesFromDateRange('0f58d714-0ec2-40df-8dae-668caf357ac3', startOfMonth, endOfMonth) || [];
+    
+    const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
+
+    incomes.forEach(income => {
+      const date = moment(income.created_at).format('YYYY-MM-DD');
+      if (marked[date]) {
+        marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
+      } else {
+        marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
+      }
+    });
+
+    outcomes.forEach(outcome => {
+      const date = moment(outcome.created_at).format('YYYY-MM-DD');
+      if (marked[date]) {
+        marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
+      } else {
+        marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
+      }
+    });
+
+    setMarkedDates(marked);
+  }, [currentDate]);
+
+  useEffect(() => {
+    processTransactions();
+  }, [processTransactions]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      processTransactions();
+    }, [processTransactions])
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#4B00B8', '#20014E']}
         start={{x: 1, y: 0}}
         end={{x: 0, y: 1}}
         style={styles.gradientContainer}
       >
-        <View style={styles.barraSuperior}>
-          <Image
-            source={require('../../assets/images/Billy/logo2.png')}
-            style={styles.logoBilly}
-          />
-          <Image
-            source={require('../../assets/images/icons/UserIcon.png')}
-            style={styles.usuario}
-          />
-        </View>
-        
-        <View style={styles.tituloContainer}>
-          <Text style={styles.tituloTexto}>Calendario</Text>
-          <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.barraSuperior}>
+            <Image
+              source={require('../../assets/images/Billy/logo2.png')}
+              style={styles.logoBilly}
+            />
+            <Image
+              source={require('../../assets/images/icons/UserIcon.png')}
+              style={styles.usuario}
+            />
+          </View>
+          
+          <View style={styles.tituloContainer}>
+            <Text style={styles.tituloTexto}>Calendario</Text>
+            <Text style={styles.subtituloTexto}>Organizá tus fechas de pago y cobro.</Text>
+          </View>
 
-        <View style={styles.contentContainer}>
-          <View style={styles.rectangleFondo}>
+          <View style={styles.contentContainer}>
             <View style={styles.calendarContainer}>
               {viewMode === 'month' ? (
                 <Calendar
                   key={key}
                   current={currentDate}
                   markedDates={markedDates}
-                  markingType={'period'}
+                  markingType={'multi-dot'}
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
                   onMonthChange={(month: { dateString: string }) => {
@@ -253,23 +228,53 @@ const App = () => {
                 <Text style={styles.buttonTextPago}>Fecha de pago</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </LinearGradient>
 
-      <CobroPagoPopUp
-        isVisible={popupVisible}
-        onClose={() => setPopupVisible(false)}
-        initialType={popupType}
-      />
-    </SafeAreaView>
+            <View style={styles.categoryListContainer}>
+              <CategoryList 
+                categoryData={categoryData} 
+                refreshCategoryData={fetchCategoryData}
+                refreshAllData={fetchData}
+                showAddButton={false}
+              />
+            </View>
+        
+
+          </View>
+        </SafeAreaView>
+
+        <CobroPagoPopUp
+          isVisible={popupVisible}
+          onClose={() => setPopupVisible(false)}
+          initialType={popupType}
+          refreshIncomeData={fetchIncomeData}
+          refreshOutcomeData={fetchOutcomeData}
+          refreshCategoryData={fetchCategoryData}
+        />
+
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
+  },
+  gradientContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingHorizontal: 10,
   },
   barraSuperior: {
     height: 61,
@@ -299,27 +304,6 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
     borderRadius: 20,
-    alignSelf: 'center',
-  },
-  gradientContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  rectangleFondo: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-    height: '97%',
-    width: '95%',
     alignSelf: 'center',
   },
   calendarContainer: {
@@ -557,6 +541,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontFamily: 'Amethysta',
     fontSize: 16,
+  },
+  categoryListContainer: {
+    marginTop: 20,
+    paddingHorizontal: 10,
   },
 });
 
