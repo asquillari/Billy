@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet } from "react-native";
 import { Svg, Circle } from "react-native-svg";
-import { getOutcomesFromDateRangeAndCategory, fetchCategories,CategoryData } from '../api/api';
+import { useFocusEffect } from '@react-navigation/native';
+import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
+import { useUser } from '@/app/UserContext';
+import { useProfile } from '@/app/ProfileContext';
 
 interface Expense {
   label: string;
@@ -16,8 +19,12 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
   const center = radius + strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const total = data.reduce((sum, item) => sum + (item.amount ?? 0), 0); // Adjust total calculation
+  const total = data.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  const numericTotal = typeof total === 'number' ? total : parseFloat(total as any) || 0;
+
   let offset = 0;
+
+  console.log("Total amount for PieChart2:", numericTotal);
 
   return (
     <View style={styles.pieContainer}>
@@ -31,7 +38,7 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
           fill="transparent"
         />
         {data.map((item, index) => {
-          const percentage = item.amount !== null ? item.amount / total : 0; // Calculate the percentage for the segment
+          const percentage = item.amount !== null ? item.amount / total : 0;
           const strokeDashoffset = circumference - (percentage * circumference);
 
           const segment = (
@@ -48,12 +55,15 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
             />
           );
 
-          offset = strokeDashoffset; // Update offset for the next segment
+          offset = strokeDashoffset;
+          console.log(`Segment ${item.label}: ${item.amount} (${percentage * 100}%)`);
           return segment;
         })}
       </Svg>
       <View style={styles.valueContainer}>
-        <Text style={styles.valueText}>${total.toFixed(2)}</Text>
+        {   /* // Use toFixed only if numericTotal is valid */}
+        <Text style={styles.valueText}>${numericTotal.toFixed(2)}</Text>
+
       </View>
     </View>
   );
@@ -64,51 +74,92 @@ function parseDate(month: number, year: number, init: number): Date {
 }
 
 // Box component
-const userId = "f5267f06-d68b-4185-a911-19f44b4dc216";
+const EMAIL = "lifernando79@gmail.com";
 
-export const Box = ({ Month, Year }: { Month: number; Year: number }) => {
+export const Box = ({ month, year }: { month: number; year: number }) => {
+
+  const { userEmail } = useUser();
+  const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
+  const [categoryData2, setCategoryData2] = useState<CategoryData[] | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const fetchData = async () => {
-    try {
-      const categories = await fetchCategories(userId);
-      setCategoryData(categories);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  const fetchProfile = useCallback(async () => {
+    if (userEmail) {
+      const profileData = await fetchCurrentProfile(userEmail);
+      setCurrentProfileId(profileData?.current_profile || 'e911e9d0-8dbe-4a1c-bd05-05feb3bc4b48');
     }
-  };
+  }, [userEmail, setCurrentProfileId]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   useEffect(() => {
     const fetchExpenses = async () => {
+
+    const categories = await fetchCategories(currentProfileId||'e911e9d0-8dbe-4a1c-bd05-05feb3bc4b48');  
+    const colors = ["#48ece2", "#94a9ff", "#7d90f7"];
+    let index = 0; 
+    setCategoryData(categories);
+    console.log("Fetched categories:", categories);
+
       if (categoryData) {
         const calculatedExpenses = await Promise.all(
           categoryData.map(async (category) => {
-            const amount = await getOutcomesFromDateRangeAndCategory(
-              userId,
-              parseDate(Month, Year, 1),
-              parseDate(Month, Year, 29), // Provisional, subject to change
-              category.id || 'otros-default' // Use default id if not available
-            );
+
+            console.log('category.id');
+            console.log(category.id);
+            console.log('category.spent');
+            console.log(category.spent);
+            
+            index++;
 
             return {
               label: category.name,
-              amount,
-              color: category.color,
+              amount:category.spent,
+              color: colors[index%3],
             } as Expense;
           })
+           
+            // const amountCategory = await getOutcomesFromDateRangeAndCategory(
+            //    currentProfileId || '',
+            //   new Date('2024-09-01'),
+            //   //parseDate(month, year, 1),
+            //   new Date('2024-09-30'),
+            //   //parseDate(month, year, 30), 
+            //     category.id || '82678c1b-c0f1-4002-a1cc-a9e1f2e9909c'
+            // );
+
+           // console.log(`Category paso 1: ${amountCategory.spent || null}`);
+           // setCategoryData2(amountCategory);
+           // console.log(`Category paso 2: ${categoryData2}`);
+
+            
+             
+
+            // amountCategory?.forEach(category => {
+            //   //const date = category.id;
+            //   console.log('category.id,category.name,category.color,category.spent,category.profile');
+
+            //   console.log(category.id,category.name,category.color,category.spent, category.profile,category.limit);
+            //   console.log(category.id,category.name,category.color,category.spent);
+              
+            // }, [currentProfileId]);
+
+            
         );
 
-        setExpenses(calculatedExpenses);
+         setExpenses(calculatedExpenses);
+         console.log("Calculated expenses:", calculatedExpenses);
+
       }
     };
 
     fetchExpenses();
-  }, [categoryData, Month, Year]);
+  }, [categoryData, month, year]);
 
   const maxAmount = Math.max(
     ...expenses.map(expense => expense.amount ?? 0),
@@ -130,6 +181,8 @@ export const Box = ({ Month, Year }: { Month: number; Year: number }) => {
 // ExpenseItem component
 const ExpenseItem = ({ label, amount, color, maxAmount }: { label: string; amount: number | null; color: string; maxAmount: number }) => {
   const barWidth = maxAmount > 0 ? ((amount ?? 0) / maxAmount) * 100 : 0;
+
+  console.log(`Expense Item - Label: ${label}, Amount: ${amount}, Bar Width: ${barWidth}%`);
 
   return (
     <View style={styles.expenseItem}>
@@ -156,15 +209,15 @@ const styles = StyleSheet.create({
       flexWrap: "wrap",
       justifyContent: "space-between",
       width: "100%",
-      maxWidth: 400, // Optional: Set a max width for the expense items
-      marginTop: 20, // Space between pie chart and expense items
+      maxWidth: 400, 
+      marginTop: 20, 
     },
     expenseItem: {
-      width: "48%", // Adjust width to fit two boxes
+      width: "48%", 
       height: 80,
       backgroundColor: "#ffffff",
       borderRadius: 12,
-      elevation: 4, // Adds shadow on Android
+      elevation: 4, 
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
@@ -177,7 +230,7 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 10, // Space between text and colored bar
+      marginBottom: 10, 
     },
     textWrapper: {
       color: "#3c3c3c",
@@ -196,11 +249,10 @@ const styles = StyleSheet.create({
     pieContainer: {
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 20, // Space between pie chart and boxes
-      position: "absolute", // Position it absolutely
-      top: "0%", // Move it above the center
-      //left: "56.5%", // Center horizontally
-      marginLeft: -125, // Half of the pie chart width (125)
+      marginBottom: 20, 
+      position: "absolute", 
+      top: "0%", 
+      marginLeft: -125,
     },
     valueContainer: {
       position: "absolute",
@@ -210,11 +262,11 @@ const styles = StyleSheet.create({
       justifyContent: "center",
     },
     valueText: {
-      fontSize: 48,
+      fontSize: 36,
       color: '#3c3c3c',
       textAlign: 'center',
       marginVertical: -5,
     },
-  });
-  
-  export default Box;
+});
+
+export default Box;
