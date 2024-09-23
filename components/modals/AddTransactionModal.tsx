@@ -4,6 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addIncome, addOutcome, fetchCategories, CategoryData } from '@/api/api';
+import moment from 'moment';
 
 interface AddTransactionModalProps {
   isVisible: boolean;
@@ -130,7 +131,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
 
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
               <Text style={[styles.datePickerText, !date && styles.placeholderText]}>
-                {date ? date.toDateString() : 'Fecha'}
+                {date ? moment(date).format('DD/MM/YYYY') : 'Fecha'}
               </Text>
               <Icon name="calendar-today" size={24} color="#007BFF" style={styles.datePickerIcon}/>
             </TouchableOpacity>

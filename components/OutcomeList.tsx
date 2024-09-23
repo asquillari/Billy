@@ -41,7 +41,6 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
   const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
         <View style={styles.card}>
-
             <View style={styles.iconContainer}>
                 <FontAwesome name="dollar" size={24} color="red"/>
             </View>
