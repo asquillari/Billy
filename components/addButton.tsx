@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     top: -70,
-    right: 30,
+    right: 40,
     backgroundColor: '#FFFFFF',
     width: 75,
     height: 75,
@@ -41,9 +41,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     elevation: 4,
   },
 });
