@@ -43,6 +43,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
+            
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
             
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
@@ -54,16 +55,9 @@ export default function HomeScreen() {
 
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList 
-                incomeData={incomeData} 
-                outcomeData={outcomeData} 
-                refreshIncomeData={getIncomeData} 
-                refreshOutcomeData={getOutcomeData} 
-                refreshCategoryData={getCategoryData} 
-                currentProfileId={currentProfileId??""} 
-                scrollEnabled={false}
-              />
+              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
             </View>
+
           </ScrollView>
         </View>
       </LinearGradient>

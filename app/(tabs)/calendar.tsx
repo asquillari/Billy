@@ -43,7 +43,6 @@ const App = () => {
   const years = Array.from({length: 24}, (_, i) => currentYear - 20 + i);
 
   const onMonthChange = (month: { dateString: string }) => {
-    console.log('Mes cambiado a:', month.dateString);
     setCurrentDate(month.dateString);
   };
 
@@ -57,10 +56,6 @@ const App = () => {
     setViewMode('month');
     setKey(prevKey => prevKey + 1);
   };
-
-  useEffect(() => {
-    console.log('Fecha actual actualizada:', currentDate);
-  }, [currentDate]);
 
   const renderCustomHeader = (date: any) => {
     const month = date.toString('MMMM');
@@ -196,7 +191,6 @@ const App = () => {
                   style={styles.calendar}
                   renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
                   onMonthChange={(month: { dateString: string }) => {
-                    console.log('Mes cambiado a:', month.dateString);
                     setCurrentDate(month.dateString);
                   }}
                   renderHeader={renderCustomHeader}
@@ -400,14 +394,12 @@ const styles = StyleSheet.create({
   },
   tituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 32,
     fontWeight: '400',
     letterSpacing: -1.6,
   },
   subtituloTexto: {
     color: '#ffffff',
-    fontFamily: "Amethysta",
     fontSize: 12,
     fontWeight: '400',
     letterSpacing: -0.12,
@@ -456,13 +448,11 @@ const styles = StyleSheet.create({
   },
   buttonTextCobro: {
     color: '#FFFFFF',
-    fontFamily: "Amethysta",
     fontSize: 14,
     marginLeft: 10,
   },
   buttonTextPago: {
     color: '#370185',
-    fontFamily: "Amethysta",
     fontSize: 14,
     marginLeft: 10,
   },
@@ -507,7 +497,6 @@ const styles = StyleSheet.create({
     top: '5%',
   },
   toggleText: {
-    fontFamily: 'Amethysta',
     fontSize: 12,
     color: '#370185',
   },
@@ -515,7 +504,6 @@ const styles = StyleSheet.create({
     color: '#370185',
   },
   title: {
-    fontFamily: 'Amethysta',
     fontSize: 20,
     textAlign: 'center',
     marginBottom: 20,
@@ -539,7 +527,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
-    fontFamily: 'Amethysta',
     fontSize: 16,
   },
   categoryListContainer: {

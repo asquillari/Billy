@@ -51,8 +51,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const handleRemoveOutcome = async (profile: string, id: number) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();   // Actualiza los datos después de eliminar
-    refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas
-
+    refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
   };
 
   const renderTransactionItem = useCallback(({ item }: { item: (IncomeData | OutcomeData) }) => (
@@ -75,13 +74,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const keyExtractor = useCallback((item: IncomeData | OutcomeData) => `${(item as any).type}-${item.id}`, []);
 
   return (
-    <FlatList
-      data={combinedTransactions}
-      renderItem={renderTransactionItem}
-      keyExtractor={keyExtractor}
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={scrollEnabled}
-    />
+    <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
   );
 };
 

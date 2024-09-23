@@ -10,12 +10,7 @@ interface AddButtonProps {
   currentProfileId: string;
 }
 
-const AddButton: React.FC<AddButtonProps> = ({
-  refreshIncomeData,
-  refreshOutcomeData,
-  refreshCategoryData,
-  currentProfileId
-}) => {
+const AddButton: React.FC<AddButtonProps> = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -23,15 +18,7 @@ const AddButton: React.FC<AddButtonProps> = ({
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
         <Icon name="add" size={24} color="#B29CCA"/>
       </TouchableOpacity>
-
-      <AddTransactionModal
-        isVisible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        refreshIncomeData={refreshIncomeData}
-        refreshOutcomeData={refreshOutcomeData}
-        refreshCategoryData={refreshCategoryData}
-        currentProfileId={currentProfileId}
-      />
+      <AddTransactionModal isVisible={modalVisible} onClose={() => setModalVisible(false)} refreshIncomeData={refreshIncomeData} refreshOutcomeData={refreshOutcomeData} refreshCategoryData={refreshCategoryData} currentProfileId={currentProfileId}/>
     </View>
   );
 };
