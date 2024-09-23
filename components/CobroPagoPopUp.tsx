@@ -66,7 +66,7 @@ const CobroPagoPopUp = ({ isVisible, onClose, initialType, refreshIncomeData, re
   };
 
   async function handleSubmit(): Promise<void> {
-    if (!selectedCategory) {
+    if (!selectedCategory && type === 'Outcome') {
       Alert.alert(
         "Error de categoría",
         "Por favor, selecciona una categoría antes de continuar.",
