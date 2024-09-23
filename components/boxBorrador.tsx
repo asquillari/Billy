@@ -6,8 +6,7 @@ import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fet
 import { useUser } from '@/app/UserContext';
 import { useProfile } from '@/app/ProfileContext';
 import { PieChart } from 'react-native-chart-kit';
-
-
+    
 interface Expense {
   label: string;
   amount: number | null; 
@@ -327,7 +326,6 @@ const styles = StyleSheet.create({
     textWrapperAmount: {
       color: "#3c3c3c",
       fontSize: 12,
-      fontWeight: "400",
     },
     rectangle: {
       borderRadius: 25,
@@ -336,15 +334,13 @@ const styles = StyleSheet.create({
     pieContainer: {
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 20, 
+      marginTop: 15,
+      marginBottom: 15, 
       position: "absolute", 
-      top: "0%", 
       marginLeft: -125,
     },
     valueContainer: {
       position: "absolute",
-      top: "40%",
-      left: "20%",
       alignItems: "center",
       justifyContent: "center",
     },
