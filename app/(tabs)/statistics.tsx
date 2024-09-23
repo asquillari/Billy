@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import Box from '@/components/boxBorrador';
 import { BillyHeader } from "@/components/BillyHeader";
@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     alignItems: 'center',
+    backgroundColor:'#3e0196',
   },
   card: {
     width: SCREEN_WIDTH,
