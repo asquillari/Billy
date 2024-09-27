@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -6,13 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const Tab = createBottomTabNavigator();
+
+const TabNavigator = () => {
 
   return (
     <Tabs
       screenOptions={({ route }) => ({
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarIcon: ({ color, focused, size }) => {
           let iconName: IconName | undefined;
@@ -25,7 +26,18 @@ export default function TabLayout() {
           } else if (route.name === 'profiles') {
             iconName = focused ? 'people' : 'people-outline';
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={size} color={color}/>;
+        },
+        tabBarActiveTintColor: '#4B00B8',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: '#ffffff',
+          borderTopWidth: 0,
+          elevation: 0,
+          height: 60,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
         },
       })}
     >
@@ -36,3 +48,5 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+export default TabNavigator;
