@@ -55,12 +55,11 @@ export async function fetchIncomes(profile: string) {
   return data;
 };
 
-export async function getIncome(profile: string, id: number | undefined) {
+export async function getIncome(id: number | undefined) {
   const { data } = await supabase
     .from('Incomes')
     .select('*')
     .eq('id', id)
-    .eq('profile', profile)
     .single();
   return data;
 };
@@ -80,9 +79,9 @@ export async function addIncome(profile: string, amount: number, description: st
 };
 
 export async function removeIncome(profile: string, id: number | undefined) {
-  const income = await getIncome(profile, id);
+  const income = await getIncome(id);
   const [deleteResult] = await Promise.all([
-    supabase.from('Incomes').delete().eq('profile', profile).eq('id', id),
+    supabase.from('Incomes').delete().eq('id', id),
     updateBalance(profile, -income.amount)
   ]);
   return deleteResult;
@@ -100,21 +99,19 @@ export async function fetchOutcomes(profile: string) {
   return data;
 };
 
-export async function fetchOutcomesByCategory(profile: string, category: string) {
+export async function fetchOutcomesByCategory(category: string) {
   const { data } = await supabase
     .from('Outcomes')
     .select('*')
-    .eq('profile', profile)
     .eq('category', category);
   return data;
 };
 
-export async function getOutcome(profile: string, id: number | undefined) {
+export async function getOutcome(id: number | undefined) {
   const { data } = await supabase
     .from('Outcomes')
     .select()
     .eq('id', id)
-    .eq('profile', profile)
     .single();  
   return data;
 };
@@ -141,9 +138,9 @@ export async function addOutcome(profile: string, category: string, amount: numb
 };
 
 export async function removeOutcome(profile: string, id: number | undefined) {
-  const outcome = await getOutcome(profile, id);
+  const outcome = await getOutcome(id);
   const [deleteResult] = await Promise.all([
-    supabase.from('Outcomes').delete().eq('profile', profile).eq('id', id),
+    supabase.from('Outcomes').delete().eq('id', id),
     updateBalance(profile, outcome.amount),
     updateCategorySpent(outcome.category, -outcome.amount)
   ]);
@@ -163,13 +160,12 @@ export async function fetchCategories(profile: string) {
   return data;
 };
 
-export async function getCategory(profile: string, category: string | undefined) {
+export async function getCategory(category: string | undefined) {
   // Recupero información
   const { data } = await supabase
     .from('Categories')
     .select()
     .eq('id', category)
-    .eq('profile', profile)
     .single();
   return data;
 };
@@ -187,13 +183,12 @@ export async function addCategory(profile: string, name: string, color: string, 
     return data;
 }
 
-export async function removeCategory(profile: string, category: string | undefined) {
+export async function removeCategory(category: string | undefined) {
     // Borro información
     await supabase
       .from('Categories')
       .delete()
       .eq('id', category)
-      .eq('profile', profile)
       .single();
 }
 

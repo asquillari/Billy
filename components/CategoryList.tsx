@@ -39,7 +39,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     
     // Get categories' outcomes
     async function getOutcomeData(profile: string, category: string) {
-        const data = await fetchOutcomesByCategory(profile, category);
+        const data = await fetchOutcomesByCategory(category);
         setOutcomeData(data);
         refreshAllData();
     };
@@ -69,7 +69,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
                 if (category) {
-                    await removeCategory(currentProfileId, category.id);
+                    await removeCategory(category.id);
                     refreshCategoryData();
                 }
             }}]);
