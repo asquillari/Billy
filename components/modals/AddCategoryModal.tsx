@@ -89,7 +89,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             <TouchableOpacity style={styles.button} onPress={onClose}>
               <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={onClose}>
+            <TouchableOpacity style={styles.button} onPress={handleAddCategory}>
               <Text style={styles.buttonText}>Crear</Text>
             </TouchableOpacity>
           </View>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 20,
   },
 });
 
