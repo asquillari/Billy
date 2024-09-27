@@ -18,6 +18,9 @@ export default function HomeScreen() {
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
   
+  console.log(userEmail);
+  
+
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);

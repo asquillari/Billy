@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -507,6 +508,8 @@ export async function logIn(email: string, password: string) {
       console.error("Error fetching user profile:", profileError);
       return { error: profileError };
     }
+
+    await AsyncStorage.setItem('userSession', JSON.stringify(session));
 
     return { user, profile, session };
   } 
