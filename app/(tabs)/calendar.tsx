@@ -8,7 +8,7 @@ import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
 import { getOutcomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
-import { useProfile } from '../ProfileContext';
+import { useProfile } from '../contexts/ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
 

@@ -5,9 +5,9 @@ import { fetchProfiles, ProfileData } from '@/api/api';
 import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUser } from '../UserContext';
+import { useUser } from '../contexts/UserContext';
 import useProfileData from '@/hooks/useProfileData';
-import { useProfile } from '../ProfileContext';
+import { useProfile } from '../contexts/ProfileContext';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Profiles() {

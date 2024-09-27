@@ -10,8 +10,8 @@ import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUser } from '../UserContext';
-import { useProfile } from '../ProfileContext';
+import { useUser } from '../contexts/UserContext';
+import { useProfile } from '../contexts/ProfileContext';
 
 export default function HomeScreen() {
   const { userEmail } = useUser();

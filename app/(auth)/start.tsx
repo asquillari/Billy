@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useUser } from '../UserContext';
+import { useUser } from '../contexts/UserContext';
 
 export default function Start() {
   const navigation = useNavigation();

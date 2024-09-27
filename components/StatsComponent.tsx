@@ -3,8 +3,8 @@ import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
 import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
-import { useUser } from '@/app/UserContext';
-import { useProfile } from '@/app/ProfileContext';
+import { useUser } from '@/app/contexts/UserContext';
+import { useProfile } from '@/app/contexts/ProfileContext';
     
 interface Expense {
   label: string;

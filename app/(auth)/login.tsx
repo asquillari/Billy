@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'rea
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { logIn } from '@/api/api';
-import { useUser } from '../UserContext';
+import { useUser } from '../contexts/UserContext';
 
 export default function Login() {
   const navigation = useNavigation();
