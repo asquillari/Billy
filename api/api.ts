@@ -51,12 +51,12 @@ export interface ProfileData {
 
 /* General data */
 
-async function fetchData(table: string, profile: string): Promise<any[] | null> {
+async function fetchData(table: string, columnToCheck: string, parentID: string): Promise<any[] | null> {
   try {
     const { data, error } = await supabase
       .from(table)
       .select('*')
-      .eq('profile', profile);
+      .eq(columnToCheck, parentID);
 
     if (error) {
       console.error(`Error transactions data from ${table}:`, error);
@@ -185,7 +185,7 @@ async function getValueFromData(table: string, columnToReturn: string, columnToC
 /* Incomes */
 
 export async function fetchIncomes(profile: string): Promise<IncomeData[] | null> {
-  return await fetchData(INCOMES_TABLE, profile);
+  return await fetchData(INCOMES_TABLE, 'profile', profile);
 }
 
 export async function getIncome(id: string): Promise<IncomeData | null> {
@@ -253,7 +253,7 @@ export async function removeIncome(profile: string, id: string) {
 /* Outcomes */
 
 export async function fetchOutcomes(profile: string): Promise<OutcomeData[] | null> {
-  return await fetchData(OUTCOMES_TABLE, profile);
+  return await fetchData(OUTCOMES_TABLE, 'profile', profile);
 }
 
 export async function getOutcome(id: string): Promise<OutcomeData | null> {
@@ -350,7 +350,7 @@ export async function fetchOutcomesByCategory(category: string): Promise<IncomeD
 /* Categories */
 
 export async function fetchCategories(profile: string): Promise<CategoryData[] | null> {
-  return await fetchData(CATEGORIES_TABLE, profile);
+  return await fetchData(CATEGORIES_TABLE, 'profile', profile);
 }
 
 export async function getCategory(category: string): Promise<CategoryData | null> {
@@ -402,6 +402,10 @@ async function getCategorySpent(category: string): Promise<number | null> {
   return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
 }
 
+async function putCategorySpent(category: string, newSpent: number) {
+  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
+}
+
 async function updateCategorySpent(category: string, added: number): Promise<void> {
   try {
     const currentSpent = await getCategorySpent(category);
@@ -415,10 +419,6 @@ async function updateCategorySpent(category: string, added: number): Promise<voi
   catch (error) {
     console.error("Error updating category spent:", error);
   }
-}
-
-async function putCategorySpent(category: string, newSpent: number) {
-  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
 }
 
 async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
@@ -440,24 +440,7 @@ async function checkCategoryLimit(category: string, amount: number): Promise<boo
 /* Profiles */
 
 export async function fetchProfiles(user: string): Promise<ProfileData[] | null> {
-  try {
-    const { data, error } = await supabase
-      .from(PROFILES_TABLE)
-      .select('*')
-      .eq('user', user);
-    
-    if (error) {
-      console.error("Error fetching profiles:", error);
-      return null;
-    }
-    
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error fetching profiles:", error);
-    return null;
-  }
+  return await fetchData(PROFILES_TABLE, 'user', user);
 };
 
 export async function getProfile(user: string): Promise<ProfileData[] | null> {
