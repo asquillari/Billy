@@ -121,7 +121,6 @@ async function removeData(table: string, id: string) {
       .from(table)
       .delete()
       .eq('id', id)
-      .single();
 
     if (error) {
       console.error("Error removing item:", error);
