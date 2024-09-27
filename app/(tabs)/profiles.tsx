@@ -12,10 +12,10 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export default function Profiles() {
     const { userEmail } = useUser();
-    const { currentProfileId, setCurrentProfileId } = useProfile();
+    const { currentProfileId } = useProfile();
     const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const { balance, getBalanceData } = useProfileData(currentProfileId || "");
+    const { getBalanceData } = useProfileData(currentProfileId || "");
     
     const getProfileData = useCallback(async () => {
         const data = await fetchProfiles(userEmail);

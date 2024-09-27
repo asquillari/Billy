@@ -4,6 +4,7 @@ import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 interface ProfileListProps {
     profileData: ProfileData[] | null;
@@ -14,9 +15,11 @@ interface ProfileListProps {
 }
 
 export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email, currentProfileId }) => {
-  
+  const navigation = useNavigation();
+
   const handleProfilePress = useCallback((profile: ProfileData) => {
     changeCurrentProfile(email, profile.id ?? "null");
+    navigation.navigate('index' as never);
   }, []);
 
   const handleRemoveProfile = async (id: string) => {
