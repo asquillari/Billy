@@ -104,11 +104,13 @@ export default function CalendarScreen() {
       else marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
     });
 
-    outcomes?.forEach(outcome => {
-      const date = moment(outcome.created_at).format('YYYY-MM-DD');
-      if (marked[date]) marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
-      else marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
-    }, [currentProfileId]);
+    if (Array.isArray(outcomes)) {
+      outcomes?.forEach(outcome => {
+        const date = moment(outcome.created_at).format('YYYY-MM-DD');
+        if (marked[date]) marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
+        else marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
+      }, [currentProfileId]);
+    }
 
     setMarkedDates(marked);
   }, [currentDate]);

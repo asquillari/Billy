@@ -21,7 +21,9 @@ export default function HomeScreen() {
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      setCurrentProfileId(profileData?.current_profile || null);
+      if ('current_profile' in profileData) {
+        setCurrentProfileId(profileData.current_profile);
+      }
     }
   }, [userEmail, setCurrentProfileId]);
 
