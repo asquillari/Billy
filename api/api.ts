@@ -519,6 +519,26 @@ export async function logIn(email: string, password: string) {
   }
 }
 
+export async function logOut() {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Error during logout:", error);
+      return { error: "Failed to log out." };
+    }
+
+    await AsyncStorage.removeItem('userSession');
+
+    return { success: true };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error during logout:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
 export async function changeCurrentProfile(user: string, newProfileID: string) {
   return await updateData(USERS_TABLE, 'current_profile', newProfileID, 'email', user);
 }
