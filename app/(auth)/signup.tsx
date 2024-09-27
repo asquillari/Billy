@@ -19,10 +19,12 @@ export default function Signup() {
     }
 
     try {
-      const user = await signUp(email, password, name, lastName);
-      if (user) navigation.navigate('(tabs)' as never);
-      else Alert.alert('Error de registro', 'No se pudo crear la cuenta');
-    } catch (error) {
+      const { error } = await signUp(email, password, name, lastName);
+      if (error) Alert.alert('Error de registro', 'No se pudo crear la cuenta');
+      else navigation.navigate('(tabs)' as never);
+    } 
+    
+    catch (error) {
       Alert.alert('Error de registro', 'Ocurrió un error durante el registro');
     }
   };

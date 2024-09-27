@@ -367,23 +367,9 @@ async function getCategorySpent(category: string): Promise<number | null> {
   return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
 }
 
-async function putCategorySpent(category: string, newSpent: number) {
-  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
-}
-
-async function updateCategorySpent(category: string, added: number): Promise<void> {
-  try {
-    const currentSpent = await getCategorySpent(category);
-    
-    if (currentSpent !== null) {
-        const newSpent = currentSpent + added;
-        await putCategorySpent(category, newSpent);
-    }
-  }
-  
-  catch (error) {
-    console.error("Error updating category spent:", error);
-  }
+async function updateCategorySpent(category: string, added: number) {
+  const currentSpent = await getCategorySpent(category);
+  if (currentSpent !== null) return await updateData(CATEGORIES_TABLE, 'spent', currentSpent + added, 'id', category);
 }
 
 async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
