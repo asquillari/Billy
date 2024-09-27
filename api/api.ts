@@ -194,12 +194,7 @@ export async function getIncome(id: string): Promise<IncomeData | null> {
 
 export async function addIncome(profile: string, amount: number, description: string, created_at?: Date): Promise<IncomeData[] | null> {
   try {
-    const newIncome: IncomeData = {
-      profile: profile,
-      amount: amount,
-      description: description,
-      created_at: created_at
-    };
+    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at };
 
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(INCOMES_TABLE).insert(newIncome).select(),
@@ -267,13 +262,7 @@ export async function addOutcome(profile: string, category: string, amount: numb
       return null;
     }
 
-    const newOutcome: OutcomeData = {
-      profile: profile,
-      amount: amount,
-      category: category,
-      description: description,
-      created_at: created_at
-    };
+    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at };
 
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
@@ -358,13 +347,7 @@ export async function getCategory(category: string): Promise<CategoryData | null
 };
 
 export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
-  const newCategory: CategoryData = {
-    profile: profile,
-    name: name,
-    limit: limit,
-    color: color
-  };
-
+  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
   return await addData(CATEGORIES_TABLE, newCategory);
 }
 
@@ -372,26 +355,8 @@ export async function removeCategory(category: string) {
   return await removeData(CATEGORIES_TABLE, category);
 }
 
-export async function getCategoryFromOutcome(outcome: number): Promise<CategoryData | null> {
-  try {
-    const { data, error } = await supabase
-      .from(OUTCOMES_TABLE)
-      .select('category')
-      .eq('id', outcome)
-      .single();
-    
-    if (error) {
-      console.error("Error getting category from outcome:", error);
-      return null;
-    }
-
-    return data.category;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error getting category from outcome:", error);
-    return null;
-  }
+export async function getCategoryFromOutcome(outcome: string): Promise<CategoryData | null> {
+  return await getValueFromData(OUTCOMES_TABLE, 'category', 'id', outcome);
 }
 
 async function getCategoryLimit(category: string): Promise<number | null> {
@@ -448,11 +413,7 @@ export async function getProfile(user: string): Promise<ProfileData[] | null> {
 };
 
 export async function addProfile(name: string, user: string): Promise<ProfileData | null> {
-  const newProfile: ProfileData = {
-    name: name,
-    user: user
-  };
-
+  const newProfile: ProfileData = { name: name, user: user };
   return await addData(PROFILES_TABLE, newProfile);
 };
 
@@ -495,30 +456,8 @@ async function updateBalance(profile: string, added: number): Promise<void | nul
 /* User */
 
 export async function addUser(email: string, password: string, name: string, surname: string): Promise<UserData | null> {
-  const newUser: UserData = {
-    email: email,
-    password: password,
-    name: name,
-    surname: surname,
-  };
-
-  try {
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .insert(newUser);
-
-    if (error) {
-      console.error('Error adding user:', error);
-      return null;
-    }
-
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error adding user:", error);
-    return null;
-  }
+  const newUser: UserData = { email: email, password: password, name: name, surname: surname };
+  return await addData(USERS_TABLE, newUser);
 }
 
 export async function signUp(email: string, password: string, name: string, surname: string) {
