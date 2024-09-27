@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
-import { signUp } from '@/api/api';
+import { signUp, addProfile, changeCurrentProfile } from '@/api/api';
 
 export default function Signup() {
   const navigation = useNavigation();
@@ -19,10 +19,16 @@ export default function Signup() {
     }
 
     try {
-      const user = await signUp(email, password, name, lastName);
-      if (user) navigation.navigate('(tabs)' as never);
-      else Alert.alert('Error de registro', 'No se pudo crear la cuenta');
-    } catch (error) {
+      const { error } = await signUp(email, password, name, lastName);
+      if (error) Alert.alert('Error de registro', 'No se pudo crear la cuenta');
+      else {
+        const newProfile = await addProfile('Default', email);
+        await changeCurrentProfile(email, newProfile?.id??"");
+        navigation.navigate('(tabs)' as never);
+      }
+    } 
+    
+    catch (error) {
       Alert.alert('Error de registro', 'Ocurrió un error durante el registro');
     }
   };

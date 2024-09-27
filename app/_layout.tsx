@@ -3,9 +3,9 @@ import { Redirect, Stack } from 'expo-router';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
-import { UserProvider } from './UserContext';
-import { ProfileProvider } from './ProfileContext';
-import { TransactionProvider } from './TransactionContext';
+import { UserProvider } from './contexts/UserContext';
+import { ProfileProvider } from './contexts/ProfileContext';
+import { TransactionProvider } from './contexts/TransactionContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -120,7 +121,6 @@ async function removeData(table: string, id: string) {
       .from(table)
       .delete()
       .eq('id', id)
-      .single();
 
     if (error) {
       console.error("Error removing item:", error);
@@ -367,23 +367,9 @@ async function getCategorySpent(category: string): Promise<number | null> {
   return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
 }
 
-async function putCategorySpent(category: string, newSpent: number) {
-  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
-}
-
-async function updateCategorySpent(category: string, added: number): Promise<void> {
-  try {
-    const currentSpent = await getCategorySpent(category);
-    
-    if (currentSpent !== null) {
-        const newSpent = currentSpent + added;
-        await putCategorySpent(category, newSpent);
-    }
-  }
-  
-  catch (error) {
-    console.error("Error updating category spent:", error);
-  }
+async function updateCategorySpent(category: string, added: number) {
+  const currentSpent = await getCategorySpent(category);
+  if (currentSpent !== null) return await updateData(CATEGORIES_TABLE, 'spent', currentSpent + added, 'id', category);
 }
 
 async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
@@ -521,6 +507,8 @@ export async function logIn(email: string, password: string) {
       console.error("Error fetching user profile:", profileError);
       return { error: profileError };
     }
+
+    await AsyncStorage.setItem('userSession', JSON.stringify(session));
 
     return { user, profile, session };
   } 

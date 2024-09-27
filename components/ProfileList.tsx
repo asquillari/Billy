@@ -4,18 +4,22 @@ import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 interface ProfileListProps {
     profileData: ProfileData[] | null;
     refreshData: () => void;
     onAddProfile: () => void;
     email: string;
+    currentProfileId: string | null;
 }
 
-export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email }) => {
-  
+export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email, currentProfileId }) => {
+  const navigation = useNavigation();
+
   const handleProfilePress = useCallback((profile: ProfileData) => {
     changeCurrentProfile(email, profile.id ?? "null");
+    navigation.navigate('index' as never);
   }, []);
 
   const handleRemoveProfile = async (id: string) => {
@@ -33,6 +37,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [refreshData]);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
+    const isCurrentProfile = item !== 'add' && item.id === currentProfileId;
     if (item === 'add') {
      return (
       <TouchableOpacity style={[styles.profileItem, styles.addButton]} onPress={onAddProfile}>
@@ -43,13 +48,13 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     }
 
     return (
-      <TouchableOpacity style={styles.profileItem} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
+      <TouchableOpacity style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
         <Ionicons name="person-circle-outline" size={40} color="#4B00B8"/>
         <Text style={styles.profileName}>{item.name}</Text>
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </TouchableOpacity>
     );
-  }, [onAddProfile, handleProfilePress, handleLongPress]);
+  }, [onAddProfile, handleProfilePress, handleLongPress, currentProfileId]);
 
   const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
 
@@ -111,5 +116,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 8,
+  },
+  currentProfile: {
+    borderColor: '#4B00B8',
+    borderWidth: 2,
   },
 });
