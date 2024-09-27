@@ -26,13 +26,7 @@ const getNextGradient = () => {
   return gradient;
 };
 
-const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ 
-  isVisible, 
-  onClose, 
-  onCategoryAdded, 
-  currentProfileId,
-  sortedCategories
-}) => {
+const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, currentProfileId,sortedCategories }) => {
   const [name, setName] = useState('');
   const [limit, setLimit] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
