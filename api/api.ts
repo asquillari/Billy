@@ -136,27 +136,50 @@ async function removeData(table: string, id: string) {
   }
 }
 
-export async function getValueFromData(table: string, column: string, id: string): Promise<any | null> {
+async function updateData(table: string, columnToUpdate: string, update: any, columnToCheck: string, id: string): Promise<any | null> {
   try {
     const { data, error } = await supabase
       .from(table)
-      .select(column)
-      .eq('id', id)
+      .update({ [columnToUpdate]: update })
+      .eq(columnToCheck, id)
       .single();
     
     if (error) {
-      console.error(`Error fetching ${column} from ${table}:`, error);
+      console.error(`Error updating ${columnToUpdate} in ${table} for ${columnToCheck} = ${id}:`, error);
       return null;
     }
-    
-    return data ? (data as { [key: string]: any })[column] ?? null : null;
+      
+    return data;
   } 
-  
+
   catch (error) {
-    console.error(`Unexpected error fetching ${column} from ${table}:`, error);
+    console.error(`Unexpected error updating ${columnToUpdate} in ${table} for ${columnToCheck} = ${id}:`, error);
     return null;
   }
 }
+
+async function getValueFromData(table: string, columnToReturn: string, columnToCheck: string, id: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select(columnToReturn)
+      .eq(columnToCheck, id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching ${columnToReturn} from ${table}:`, error);
+      return null;
+    }
+    
+    return data ? (data as { [key: string]: any })[columnToReturn] ?? null : null;
+  } 
+  
+  catch (error) {
+    console.error(`Unexpected error fetching ${columnToReturn} from ${table}:`, error);
+    return null;
+  }
+}
+
 
 
 /* Incomes */
@@ -372,11 +395,11 @@ export async function getCategoryFromOutcome(outcome: number): Promise<CategoryD
 }
 
 async function getCategoryLimit(category: string): Promise<number | null> {
-  return await getValueFromData(CATEGORIES_TABLE, 'limit', category);
+  return await getValueFromData(CATEGORIES_TABLE, 'limit', 'id', category);
 }
 
 async function getCategorySpent(category: string): Promise<number | null> {
-  return await getValueFromData(CATEGORIES_TABLE, 'spent', category);
+  return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
 }
 
 async function updateCategorySpent(category: string, added: number): Promise<void> {
@@ -395,25 +418,7 @@ async function updateCategorySpent(category: string, added: number): Promise<voi
 }
 
 async function putCategorySpent(category: string, newSpent: number) {
-  try {
-    const { data, error } = await supabase
-      .from(CATEGORIES_TABLE)
-      .update({ spent: newSpent })
-      .eq('id', category)
-      .single();
-    
-    if (error) {
-      console.error("Error putting category spent:", error);
-      return null;
-    }
-    
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error putting category spent:", error);
-    return null;
-  }
+  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
 }
 
 async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
@@ -477,7 +482,7 @@ export async function removeProfile(profile: string) {
 /* Balance */
 
 export async function fetchBalance(profile: string): Promise<number | null> {
-  return await getValueFromData(PROFILES_TABLE, 'balance', profile);
+  return await getValueFromData(PROFILES_TABLE, 'balance', 'id', profile);
 }
 
 async function updateBalance(profile: string, added: number): Promise<void | null> {
@@ -605,45 +610,11 @@ export async function logIn(email: string, password: string) {
 }
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {
-  try {
-    const { error } = await supabase
-      .from(USERS_TABLE)
-      .update({ current_profile: newProfileID })
-      .eq('email', user)
-      .single();
-    
-    if (error) {
-      console.error("Error changing current profile:", error);
-      return { error: "Failed to change current profile." };
-    }
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error changing current profile:", error);
-    return { error: "An unexpected error occurred." };
-  }
+  return await updateData(USERS_TABLE, 'current_profile', newProfileID, 'email', user);
 }
 
 export async function fetchCurrentProfile(user: string) {
-  try {
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .select('current_profile')
-      .eq('email', user)
-      .single();
-    
-    if (error) {
-      console.error("Error fetching current profile:", error);
-      return { error: "Failed to fetch current profile." };
-    }
-    
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error fetching current profile:", error);
-    return { error: "An unexpected error occurred." };
-  }
+  return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
 
 
