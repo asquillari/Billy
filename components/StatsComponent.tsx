@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet,Dimensions  } from "react-native";
+import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
 import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
 import { useUser } from '@/app/UserContext';
 import { useProfile } from '@/app/ProfileContext';
-import { PieChart } from 'react-native-chart-kit';
     
 interface Expense {
   label: string;
@@ -18,21 +17,15 @@ interface ColorObject {
   id: string;
 }
 
-function generateRandomColor(): string {
-  const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-  return `#${randomColor.padStart(6, '0')}`; // Ensure the color is always 6 digits
-}
+const generateRandomColor = () => {
+  return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+};
 
-
-// Box component
 //month starts in 0 to 11.
-export const Box = ({ month, year }: { month: number; year: number }) => {
-
+export const StatsComponent = ({ month, year }: { month: number; year: number }) => {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
-
-  // const [categoryData2, setCategoryData2] = useState<CategoryData[] | null>(null);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -43,8 +36,7 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
     }
   }, [userEmail, setCurrentProfileId]);
 
-  useFocusEffect(
-    useCallback(() => {
+  useFocusEffect(useCallback(() => {
       fetchProfile();
     }, [fetchProfile])
   );
@@ -57,21 +49,17 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
     const colorsRegistered: string[] = [];
 
     setCategoryData(categories);
-    //console.log("Fetched categories:", categories);
 
     if (categoryData) {
       const calculatedExpenses = await Promise.all(
         categoryData.map(async (category) => {
           let colorRegistered: string | undefined; 
-          
-
+        
           const isRegistered = idColor.some(item => item.id === category.id);
     
           if (isRegistered) {
             colorRegistered = idColor.find(item => item.id === category.id)?.color;
-            
           } else {
-
             const colors = JSON.parse(category.color);
             const Color = colors[1]; 
     
@@ -88,9 +76,7 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
 
           const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(
               currentProfileId || '',
-              //new Date('2024-09-01'),
               parseDate(month, year, 1),
-              //new Date('2024-09-30'),
               parseDate(month, year, 30), 
                 category.id || ''
             ); 
@@ -100,31 +86,16 @@ export const Box = ({ month, year }: { month: number; year: number }) => {
             OutcomeFromCategory?.forEach(outcome => {
 
               total += outcome.amount;
-
-              // console.log('outcome.profile,outcome.category,outcome.amount, outcome.description,outcome.created_at');
-              // console.log(outcome.profile,outcome.category,outcome.amount, outcome.description,outcome.created_at);
               
             }, [currentProfileId]);
 
-
-  
-          return {
-            label: category.name,
-            amount: total,
-            color: colorRegistered,
-          } as Expense;
+          return { label: category.name, amount: total, color: colorRegistered } as Expense;
         })
       );
     
       setExpenses(calculatedExpenses);
-      //console.log("Calculated expenses:", calculatedExpenses);
     }
-    
-
-        
-
     };
-
     fetchExpenses();
   }, [categoryData, month, year]);
 
@@ -174,7 +145,6 @@ const PieChart2 = ({ data }: { data: Expense[] }) => {
           }
 
           const percentage = item.amount !== null ? item.amount / total : 0;
-          const strokeDashoffset = circumference * (1 - percentage);;
           const segment = (
             <Circle
               key={index}
@@ -291,4 +261,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Box;
+export default StatsComponent;
