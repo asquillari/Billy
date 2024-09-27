@@ -46,6 +46,7 @@ export default function Profiles() {
             refreshData={getProfileData}
             onAddProfile={handleAddProfile}
             email={userEmail}
+            currentProfileId={currentProfileId}
         />
     ), [profileData, getProfileData, handleAddProfile]);
 
