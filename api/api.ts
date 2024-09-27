@@ -1,5 +1,11 @@
 import { supabase } from '../lib/supabase';
 
+const INCOMES_TABLE = 'Incomes';
+const OUTCOMES_TABLE = 'Outcomes';
+const CATEGORIES_TABLE = 'Categories';
+const PROFILES_TABLE = 'Profiles';
+const USERS_TABLE = 'Users';
+
 export interface UserData {
   email: string;
   password: string;
@@ -9,7 +15,7 @@ export interface UserData {
 }
 
 export interface IncomeData {
-  id?: number;
+  id?: string;
   profile: string;
   amount: number;
   description: string;
@@ -17,7 +23,7 @@ export interface IncomeData {
 }
 
 export interface OutcomeData {
-  id? : number;
+  id? : string;
   profile: string;
   category: string; 
   amount: number;
@@ -43,417 +49,549 @@ export interface ProfileData {
   user: string;
 }
 
+/* General data */
+
+async function fetchData(table: string, columnToCheck: string, parentID: string): Promise<any[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .eq(columnToCheck, parentID);
+
+    if (error) {
+      console.error(`Error transactions data from ${table}:`, error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error(`Unexpected error transactions data from ${table}:`, error);
+    return null;
+  }
+}
+
+async function getData(table: string, id: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error(`Error getting ${table.slice(0, -1)}:`, error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error(`Unexpected error getting ${table.slice(0, -1)}:`, error);
+    return null;
+  }
+}
+
+async function addData(table: string, newData: any): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .insert(newData);
+    
+    if (error) {
+      console.error(`Error adding data to ${table}:`, error);
+      return null;
+    }
+  
+    return data;
+  } 
+
+  catch (error) {
+    console.error(`Unexpected error adding data to ${table}:`, error);
+    return null;
+  }
+}
+
+async function removeData(table: string, id: string) {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .delete()
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error removing item:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error removing item:", error);
+    return null;
+  }
+}
+
+async function updateData(table: string, columnToUpdate: string, update: any, columnToCheck: string, id: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .update({ [columnToUpdate]: update })
+      .eq(columnToCheck, id)
+      .single();
+    
+    if (error) {
+      console.error(`Error updating ${columnToUpdate} in ${table} for ${columnToCheck} = ${id}:`, error);
+      return null;
+    }
+      
+    return data;
+  } 
+
+  catch (error) {
+    console.error(`Unexpected error updating ${columnToUpdate} in ${table} for ${columnToCheck} = ${id}:`, error);
+    return null;
+  }
+}
+
+async function getValueFromData(table: string, columnToReturn: string, columnToCheck: string, id: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select(columnToReturn)
+      .eq(columnToCheck, id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching ${columnToReturn} from ${table}:`, error);
+      return null;
+    }
+    
+    return data ? (data as { [key: string]: any })[columnToReturn] ?? null : null;
+  } 
+  
+  catch (error) {
+    console.error(`Unexpected error fetching ${columnToReturn} from ${table}:`, error);
+    return null;
+  }
+}
+
 
 
 /* Incomes */
 
-export async function fetchIncomes(profile: string) {
-  const { data } = await supabase
-    .from('Incomes')
-    .select()
-    .eq('profile', profile)
-  return data;
+export async function fetchIncomes(profile: string): Promise<IncomeData[] | null> {
+  return await fetchData(INCOMES_TABLE, 'profile', profile);
+}
+
+export async function getIncome(id: string): Promise<IncomeData | null> {
+  return await getData(INCOMES_TABLE, id);
+}
+
+export async function addIncome(profile: string, amount: number, description: string, created_at?: Date): Promise<IncomeData[] | null> {
+  try {
+    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at };
+
+    const [{ data: insertData, error: insertError }] = await Promise.all([
+      supabase.from(INCOMES_TABLE).insert(newIncome).select(),
+      updateBalance(profile, amount)
+    ]);
+
+    if (insertError) {
+      console.error("Error adding income:", insertError);
+      return null;
+    }
+
+    return insertData;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error adding income:", error);
+    return null;
+  }
 };
 
-export async function getIncome(profile: string, id: number | undefined) {
-  const { data } = await supabase
-    .from('Incomes')
-    .select('*')
-    .eq('id', id)
-    .eq('profile', profile)
-    .single();
-  return data;
-};
+export async function removeIncome(profile: string, id: string) {
+  try {
+    const income = await getIncome(id);
+    
+    if (!income) {
+      console.error("Income not found:", id);
+      return { error: "Income not found." };
+    }
 
-export async function addIncome(profile: string, amount: number, description: string, created_at?: Date) : Promise<IncomeData[] | null> {
-  const newIncome: IncomeData = {
-    profile: profile,
-    amount: amount,
-    description: description,
-    created_at: created_at
-  };
-  const [insertResult] = await Promise.all([
-    supabase.from('Incomes').insert(newIncome).select(),
-    updateBalance(profile, amount)
-  ]);
-  return insertResult.data;
-};
+    const [deleteResult] = await Promise.all([
+      supabase.from(INCOMES_TABLE).delete().eq('id', id),
+      updateBalance(profile, -income.amount)
+    ]);
 
-export async function removeIncome(profile: string, id: number | undefined) {
-  const income = await getIncome(profile, id);
-  const [deleteResult] = await Promise.all([
-    supabase.from('Incomes').delete().eq('profile', profile).eq('id', id),
-    updateBalance(profile, -income.amount)
-  ]);
-  return deleteResult;
+    if (deleteResult.error) {
+      console.error("Error removing income:", deleteResult.error);
+      return null
+    }
+
+    return deleteResult;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error removing income:", error);
+    return null;
+  }
 }
 
 
 
 /* Outcomes */
 
-export async function fetchOutcomes(profile: string) {
-  const { data } = await supabase
-    .from('Outcomes')
-    .select('*')
-    .eq('profile', profile)
-  return data;
-};
-
-export async function fetchOutcomesByCategory(profile: string, category: string) {
-  const { data } = await supabase
-    .from('Outcomes')
-    .select('*')
-    .eq('profile', profile)
-    .eq('category', category);
-  return data;
-};
-
-export async function getOutcome(profile: string, id: number | undefined) {
-  const { data } = await supabase
-    .from('Outcomes')
-    .select()
-    .eq('id', id)
-    .eq('profile', profile)
-    .single();  
-  return data;
-};
-
-export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date) {
-  if (category === "" || !(await checkCategoryLimit(category, amount))) {
-    console.log("Couldn't add due to category limit or missing category");
-    return;
-  }
-  const newOutcome: OutcomeData = {
-    profile: profile,
-    amount: amount,
-    category: category,
-    description: description,
-    created_at: created_at
-  };
-  const [insertResult] = await Promise.all([
-    checkCategoryLimit(category, amount),
-    supabase.from('Outcomes').insert(newOutcome).select(),
-    updateBalance(profile, -amount),
-    updateCategorySpent(category, amount)
-  ]);
-  return insertResult;
-};
-
-export async function removeOutcome(profile: string, id: number | undefined) {
-  const outcome = await getOutcome(profile, id);
-  const [deleteResult] = await Promise.all([
-    supabase.from('Outcomes').delete().eq('profile', profile).eq('id', id),
-    updateBalance(profile, outcome.amount),
-    updateCategorySpent(outcome.category, -outcome.amount)
-  ]);
-  return deleteResult;
+export async function fetchOutcomes(profile: string): Promise<OutcomeData[] | null> {
+  return await fetchData(OUTCOMES_TABLE, 'profile', profile);
 }
+
+export async function getOutcome(id: string): Promise<OutcomeData | null> {
+  return await getData(OUTCOMES_TABLE, id);
+}
+
+export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date): Promise<OutcomeData[] | null> {
+  try {
+    if (category === "" || !(await checkCategoryLimit(category, amount))) {
+      console.log("Couldn't add due to category limit or missing category");
+      return null;
+    }
+
+    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at };
+
+    const [{ data: insertData, error: insertError }] = await Promise.all([
+      supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
+      updateBalance(profile, -amount),
+      updateCategorySpent(category, amount)
+    ]);
+
+    if (insertError) {
+      console.error("Error adding outcome:", insertError);
+      return null;
+    }
+
+    return insertData;
+  } 
+
+  catch (error) {
+    console.error("Unexpected error adding outcome:", error);
+    return null;
+  }
+};
+
+export async function removeOutcome(profile: string, id: string) {
+  try {
+    const outcome = await getOutcome(id);
+    
+    if (!outcome) {
+      console.error("Outcome not found:", id);
+      return { error: "Outcome not found." };
+    }
+
+    const [deleteResult] = await Promise.all([
+      supabase.from(OUTCOMES_TABLE).delete().eq('id', id),
+      updateBalance(profile, outcome.amount),
+      updateCategorySpent(outcome.category, -outcome.amount)
+    ]);
+
+    if (deleteResult.error) {
+      console.error("Error removing outcome:", deleteResult.error);
+      return null;
+    }
+
+    return deleteResult;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error removing outcome:", error);
+    return null;
+  }
+}
+
+export async function fetchOutcomesByCategory(category: string): Promise<IncomeData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select('*')
+      .eq('category', category);
+
+    if (error) {
+      console.error("Error fetching outcomes by category:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching outcomes by category:", error);
+    return null;
+  }
+};
 
 
 
 /* Categories */
 
-export async function fetchCategories(profile: string) {
-  // Recupero información
-  const { data } = await supabase
-    .from('Categories')
-    .select('*')
-    .eq('profile', profile);
-  return data;
+export async function fetchCategories(profile: string): Promise<CategoryData[] | null> {
+  return await fetchData(CATEGORIES_TABLE, 'profile', profile);
+}
+
+export async function getCategory(category: string): Promise<CategoryData | null> {
+  return await getData(CATEGORIES_TABLE, category);
 };
 
-export async function getCategory(profile: string, category: string | undefined) {
-  // Recupero información
-  const { data } = await supabase
-    .from('Categories')
-    .select()
-    .eq('id', category)
-    .eq('profile', profile)
-    .single();
-  return data;
-};
-
-export async function addCategory(profile: string, name: string, color: string, limit?: number) {
-    const newCategory: CategoryData = {
-      profile: profile,
-      name: name,
-      limit: limit,
-      color: color
-    };
-    const { data } = await supabase
-      .from('Categories')
-      .insert(newCategory);
-    return data;
+export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
+  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
+  return await addData(CATEGORIES_TABLE, newCategory);
 }
 
-export async function removeCategory(profile: string, category: string | undefined) {
-    // Borro información
-    await supabase
-      .from('Categories')
-      .delete()
-      .eq('id', category)
-      .eq('profile', profile)
-      .single();
+export async function removeCategory(category: string) {
+  return await removeData(CATEGORIES_TABLE, category);
 }
 
-export async function getCategoryFromOutcome(outcome: number) {
-  const { data } = await supabase
-      .from('Outcomes')
-      .select('category')
-      .eq('id', outcome)
-      .single();
-  return data?.category ?? "null";
+export async function getCategoryFromOutcome(outcome: string): Promise<CategoryData | null> {
+  return await getValueFromData(OUTCOMES_TABLE, 'category', 'id', outcome);
 }
 
-async function getCategoryLimit(category: string): Promise<number> {
-  const { data } = await supabase
-    .from('Categories')
-    .select('limit')
-    .eq('id', category)
-    .single();
-  return data?.limit ?? 0;
+async function getCategoryLimit(category: string): Promise<number | null> {
+  return await getValueFromData(CATEGORIES_TABLE, 'limit', 'id', category);
 }
 
-async function getCategorySpent(category: string): Promise<number> {
-  const { data } = await supabase
-    .from('Categories')
-    .select('spent')
-    .eq('id', category)
-    .single();
-  return data?.spent ?? 0;
-}
-
-async function updateCategorySpent(category: string, added: number) {
-  var currentSpent = await getCategorySpent(category);
-  const newSpent = currentSpent + added;
-  await putCategorySpent(category, newSpent);
+async function getCategorySpent(category: string): Promise<number | null> {
+  return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
 }
 
 async function putCategorySpent(category: string, newSpent: number) {
-  const { data } = await supabase
-    .from('Categories')
-    .update({spent: newSpent})
-    .eq('id', category)
-    .single();
-  return data;
+  return await updateData(CATEGORIES_TABLE, 'spent', newSpent, 'id', category);
 }
 
-async function checkCategoryLimit(category: string, amount: number) {
-  const limit = await getCategoryLimit(category);
-  if (limit <= 0) return true;
-  const spent = await getCategorySpent(category);
-  return (spent + amount <= limit);
+async function updateCategorySpent(category: string, added: number): Promise<void> {
+  try {
+    const currentSpent = await getCategorySpent(category);
+    
+    if (currentSpent !== null) {
+        const newSpent = currentSpent + added;
+        await putCategorySpent(category, newSpent);
+    }
+  }
+  
+  catch (error) {
+    console.error("Error updating category spent:", error);
+  }
+}
+
+async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
+  try {
+    const limit = await getCategoryLimit(category);
+    if (limit == null || limit <= 0) return true;
+    const spent = await getCategorySpent(category);
+    return ((spent??0) + amount <= limit);
+  } 
+  
+  catch (error) {
+    console.error("Error checking category limit:", error);
+    return null;
+  }
 }
 
 
 
 /* Profiles */
 
-export async function fetchProfiles(user: string) {
-  // Recupero información
-  const { data } = await supabase
-    .from('Profiles')
-    .select('*')
-    .eq('user', user);
-  return data;
+export async function fetchProfiles(user: string): Promise<ProfileData[] | null> {
+  return await fetchData(PROFILES_TABLE, 'user', user);
 };
 
-export async function getProfile(id: string | undefined): Promise<string[] | null> {
-  // Recupero información
-  const { data } = await supabase
-    .from('Profiles')
-    .select()
-    .eq('id', id)
-  return data;
+export async function getProfile(user: string): Promise<ProfileData[] | null> {
+  return await getData(PROFILES_TABLE, user);
 };
 
-export async function addProfile(name: string, user: string) {
-  const newProfile: ProfileData = {
-    name: name,
-    user: user
-  };
-
-  // Inserto información
-  const { data, error } = await supabase
-    .from('Profiles')
-    .insert(newProfile);
-
-  if (error) {
-    console.error('Error al agregar el perfil:', error);
-    return error;
-  } else {
-    console.log('Perfil agregado exitosamente:', data);
-    return data;
-  }
+export async function addProfile(name: string, user: string): Promise<ProfileData | null> {
+  const newProfile: ProfileData = { name: name, user: user };
+  return await addData(PROFILES_TABLE, newProfile);
 };
 
-export async function removeProfile(id: string | undefined) {
-    // Borro información
-    await supabase
-      .from('Profiles')
-      .delete()
-      .eq('id', id);
+export async function removeProfile(profile: string) {
+  return await removeData(PROFILES_TABLE, profile);
 }
 
-export async function getProfileID(profileName: string) {
-  const { data } = await supabase
-    .from('Profiles')
-    .select()
-    .match({profileName});
-return data;
-}
 
 
 /* Balance */
 
-export async function fetchBalance(profile: string): Promise<number> {
-  const { data } = await supabase
-    .from('Profiles')
-    .select('balance')
-    .eq('id', profile)
-    .single();
-  return data?.balance ?? 0;
+export async function fetchBalance(profile: string): Promise<number | null> {
+  return await getValueFromData(PROFILES_TABLE, 'balance', 'id', profile);
 }
 
-// Update the balance based on an added or subtracted value
-async function updateBalance(profile: string, added: number) {
-  // Calls atomic function to avoid the infamous race condition
-  const { data } = await supabase.rpc('update_balance', { 
-    profile_id: profile, 
-    amount: added 
-  });
-  return data;
+async function updateBalance(profile: string, added: number): Promise<void | null> {
+  try {
+    // Calls atomic function to avoid the infamous race condition
+    const { data, error } = await supabase.rpc('update_balance', { 
+      profile_id: profile, 
+      amount: added 
+    });
+    
+    if (error) {
+      console.error("Error updating balance:", error);
+      return null;
+    }
+    
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error updating balance:", error);
+    return null;
+  }
 }
 
 
 
 /* User */
 
-// Agregar usuario
-export async function addUser(email: string, password: string, name: string, surname: string) {
-  const newUser: UserData = {
-    email: email,
-    password: password,
-    name: name,
-    surname: surname,
-  };
-  const { data, error } = await supabase
-    .from('Users')
-    .insert(newUser);
-
-  if (error) {
-    console.error('Error adding user:', error);
-    return null;
-  }
-  return data;
+export async function addUser(email: string, password: string, name: string, surname: string): Promise<UserData | null> {
+  const newUser: UserData = { email: email, password: password, name: name, surname: surname };
+  return await addData(USERS_TABLE, newUser);
 }
 
-//Sign Up
 export async function signUp(email: string, password: string, name: string, surname: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: password
-  });
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    });
 
-  if (error) {
-    console.error("Error during sign up:", error);
-    return { error };
+    if (error) {
+      console.error("Error during sign up:", error);
+      return { error };
+    }
+
+    const { user, session } = data;
+
+    if (!user) {
+      console.error("User is null during sign up");
+      return { error: "User is null" };
+    }
+
+    const { error: insertError } = await supabase
+      .from(USERS_TABLE)
+      .insert([{ email: email, name: name, surname: surname }]);
+
+    if (insertError) {
+      console.error("Error creating user profile:", insertError);
+      return { error: insertError };
+    }
+
+    return { user, session };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error during sign up:", error);
+    return { error: "An unexpected error occurred." };
   }
-
-  const { user, session } = data;
-
-  if (!user) {
-    console.error("User is null during sign up");
-    return { error: "User is null" };
-  }
-
-  // Insertar en la tabla `users` personalizada
-  const { error: insertError } = await supabase
-    .from('Users')
-    .insert([{ email: email, name: name, surname: surname }]);
-
-  if (insertError) {
-    console.error("Error creating user profile:", insertError);
-    return { error: insertError };
-  }
-
-  return { user, session };
 }
 
-
-//Login 
 export async function logIn(email: string, password: string) {
-  // Autenticar al usuario
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
 
-  if (error) {
-    console.error("Error during login:", error);
-    return { error: "Invalid login credentials" };
+    if (error) {
+      console.error("Error during login:", error);
+      return { error: "Invalid login credentials" };
+    }
+
+    const { user, session } = data;
+
+    const { data: profile, error: profileError } = await supabase
+      .from(USERS_TABLE)
+      .select('email, name, surname')
+      .eq('email', user.email)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
+      return { error: profileError };
+    }
+
+    return { user, profile, session };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error during login:", error);
+    return { error: "An unexpected error occurred." };
   }
-
-  const { user, session } = data;
-
-  // Obtener datos del perfil personalizado desde la tabla `Users`
-  const { data: profile, error: profileError } = await supabase
-    .from('Users')
-    .select('email, name, surname')
-    .eq('email', user.email)
-    .single();
-
-  if (profileError) {
-    console.error("Error fetching user profile:", profileError);
-    return { error: profileError };
-  }
-
-  return { user, profile, session };
 }
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {
-  await supabase
-    .from('Users')
-    .update({current_profile: newProfileID})
-    .eq('email', user)
-    .single();
+  return await updateData(USERS_TABLE, 'current_profile', newProfileID, 'email', user);
 }
 
 export async function fetchCurrentProfile(user: string) {
-  const { data } = await supabase
-    .from('Users')
-    .select('current_profile')
-    .eq('email', user)
-    .single();
-  return data;
+  return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
+
+
 
 /* Stats */
 
-// Get outcomes from date range
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
-  const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
+  const startISO = start.toISOString();
   const endISO = end.toISOString();
-  const { data } = await supabase
-    .from('Outcomes')
-    .select()
-    .eq('profile', profile)
-    .gte('created_at', startISO)
-    .lte('created_at', endISO);
-  return data;
+  
+  try {
+    const { data, error } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select()
+      .eq('profile', profile)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching outcomes from date range:", error);
+      return { error: "Failed to fetch outcomes." };
+    }
+    
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching outcomes from date range:", error);
+    return { error: "An unexpected error occurred." };
+  }
 }
 
-// Get outcomes from date range and category
 export async function getOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
-  const startISO = start.toISOString();  // Formato YYYY-MM-DDTHH:mm:ss.sssZ
+  const startISO = start.toISOString();
   const endISO = end.toISOString();
-  const { data } = await supabase
-    .from('Outcomes')
-    .select()
-    .eq('profile', profile)
-    .gte('created_at', startISO)
-    .lte('created_at', endISO)
-    .eq('category', category);
-  return data;
+  
+  try {
+    const { data, error } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select()
+      .eq('profile', profile)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO)
+      .eq('category', category);
+    
+    if (error) {
+      console.error("Error fetching outcomes from date range and category:", error);
+      return { error: "Failed to fetch outcomes by category." };
+    }
+    
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching outcomes from date range and category:", error);
+    return { error: "An unexpected error occurred." };
+  }
 }

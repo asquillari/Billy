@@ -21,7 +21,9 @@ export default function HomeScreen() {
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      setCurrentProfileId(profileData?.current_profile || null);
+      if (profileData && typeof profileData === 'string') {
+        setCurrentProfileId(profileData);
+      }
     }
   }, [userEmail, setCurrentProfileId]);
 
@@ -33,7 +35,7 @@ export default function HomeScreen() {
       getOutcomeData();
     }, [fetchProfile])
   );
-
+  
   const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
 
   const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
