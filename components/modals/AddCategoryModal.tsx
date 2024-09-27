@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { addCategory } from '@/api/api';
 
 interface AddCategoryModalProps {
@@ -67,7 +67,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
-          <Text style={styles.label}>Nombre</Text>
+        <Text style={styles.title}>Crear una carpeta</Text>
+
           <TextInput 
             style={styles.input} 
             value={name} 
@@ -76,7 +77,6 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           />
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-          <Text style={styles.label}>Límite</Text>
           <TextInput 
             style={styles.input} 
             keyboardType="numeric" 
@@ -86,8 +86,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           />
 
           <View style={styles.buttonContainer}>
-            <Button title="Cancel" onPress={onClose} color="#FF0000" />
-            <Button title="Submit" onPress={handleAddCategory} />
+            <TouchableOpacity style={styles.button} onPress={onClose}>
+              <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={onClose}>
+              <Text style={styles.buttonText}>Crear</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -103,42 +107,45 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: '85%',
-    maxWidth: 400,
-    padding: 20,
     backgroundColor: 'white',
-    borderRadius: 15,
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  label: {
-    fontSize: 16,
-    marginVertical: 8,
-    color: '#333',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 16,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 20,
     width: '100%',
-    backgroundColor: '#f9f9f9',
   },
   buttonContainer: {
-    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
+  },
+  button: {
+    backgroundColor: '#4B00B8',
+    padding: 10,
+    borderRadius: 5,
+    width: '40%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   errorText: {
     color: 'red',
     fontSize: 14,
     marginTop: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
 });
 

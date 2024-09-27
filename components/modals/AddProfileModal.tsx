@@ -22,11 +22,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="slide"
-    >
+    <Modal visible={isVisible} transparent={true} animationType="slide">
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Crear nuevo perfil</Text>
@@ -56,7 +52,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
+  }, 
   modalContainer: {
     backgroundColor: 'white',
     borderRadius: 20,
