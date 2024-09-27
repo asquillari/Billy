@@ -119,7 +119,8 @@ async function removeData(table: string, id: string) {
     const { data, error } = await supabase
       .from(table)
       .delete()
-      .eq('id', id) 
+      .eq('id', id)
+      .single();
 
     if (error) {
       console.error("Error removing item:", error);
@@ -135,6 +136,27 @@ async function removeData(table: string, id: string) {
   }
 }
 
+export async function getValueFromData(table: string, column: string, id: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select(column)
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching ${column} from ${table}:`, error);
+      return null;
+    }
+    
+    return data ? (data as { [key: string]: any })[column] ?? null : null;
+  } 
+  
+  catch (error) {
+    console.error(`Unexpected error fetching ${column} from ${table}:`, error);
+    return null;
+  }
+}
 
 
 /* Incomes */
@@ -350,47 +372,11 @@ export async function getCategoryFromOutcome(outcome: number): Promise<CategoryD
 }
 
 async function getCategoryLimit(category: string): Promise<number | null> {
-  try {
-    const { data, error } = await supabase
-      .from(CATEGORIES_TABLE)
-      .select('limit')
-      .eq('id', category)
-      .single();
-    
-    if (error) {
-      console.error("Error getting category limit:", error);
-      return null;
-    }
-    
-    return data.limit ?? 0;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error getting category limit:", error);
-    return 0;
-  }
+  return await getValueFromData(CATEGORIES_TABLE, 'limit', category);
 }
 
 async function getCategorySpent(category: string): Promise<number | null> {
-  try {
-    const { data, error } = await supabase
-      .from(CATEGORIES_TABLE)
-      .select('spent')
-      .eq('id', category)
-      .single();
-    
-    if (error) {
-      console.error("Error getting category spent:", error);
-      return null;
-    }
-    
-    return data.spent ?? 0;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error getting category spent:", error);
-    return null;
-  }
+  return await getValueFromData(CATEGORIES_TABLE, 'spent', category);
 }
 
 async function updateCategorySpent(category: string, added: number): Promise<void> {
@@ -491,25 +477,7 @@ export async function removeProfile(profile: string) {
 /* Balance */
 
 export async function fetchBalance(profile: string): Promise<number | null> {
-  try {
-    const { data, error } = await supabase
-      .from(PROFILES_TABLE)
-      .select('balance')
-      .eq('id', profile)
-      .single();
-    
-    if (error) {
-      console.error("Error fetching balance:", error);
-      return null;
-    }
-    
-    return data.balance ?? 0;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error fetching balance:", error);
-    return null;
-  }
+  return await getValueFromData(PROFILES_TABLE, 'balance', profile);
 }
 
 async function updateBalance(profile: string, added: number): Promise<void | null> {
