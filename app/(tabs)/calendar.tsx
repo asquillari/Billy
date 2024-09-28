@@ -6,11 +6,12 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
-import { getOutcomesFromDateRange } from '../../api/api';
+import { getOutcomesFromDateRange, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../contexts/ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
+import { useUser } from '@/app/contexts/UserContext';
 
 // Configuración personalizada de las flechas
 const customArrowLeft = () => {
@@ -30,6 +31,7 @@ const customArrowRight = () => {
 };
 
 export default function CalendarScreen() {
+  const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
 
   const [markedDates, setMarkedDates] = useState({});
@@ -39,10 +41,20 @@ export default function CalendarScreen() {
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
-  const { incomeData, outcomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
+
+  const { incomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
   const years = useMemo(() => Array.from({ length: 24 }, (_, i) => currentYear - 20 + i), [currentYear]);
+
+  const fetchProfile = useCallback(async () => {
+    if (userEmail) {
+      const profileData = await fetchCurrentProfile(userEmail);
+      if (profileData && typeof profileData === 'string') {
+        setCurrentProfileId(profileData);
+      }
+    }
+  }, [userEmail, setCurrentProfileId]);
 
   const onMonthChange = (month: { dateString: string }) => {
     setCurrentDate(month.dateString);
@@ -124,6 +136,7 @@ export default function CalendarScreen() {
 
   useFocusEffect(
     useCallback(() => { 
+      fetchProfile();
       getCategoryData();
       processTransactions(); 
   }, [processTransactions]));

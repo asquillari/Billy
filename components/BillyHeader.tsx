@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
+import { logOut } from '@/api/api';
+import { useNavigation } from '@react-navigation/native';
 
 interface BillyHeaderProps {
   title?: string;
@@ -8,11 +10,21 @@ interface BillyHeaderProps {
 }
 
 export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => {
+  const navigation = useNavigation();
+  
+  const handleLogout = async () => {
+    const result = await logOut();
+    if (result.error) Alert.alert('Logout Error', result.error);
+    navigation.navigate('start' as never);
+  }
+
   return (
     <View style={styles.headerContainer}>
       <View style={styles.barraSuperior}>
         <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
-        <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario}/>
+        <TouchableOpacity onPress={handleLogout}>
+          <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario} />
+        </TouchableOpacity>
       </View>
       
       {(title || subtitle) && (
