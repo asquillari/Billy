@@ -32,7 +32,9 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      setCurrentProfileId(profileData?.current_profile || null);
+      if (profileData && typeof profileData === 'string') {
+        setCurrentProfileId(profileData);
+      }
     }
   }, [userEmail, setCurrentProfileId]);
 
@@ -43,58 +45,61 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
 
   useEffect(() => {
     const fetchExpenses = async () => {
+      const categories = await fetchCategories(currentProfileId??"");  
+      const idColor: ColorObject[] = [];
+      const colorsRegistered: string[] = [];
 
-    const categories = await fetchCategories(currentProfileId||'');  
-    const idColor: ColorObject[] = [];
-    const colorsRegistered: string[] = [];
+      setCategoryData(categories);
 
-    setCategoryData(categories);
-
-    if (categoryData) {
-      const calculatedExpenses = await Promise.all(
-        categoryData.map(async (category) => {
-          let colorRegistered: string | undefined; 
-        
-          const isRegistered = idColor.some(item => item.id === category.id);
-    
-          if (isRegistered) {
-            colorRegistered = idColor.find(item => item.id === category.id)?.color;
-          } else {
-            const colors = JSON.parse(category.color);
-            const Color = colors[1]; 
-    
-            if (colorsRegistered.includes(Color)) {
-              colorRegistered = generateRandomColor();
-              colorsRegistered.push(colorRegistered);
-            } else {
-              colorRegistered = Color; 
-              colorsRegistered.push(colorRegistered||'');
+      if (categoryData) {
+        const calculatedExpenses = await Promise.all(
+          categoryData.map(async (category) => {
+            let colorRegistered: string | undefined; 
+          
+            const isRegistered = idColor.some(item => item.id === category.id);
+      
+            if (isRegistered) {
+              colorRegistered = idColor.find(item => item.id === category.id)?.color;
             }
-    
-            idColor.push({ id: category.id || "", color: colorRegistered || "" });
-          }
 
-          const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(
+            else {
+              const colors = JSON.parse(category.color);
+              const Color = colors[1]; 
+      
+              if (colorsRegistered.includes(Color)) {
+                colorRegistered = generateRandomColor();
+                colorsRegistered.push(colorRegistered);
+              }
+              
+              else {
+                colorRegistered = Color; 
+                colorsRegistered.push(colorRegistered||'');
+              }
+      
+              idColor.push({ id: category.id || "", color: colorRegistered || "" });
+            }
+
+            const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(
               currentProfileId || '',
               parseDate(month, year, 1),
               parseDate(month, year, 30), 
-                category.id || ''
+              category.id || ''
             ); 
 
             let total = 0;
 
-            OutcomeFromCategory?.forEach(outcome => {
+            if (Array.isArray(OutcomeFromCategory)) {
+              OutcomeFromCategory.forEach(outcome => {
+                total += outcome.amount;
+              }, [currentProfileId]);
+            };
 
-              total += outcome.amount;
-              
-            }, [currentProfileId]);
-
-          return { label: category.name, amount: total, color: colorRegistered } as Expense;
-        })
-      );
-    
-      setExpenses(calculatedExpenses);
-    }
+            return { label: category.name, amount: total, color: colorRegistered } as Expense;
+          })
+        );
+      
+        setExpenses(calculatedExpenses);
+      }
     };
     fetchExpenses();
   }, [categoryData, month, year]);

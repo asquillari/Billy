@@ -60,7 +60,7 @@ async function fetchData(table: string, columnToCheck: string, parentID: string)
       .eq(columnToCheck, parentID);
 
     if (error) {
-      console.error(`Error transactions data from ${table}:`, error);
+      console.error(`Error fetching data from ${table}:`, error);
       return null;
     }
 
@@ -68,7 +68,7 @@ async function fetchData(table: string, columnToCheck: string, parentID: string)
   } 
   
   catch (error) {
-    console.error(`Unexpected error transactions data from ${table}:`, error);
+    console.error(`Unexpected error from ${table}:`, error);
     return null;
   }
 }
@@ -532,7 +532,7 @@ export async function logOut() {
 
     return { success: true };
   } 
-  
+
   catch (error) {
     console.error("Unexpected error during logout:", error);
     return { error: "An unexpected error occurred." };
@@ -552,6 +552,8 @@ export async function fetchCurrentProfile(user: string) {
 /* Stats */
 
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
+  console.log(profile);
+  
   const startISO = start.toISOString();
   const endISO = end.toISOString();
   
