@@ -13,6 +13,7 @@ export interface UserData {
   name: string;
   surname: string;
   currentProfile?: string;
+  my_profiles?: string[];
 }
 
 export interface IncomeData {
@@ -47,7 +48,8 @@ export interface ProfileData {
   name: string;
   balance?: number;
   created_at?: Date;
-  user: string;
+  owner: string;
+  is_shared?: boolean;
 }
 
 /* General data */
@@ -99,7 +101,9 @@ async function addData(table: string, newData: any): Promise<any | null> {
   try {
     const { data, error } = await supabase
       .from(table)
-      .insert(newData);
+      .insert(newData)
+      .select()
+      .single();
     
     if (error) {
       console.error(`Error adding data to ${table}:`, error);
@@ -121,6 +125,8 @@ async function removeData(table: string, id: string) {
       .from(table)
       .delete()
       .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       console.error("Error removing item:", error);
@@ -391,20 +397,83 @@ async function checkCategoryLimit(category: string, amount: number): Promise<boo
 /* Profiles */
 
 export async function fetchProfiles(user: string): Promise<ProfileData[] | null> {
-  return await fetchData(PROFILES_TABLE, 'user', user);
-};
+  try {
+    const profileIds = await getValueFromData(USERS_TABLE, 'my_profiles', 'email', user);
+    
+    if (!profileIds || !Array.isArray(profileIds)) {
+      console.error("No profiles found or invalid data returned for user:", user);
+      return null;
+    }
 
-export async function getProfile(user: string): Promise<ProfileData[] | null> {
-  return await getData(PROFILES_TABLE, user);
-};
+    const profiles: ProfileData[] = [];
+
+    for (const profileId of profileIds) {
+      const profile = await fetchData(PROFILES_TABLE, 'id', profileId);
+      if (profile && profile.length > 0) {
+        profiles.push(profile[0]);
+      }
+    }
+
+    return profiles;
+  }
+
+  catch (error) {
+    console.error("Unexpected error in fetchProfiles:", error);
+    return null;
+  }
+}
+
+export async function getProfile(profileId: string): Promise<ProfileData | null> {
+  return await getData(PROFILES_TABLE, profileId);
+}
 
 export async function addProfile(name: string, user: string): Promise<ProfileData | null> {
-  const newProfile: ProfileData = { name: name, user: user };
-  return await addData(PROFILES_TABLE, newProfile);
-};
+  try {
+    const newProfile: ProfileData = { name, owner: user };
+    const profile = await addData(PROFILES_TABLE, newProfile);
 
-export async function removeProfile(profile: string) {
-  return await removeData(PROFILES_TABLE, profile);
+    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
+
+    if (error) {
+      console.error("Failed to append new profile to user's my_profiles:", error);
+      await removeData(PROFILES_TABLE, profile.id);
+      return null;
+    }
+
+    return profile;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error in addProfile:", error);
+    return null;
+  }
+}
+
+export async function removeProfile(profileId: string) {
+  try {
+    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+
+    if (removedProfile) {
+      const { error } = await supabase.rpc('remove_from_my_profiles', { profile_id_param: profileId });
+      if (error) console.error("Error removing profile from user's my_profiles:", error);
+    }
+
+    return removedProfile;
+
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error in removeProfile:", error);
+    return null;
+  }
+}
+
+export async function addSharedUsers(profileId: string, emails: string[]) {
+  updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
+  for (const email of emails) {
+    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
+    if (error) console.error(`Failed to share profile with ${email}:`, error);
+  }
 }
 
 

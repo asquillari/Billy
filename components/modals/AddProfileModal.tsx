@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { addProfile } from '@/api/api';
+import { addProfile, addSharedUsers } from '@/api/api';
 
 interface AddProfileModalProps {
   isVisible: boolean;
@@ -11,11 +11,17 @@ interface AddProfileModalProps {
 
 const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded, email }) => {
   const [profileName, setProfileName] = useState('');
+  const [sharedUsers, setSharedUsers] = useState('');
 
   const handleAddProfile = async () => {
     if (profileName.trim()) {
-      await addProfile(profileName, email);
+      const newProfile = await addProfile(profileName, email);
+      if (sharedUsers.trim()) {
+        const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];
+        await addSharedUsers(newProfile?.id ?? "", emails);
+      }
       setProfileName('');
+      setSharedUsers('');
       onProfileAdded();
       onClose();
     }
@@ -24,22 +30,25 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
   return (
     <Modal visible={isVisible} transparent={true} animationType="slide">
       <View style={styles.modalBackground}>
+
         <View style={styles.modalContainer}>
+
           <Text style={styles.title}>Crear nuevo perfil</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del perfil"
-            value={profileName}
-            onChangeText={setProfileName}
-          />
+
+          <TextInput style={styles.input} placeholder="Nombre del perfil" value={profileName} onChangeText={setProfileName}/>
+
+          <TextInput style={styles.input} placeholder="Correos (separados por comas)" value={sharedUsers} onChangeText={setSharedUsers} multiline/>
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={onClose}>
               <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.button} onPress={handleAddProfile}>
               <Text style={styles.buttonText}>Crear</Text>
             </TouchableOpacity>
           </View>
+
         </View>
       </View>
     </Modal>
