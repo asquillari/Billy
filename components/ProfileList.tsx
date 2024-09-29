@@ -38,6 +38,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
     const isCurrentProfile = item !== 'add' && item.id === currentProfileId;
+    const isSharedProfile = item !== 'add' && item.is_shared == true;
     if (item === 'add') {
      return (
       <TouchableOpacity style={[styles.profileItem, styles.addButton]} onPress={onAddProfile}>
@@ -49,7 +50,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
 
     return (
       <TouchableOpacity style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
-        <Ionicons name="person-circle-outline" size={40} color="#4B00B8"/>
+        <Ionicons name={isSharedProfile ? "globe-outline" : "person-circle-outline"} size={40} color="#4B00B8"/>
         <Text style={styles.profileName}>{item.name}</Text>
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </TouchableOpacity>

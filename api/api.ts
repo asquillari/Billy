@@ -49,6 +49,7 @@ export interface ProfileData {
   balance?: number;
   created_at?: Date;
   owner: string;
+  is_shared?: boolean;
 }
 
 /* General data */
@@ -468,6 +469,7 @@ export async function removeProfile(profileId: string) {
 }
 
 export async function addSharedUsers(profileId: string, emails: string[]) {
+  updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
   for (const email of emails) {
     const { error } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
     if (error) console.error(`Failed to share profile with ${email}:`, error);
