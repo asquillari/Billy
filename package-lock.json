@@ -1,11 +1,11 @@
 {
-  "name": "sistema-contable",
+  "name": "billy",
   "version": "1.0.0",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
-      "name": "sistema-contable",
+      "name": "billy",
       "version": "1.0.0",
       "dependencies": {
         "@expo/vector-icons": "^14.0.3",

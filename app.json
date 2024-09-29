@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "sistema-contable",
+    "name": "billy",
     "slug": "sistema-contable",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Billy/logo2.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.billy"
     },
     "web": {
       "bundler": "metro",
