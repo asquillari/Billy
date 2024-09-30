@@ -51,11 +51,7 @@ const App = () => {
         <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
         <View style={styles.selectorContainer}>
           {['month', 'year'].map((type) => (
-            <TouchableOpacity
-              key={type}
-              onPress={toggleSelector(type as 'month' | 'year')}
-              style={[styles.selectorButton, { backgroundColor: selectedButton === type ? '#4B00B8' : '#fff' }]}
-            >
+            <TouchableOpacity key={type} onPress={toggleSelector(type as 'month' | 'year')} style={[styles.selectorButton, { backgroundColor: selectedButton === type ? '#4B00B8' : '#fff' }]}>
               <Text style={[styles.selectorText, { color: selectedButton === type ? '#fff' : '#4A00E0' }]}>
                 {type === 'month' ? 'Mes' : 'Año'}
               </Text>

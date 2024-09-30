@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,11 +12,9 @@ interface Expense {
   color: string;
 }
 
-const generateRandomColor = () => {
-  return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
-};
+const generateRandomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 
-export const StatsComponent = ({ month, year }: { month: number; year: number }) => {
+export const StatsComponent = React.memo(({ month, year }: { month: number; year: number }) => {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
@@ -32,9 +30,8 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
   }, [userEmail, setCurrentProfileId]);
 
   useFocusEffect(useCallback(() => {
-      fetchProfile();
-    }, [fetchProfile])
-  );
+    fetchProfile();
+  }, [fetchProfile]));
 
   useEffect(() => {
     if (!currentProfileId) return;
@@ -84,97 +81,70 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
     return Array.isArray(OutcomeFromCategory) ? OutcomeFromCategory.reduce((sum, outcome) => sum + outcome.amount, 0) : 0;
   };
 
-  const maxAmount = expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0);
+  const maxAmount = useMemo(() => expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0), [expenses]);
 
   return (
     <View style={styles.container}>
-      <PieChart2 data={expenses} />
+      <PieChart data={expenses} />
       <View style={styles.box}>
         {expenses.map((expense) => (
-          <ExpenseItem key={expense.label} {...expense} maxAmount={maxAmount} />
+          <ExpenseItem key={expense.label} expense={expense} maxAmount={maxAmount} />
         ))}
       </View>
     </View>
   );
-};
+});
 
-const PieChart2 = ({ data }: { data: Expense[] }) => {
-
+const PieChart = React.memo(({ data }: { data: Expense[] }) => {
   const radius = 110;
   const strokeWidth = 30;
   const center = radius + strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const total = data.reduce((sum, item) => sum + (item.amount ?? 0), 0);
-  const numericTotal = typeof total === 'number' ? total : parseFloat(total as any) || 0;
+  const total = useMemo(() => data.reduce((sum, item) => sum + (item.amount ?? 0), 0), [data]);
 
   let offset = 0;
 
   return (
     <View style={styles.pieContainer}>
       <Svg height={250} width={250}>
-        <Circle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke="#f0f0f0"
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
+
+        <Circle cx={center} cy={center} r={radius} stroke="#f0f0f0" strokeWidth={strokeWidth} fill="transparent"/>
+        
         {data.map((item, index) => {
-
-          if (!item.color || typeof item.color !== 'string') {
-            console.warn(`Invalid color for item at index ${index}:`, item.color);
-            return null; 
-          }
-
+          if (!item.color || typeof item.color !== 'string') return null;
           const percentage = item.amount !== null ? item.amount / total : 0;
-          const segment = (
-            <Circle
-              key={index}
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke={item.color}
-              strokeWidth={strokeWidth}
-              fill="transparent"
-              strokeDasharray={`${circumference} ${circumference}`}
-              strokeDashoffset={offset}
-            />
-          );
-
-          offset -= circumference * percentage;
-          return segment;
+          const strokeDashoffset = circumference * (1 - percentage);
+          return ( <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${center} ${center})`}/> );
         })}
+        
       </Svg>
-      <View style={styles.valueContainer}>
-        <Text style={styles.valueText}>${numericTotal.toFixed(0)}</Text>
 
+      <View style={styles.valueContainer}>
+        <Text style={styles.valueText}>${total.toFixed(0)}</Text>
       </View>
     </View>
   );
-};
+});
 
 function parseDate(month: number, year: number, init: number): Date {
   return new Date(year, month, init);
 }
 
-// ExpenseItem component
-const ExpenseItem = ({ label, amount, color, maxAmount }: { label: string; amount: number | null; color: string; maxAmount: number }) => {
+const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxAmount: number }) => {
+  const { label, amount, color } = expense;
   const barWidth = maxAmount > 0 ? ((amount ?? 0) / maxAmount) * 100 : 0;
-
   return (
     <View style={styles.expenseItem}>
       <View style={styles.textContainer}>
         <Text style={styles.textWrapper}>{label}</Text>
         <Text style={styles.textWrapperAmount}>- ${ (amount ?? 0).toFixed(2) }</Text>
       </View>
-      <View style={[styles.rectangle, { backgroundColor: color, width: `${barWidth}%` }]} />
+      <View style={[styles.rectangle, { backgroundColor: color, width: `${barWidth}%` }]}/>
     </View>
   );
-};
+});
 
-// Styles
 const styles = StyleSheet.create({
     container: {
       flex: 1,
