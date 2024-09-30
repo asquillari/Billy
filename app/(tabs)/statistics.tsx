@@ -21,11 +21,12 @@ const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, se
 };
 
 const App = () => {
-  const [selectedMonth, setSelectedMonth] = useState(0);
-  const [selectedYear, setSelectedYear] = useState(0);
-  const [showMonthSelector, setShowMonthSelector] = useState(false);
-  const [showYearSelector, setShowYearSelector] = useState(true);
-  const [selectedButton, setSelectedButton] = useState('month'); // Track selected button
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState(years.indexOf(currentDate.getFullYear()));
+  const [showMonthSelector, setShowMonthSelector] = useState(true);
+  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [selectedButton, setSelectedButton] = useState('month');
 
   const toggleMonthSelector = () => {
     setSelectedButton('month');
