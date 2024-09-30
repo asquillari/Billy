@@ -28,6 +28,24 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
     setCategoryData(categories);
   }, [currentProfileId]);
 
+  const calculateExpenses = useCallback(async () => {
+    if (!categoryData || !currentProfileId) return;
+
+    const idColorMap = new Map<string, string>();
+    const colorsRegistered = new Set<string>();
+
+    const calculatedExpenses = await Promise.all(
+      categoryData.map(async (category) => {
+        let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
+        idColorMap.set(category.id || "", color);
+        const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
+        return { label: category.name, amount: total, color } as Expense;
+      })
+    );
+  
+    setExpenses(calculatedExpenses);
+  }, [categoryData, currentProfileId, month, year]);
+
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
@@ -45,26 +63,8 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
   );
 
   useEffect(() => {
-    if (!categoryData || !currentProfileId) return;
-
-    const calculateExpenses = async () => {
-      const idColorMap = new Map<string, string>();
-      const colorsRegistered = new Set<string>();
-
-      const calculatedExpenses = await Promise.all(
-        categoryData.map(async (category) => {
-          let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
-          idColorMap.set(category.id || "", color);
-          const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
-          return { label: category.name, amount: total, color } as Expense;
-        })
-      );
-    
-      setExpenses(calculatedExpenses);
-    };
-
     calculateExpenses();
-  }, [categoryData, currentProfileId, month, year]);
+  }, [calculateExpenses]);
 
   const getColorForCategory = (category: CategoryData, colorsRegistered: Set<string>): string => {
     const colors = JSON.parse(category.color);
@@ -100,6 +100,8 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
   const circumference = 2 * Math.PI * radius;
   const total = useMemo(() => data.reduce((sum, item) => sum + (item.amount ?? 0), 0), [data]);
 
+  let accumulatedPercentage = 0;
+
   return (
     <View style={styles.pieContainer}>
       <Svg height={250} width={250}>
@@ -108,7 +110,11 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
           if (!item.color || typeof item.color !== 'string') return null;
           const percentage = item.amount !== null ? item.amount / total : 0;
           const strokeDashoffset = circumference * (1 - percentage);
-          return ( <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${center} ${center})`}/> );
+          const rotation = accumulatedPercentage * 360;
+          accumulatedPercentage += percentage;
+          return (
+            <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(${rotation} ${center} ${center})`} strokeLinecap='round'/>
+          );
         })}
       </Svg>
 
