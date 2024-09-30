@@ -129,7 +129,7 @@ export default function CalendarScreen() {
       const refreshData = async () => {
         await fetchProfile();
         if (currentProfileId) {
-          await getCategoryData();
+          await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
           processTransactions();
         }
       };
