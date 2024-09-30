@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3,
-    flex: 1
   },
   monthText: {
     fontSize: 28,
@@ -94,7 +93,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 0,
   },
   arrowButton: {
     paddingHorizontal: 15,

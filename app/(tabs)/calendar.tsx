@@ -4,8 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
-import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
+import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { getOutcomesFromDateRange, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../contexts/ProfileContext';
@@ -95,9 +95,13 @@ export default function CalendarScreen() {
   }, []);
 
   const processTransactions = useCallback(async () => {
+    if (!currentProfileId) return;
+    
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
-    const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
+    
+    const outcomes = await getOutcomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
+
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
     const addDot = (date: string, id: string, color: string) => {
@@ -107,34 +111,32 @@ export default function CalendarScreen() {
 
     incomeData?.forEach(income => {
       const date = moment(income.created_at).format('YYYY-MM-DD');
-      if (marked[date]) marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
       addDot(date, income.id?.toString() || '', '#4CAF50');
     });
 
     if (Array.isArray(outcomes)) {
-      outcomes?.forEach(outcome => {
+      outcomes?.forEach((outcome: any) => {
         const date = moment(outcome.created_at).format('YYYY-MM-DD');
         addDot(date, outcome.id?.toString() || '', '#F44336');
       });
     }
 
     setMarkedDates(marked);
-  }, [currentDate, currentProfileId, incomeData]);
-
-  useEffect(() => {
-    getIncomeData();
-    getOutcomeData();
-    getCategoryData();
-    processTransactions();
-  }, [processTransactions]);
+  }, [currentDate, currentProfileId, incomeData, getOutcomesFromDateRange]);
 
   useFocusEffect(
-    useCallback(() => { 
-      fetchProfile();
-      getCategoryData();
-      processTransactions(); 
-  }, [processTransactions]));
-
+    useCallback(() => {
+      const refreshData = async () => {
+        await fetchProfile();
+        if (currentProfileId) {
+          await getCategoryData();
+          processTransactions();
+        }
+      };
+      refreshData();
+    }, [fetchProfile, currentProfileId, getCategoryData, processTransactions])
+  );
+  
   const memoizedCalendar = useMemo(() => (
     <Calendar
       key={key}
@@ -151,7 +153,6 @@ export default function CalendarScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
-        <SafeAreaView style={styles.safeArea}>
           <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
           <View style={styles.contentContainer}>
             <View style={styles.calendarContainer}>
@@ -167,6 +168,9 @@ export default function CalendarScreen() {
                 <Text style={styles.buttonTextPago}>Agregar pago</Text>
               </TouchableOpacity>
             </View>
+            <View style={styles.categoryListContainer}>
+              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId || ""} showAddButton={false}/>
+            </View>
           </View>
           <CalendarAddModal
             isVisible={modalVisible}
@@ -178,7 +182,6 @@ export default function CalendarScreen() {
             refreshTransactions={processTransactions}
             currentProfileId={currentProfileId || ""}
           />
-        </SafeAreaView>
       </LinearGradient>
     </View>
   );
@@ -189,9 +192,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradientContainer: {
-    flex: 1,
-  },
-  safeArea: {
     flex: 1,
   },
   contentContainer: {
@@ -329,5 +329,9 @@ const styles = StyleSheet.create({
     color: '#370185',
     fontSize: 14,
     marginLeft: 10,
+  },
+  categoryListContainer: {
+    marginTop: 20,
+    paddingHorizontal: 10,
   },
 });
