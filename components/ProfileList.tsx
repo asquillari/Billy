@@ -42,7 +42,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [refreshData]);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
-    const isCurrentProfile = item !== 'add' && item.id === currentProfileId;
+    const isCurrentProfile = item !== 'add' && item.id === localCurrentProfileId;
     const isSharedProfile = item !== 'add' && item.is_shared == true;
     if (item === 'add') {
      return (
@@ -60,7 +60,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </TouchableOpacity>
     );
-  }, [onAddProfile, handleProfilePress, handleLongPress, currentProfileId]);
+  }, [onAddProfile, handleProfilePress, handleLongPress, localCurrentProfileId]);
 
   const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
 
