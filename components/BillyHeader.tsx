@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet, Alert, View, Image, TouchableOpacity, Text } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import { logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
@@ -9,14 +9,14 @@ interface BillyHeaderProps {
   subtitle?: string;
 }
 
-export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => {
+export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle }) => {
   const navigation = useNavigation();
   
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     const result = await logOut();
     if (result.error) Alert.alert('Logout Error', result.error);
     navigation.navigate('start' as never);
-  }
+  }, [navigation]);
 
   return (
     <View style={styles.headerContainer}>
@@ -35,9 +35,9 @@ export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle }) => 
       )}
     </View>
   );
-};
+});
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : (StatusBar.currentHeight ?? 0) + 10;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 30 : (StatusBar.currentHeight ?? 0) + 10;
 
 const styles = StyleSheet.create({
   barraSuperior: {
