@@ -3,9 +3,12 @@ import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'rea
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { signUp, addProfile, changeCurrentProfile } from '@/api/api';
+import { useUser } from '../contexts/UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Signup() {
   const navigation = useNavigation();
+  const { setUserEmail } = useUser();
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,11 +22,14 @@ export default function Signup() {
     }
 
     try {
-      const { error } = await signUp(email, password, name, lastName);
+      const { error, session } = await signUp(email, password, name, lastName);
       if (error) Alert.alert('Error de registro', 'No se pudo crear la cuenta');
+      
       else {
+        await AsyncStorage.setItem('userSession', JSON.stringify(session));
+        setUserEmail(email);
         const newProfile = await addProfile('Default', email);
-        await changeCurrentProfile(email, newProfile?.id??"");
+        await changeCurrentProfile(email, newProfile?.id ?? "");
         navigation.navigate('(tabs)' as never);
       }
     } 

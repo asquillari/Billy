@@ -19,7 +19,9 @@ export default function Login() {
         navigation.navigate('(tabs)' as never);
       } 
       else Alert.alert('Login Failed', 'Invalid email or password');
-    } catch (error) {
+    } 
+    
+    catch (error) {
       Alert.alert('Login Error', 'An error occurred during login');
     }
   };
