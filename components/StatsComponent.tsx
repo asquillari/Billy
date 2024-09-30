@@ -55,9 +55,7 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
         categoryData.map(async (category) => {
           let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
           idColorMap.set(category.id || "", color);
-
           const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
-
           return { label: category.name, amount: total, color } as Expense;
         })
       );
@@ -105,16 +103,13 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
   return (
     <View style={styles.pieContainer}>
       <Svg height={250} width={250}>
-
         <Circle cx={center} cy={center} r={radius} stroke="#f0f0f0" strokeWidth={strokeWidth} fill="transparent"/>
-        
         {data.map((item, index) => {
           if (!item.color || typeof item.color !== 'string') return null;
           const percentage = item.amount !== null ? item.amount / total : 0;
           const strokeDashoffset = circumference * (1 - percentage);
           return ( <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${center} ${center})`}/> );
         })}
-
       </Svg>
 
       <View style={styles.valueContainer}>
