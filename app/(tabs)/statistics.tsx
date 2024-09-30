@@ -46,35 +46,28 @@ const App = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
-        <View style={styles.selectorContainer}>
-          {['month', 'year'].map((type) => (
-            <TouchableOpacity key={type} onPress={toggleSelector(type as 'month' | 'year')} style={[styles.selectorButton, { backgroundColor: selectedButton === type ? '#4B00B8' : '#fff' }]}>
-              <Text style={[styles.selectorText, { color: selectedButton === type ? '#fff' : '#4A00E0' }]}>
-                {type === 'month' ? 'Mes' : 'Año'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {renderSelector(selectedButton)}
-        <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} />
-      </LinearGradient>
-    </SafeAreaView>
+    <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
+      <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
+      <View style={styles.selectorContainer}>
+        {['month', 'year'].map((type) => (
+          <TouchableOpacity key={type} onPress={toggleSelector(type as 'month' | 'year')} style={[styles.selectorButton, { backgroundColor: selectedButton === type ? '#4B00B8' : '#fff' }]}>
+            <Text style={[styles.selectorText, { color: selectedButton === type ? '#fff' : '#4A00E0' }]}>
+              {type === 'month' ? 'Mes' : 'Año'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {renderSelector(selectedButton)}
+      <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} />
+    </LinearGradient>
   );
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    backgroundColor:'#3e0196',
-  },
   card: {
-    width: SCREEN_WIDTH,
+    minHeight: SCREEN_HEIGHT * 0.62,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -122,14 +115,6 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
-  },
-  contentContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: 10,
-    marginHorizontal: '2.5%',
   },
 });
 

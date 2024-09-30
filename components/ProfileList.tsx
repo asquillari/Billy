@@ -67,13 +67,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   const keyExtractor = useCallback((item: ProfileData | 'add') => typeof item === 'string' ? item : item.id?.toString() ?? '', []);
 
   return (
-    <FlatList
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      numColumns={2}
-      columnWrapperStyle={styles.row}
-    />
+    <FlatList data={data} renderItem={renderItem} keyExtractor={keyExtractor} numColumns={2} columnWrapperStyle={styles.row}/>
   );
 };
 
