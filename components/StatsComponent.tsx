@@ -8,11 +8,13 @@ import { useProfile } from '@/app/contexts/ProfileContext';
     
 interface Expense {
   label: string;
-  amount: number | null; 
+  amount: number; 
   color: string;
 }
 
 const generateRandomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+
+const parseDate = (month: number, year: number, init: number): Date => { return new Date(year, month, init); }
 
 export const StatsComponent = React.memo(({ month, year }: { month: number; year: number }) => {
   const { userEmail } = useUser();
@@ -69,9 +71,7 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
   const getColorForCategory = (category: CategoryData, colorsRegistered: Set<string>): string => {
     const colors = JSON.parse(category.color);
     let color = colors[1];
-    if (colorsRegistered.has(color)) {
-      color = generateRandomColor();
-    }
+    if (colorsRegistered.has(color)) color = generateRandomColor();
     colorsRegistered.add(color);
     return color;
   };
@@ -85,7 +85,7 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
 
   return (
     <View style={styles.container}>
-      <PieChart data={expenses} />
+      <PieChart data={expenses}/>
       <View style={styles.box}>
         {expenses.map((expense) => (
           <ExpenseItem key={expense.label} expense={expense} maxAmount={maxAmount} />
@@ -100,10 +100,7 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
   const strokeWidth = 30;
   const center = radius + strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
-
   const total = useMemo(() => data.reduce((sum, item) => sum + (item.amount ?? 0), 0), [data]);
-
-  let offset = 0;
 
   return (
     <View style={styles.pieContainer}>
@@ -117,7 +114,7 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
           const strokeDashoffset = circumference * (1 - percentage);
           return ( <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${center} ${center})`}/> );
         })}
-        
+
       </Svg>
 
       <View style={styles.valueContainer}>
@@ -126,10 +123,6 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
     </View>
   );
 });
-
-function parseDate(month: number, year: number, init: number): Date {
-  return new Date(year, month, init);
-}
 
 const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxAmount: number }) => {
   const { label, amount, color } = expense;
@@ -146,73 +139,73 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
 });
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "flex-start",
-      padding: 10,
-      paddingTop: 260, 
-    },
-    box: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      width: "100%",
-      maxWidth: 400, 
-      marginTop: 20, 
-    },
-    expenseItem: {
-      width: "48%", 
-      height: 80,
-      backgroundColor: "#fff",
-      borderRadius: 12,
-      elevation: 4, 
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      marginBottom: 10,
-      padding: 10,
-      justifyContent: "flex-start",
-    },
-    textContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10, 
-    },
-    textWrapper: {
-      color: "#3c3c3c",
-      fontSize: 16,
-      fontWeight: "400",
-    },
-    textWrapperAmount: {
-      color: "#3c3c3c",
-      fontSize: 12,
-    },
-    rectangle: {
-      borderRadius: 25,
-      height: 13,
-    },
-    pieContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: 15,
-      marginBottom: 15, 
-      position: "absolute", 
-      marginLeft: -125,
-    },
-    valueContainer: {
-      position: "absolute",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    valueText: {
-      fontSize: 36,
-      color: '#3c3c3c',
-      textAlign: 'center',
-      marginVertical: -5,
-    },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    padding: 10,
+    paddingTop: 260, 
+  },
+  box: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    width: "100%",
+    maxWidth: 400, 
+    marginTop: 20, 
+  },
+  expenseItem: {
+    width: "48%", 
+    height: 80,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    elevation: 4, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    marginBottom: 10,
+    padding: 10,
+    justifyContent: "flex-start",
+  },
+  textContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10, 
+  },
+  textWrapper: {
+    color: "#3c3c3c",
+    fontSize: 16,
+    fontWeight: "400",
+  },
+  textWrapperAmount: {
+    color: "#3c3c3c",
+    fontSize: 12,
+  },
+  rectangle: {
+    borderRadius: 25,
+    height: 13,
+  },
+  pieContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 15,
+    marginBottom: 15, 
+    position: "absolute", 
+    marginLeft: -125,
+  },
+  valueContainer: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  valueText: {
+    fontSize: 36,
+    color: '#3c3c3c',
+    textAlign: 'center',
+    marginVertical: -5,
+  },
 });
 
 export default StatsComponent;
