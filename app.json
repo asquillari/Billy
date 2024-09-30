@@ -8,9 +8,10 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/Billy/logo1.png",
+      "image": "./assets/images/Billy/logo2.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
+      
     },
     "ios": {
       "supportsTablet": true
