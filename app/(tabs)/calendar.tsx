@@ -36,7 +36,6 @@ export default function CalendarScreen() {
 
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
-  const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
@@ -55,10 +54,6 @@ export default function CalendarScreen() {
       }
     }
   }, [userEmail, setCurrentProfileId]);
-
-  const onMonthChange = (month: { dateString: string }) => {
-    setCurrentDate(month.dateString);
-  };
 
   const onYearPress = () => {
     setViewMode('year');
@@ -105,9 +100,7 @@ export default function CalendarScreen() {
   const processTransactions = useCallback(async () => {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
-
     const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
-    
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
     incomeData?.forEach(income => {
