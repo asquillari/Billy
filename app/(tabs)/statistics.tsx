@@ -63,11 +63,11 @@ const App = () => {
   );
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   card: {
-    width: SCREEN_WIDTH,
+    minHeight: SCREEN_HEIGHT * 0.62,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
