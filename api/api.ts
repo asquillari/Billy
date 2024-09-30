@@ -621,8 +621,6 @@ export async function fetchCurrentProfile(user: string) {
 /* Stats */
 
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
-  console.log(profile);
-  
   const startISO = start.toISOString();
   const endISO = end.toISOString();
   

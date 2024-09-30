@@ -4,8 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
-import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { CategoryList } from '../../components/CategoryList';
+import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { getOutcomesFromDateRange, fetchCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../contexts/ProfileContext';
@@ -13,7 +13,6 @@ import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
 import { useUser } from '@/app/contexts/UserContext';
 
-// Configuración personalizada de las flechas
 const customArrowLeft = () => {
   return (
     <View style={styles.arrowContainer}>
@@ -36,7 +35,6 @@ export default function CalendarScreen() {
 
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
-  const [showYearPicker, setShowYearPicker] = useState(false);
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
@@ -56,22 +54,18 @@ export default function CalendarScreen() {
     }
   }, [userEmail, setCurrentProfileId]);
 
-  const onMonthChange = (month: { dateString: string }) => {
-    setCurrentDate(month.dateString);
-  };
-
   const onYearPress = () => {
     setViewMode('year');
   };
 
-  const selectYear = (year: number) => {
+  const selectYear = useCallback((year: number) => {
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
     setCurrentDate(newDate);
     setViewMode('month');
     setKey(prevKey => prevKey + 1);
-  };
+  }, [currentDate]);
 
-  const renderCustomHeader = (date: any) => {
+  const renderCustomHeader = useCallback((date: any) => {
     const month = date.toString('MMMM');
     const year = date.toString('yyyy');
     return (
@@ -79,126 +73,115 @@ export default function CalendarScreen() {
         <Text style={styles.customHeaderText}>{`${month} ${year}`}</Text>
       </TouchableOpacity>
     );
-  };
+  }, [onYearPress]);
 
-  const renderYearPicker = () => {
-    return (
-      <FlatList
-        data={years}
-        numColumns={3}
-        renderItem={({item}) => (
-          <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
-            <Text style={styles.yearText}>{item}</Text>
-          </TouchableOpacity>
-        )}
-        keyExtractor={item => item.toString()}
-        contentContainerStyle={styles.yearPickerContainer}
-      />
-    );
-  };
+  const renderYearPicker = useCallback(() => (
+    <FlatList
+      data={years}
+      numColumns={3}
+      renderItem={({item}) => (
+        <TouchableOpacity onPress={() => selectYear(item)} style={styles.yearItem}>
+          <Text style={styles.yearText}>{item}</Text>
+        </TouchableOpacity>
+      )}
+      keyExtractor={item => item.toString()}
+      contentContainerStyle={styles.yearPickerContainer}
+    />
+  ), [years, selectYear]);
 
-  const openModal = (type: 'income' | 'outcome') => {
+  const openModal = useCallback((type: 'income' | 'outcome') => {
     setModalType(type);
     setModalVisible(true);
-  };
+  }, []);
 
   const processTransactions = useCallback(async () => {
+    if (!currentProfileId) return;
+    
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
-
-    const outcomes = await getOutcomesFromDateRange(currentProfileId || "", startOfMonth, endOfMonth) || [];
     
+    const outcomes = await getOutcomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
+
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
+
+    const addDot = (date: string, id: string, color: string) => {
+      if (marked[date]) marked[date].dots.push({ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }); 
+      else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }] };
+    };
 
     incomeData?.forEach(income => {
       const date = moment(income.created_at).format('YYYY-MM-DD');
-      if (marked[date]) marked[date].dots.push({ key: `income-${income.id}`, color: '#4CAF50' });
-      else marked[date] = { dots: [{ key: `income-${income.id}`, color: '#4CAF50' }] };
+      addDot(date, income.id?.toString() || '', '#4CAF50');
     });
 
     if (Array.isArray(outcomes)) {
-      outcomes?.forEach(outcome => {
+      outcomes?.forEach((outcome: any) => {
         const date = moment(outcome.created_at).format('YYYY-MM-DD');
-        if (marked[date]) marked[date].dots.push({ key: `outcome-${outcome.id}`, color: '#F44336' });
-        else marked[date] = { dots: [{ key: `outcome-${outcome.id}`, color: '#F44336' }] };
-      }, [currentProfileId]);
+        addDot(date, outcome.id?.toString() || '', '#F44336');
+      });
     }
 
     setMarkedDates(marked);
-  }, [currentDate]);
-
-  useEffect(() => {
-    getIncomeData();
-    getOutcomeData();
-    getCategoryData();
-    processTransactions();
-  }, [processTransactions]);
+  }, [currentDate, currentProfileId, incomeData, getOutcomesFromDateRange]);
 
   useFocusEffect(
-    useCallback(() => { 
-      fetchProfile();
-      getCategoryData();
-      processTransactions(); 
-  }, [processTransactions]));
+    useCallback(() => {
+      const refreshData = async () => {
+        await fetchProfile();
+        if (currentProfileId) {
+          await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+          processTransactions();
+        }
+      };
+      refreshData();
+    }, [fetchProfile, currentProfileId, getCategoryData, processTransactions])
+  );
+  
+  const memoizedCalendar = useMemo(() => (
+    <Calendar
+      key={key}
+      current={currentDate}
+      markedDates={markedDates}
+      markingType={'multi-dot'}
+      renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
+      onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
+      renderHeader={renderCustomHeader}
+      theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
+    />
+  ), [key, currentDate, markedDates, renderCustomHeader]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} start={{x: 1, y: 0}} end={{x: 0, y: 1}} style={styles.gradientContainer}>
-        <SafeAreaView style={styles.safeArea}>
-        <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
+          <BillyHeader title="Calendario" subtitle="Organizá tus fechas de pago y cobro."/>
           <View style={styles.contentContainer}>
-            
             <View style={styles.calendarContainer}>
-              {viewMode === 'month' ? (
-                <Calendar
-                  key={key}
-                  current={currentDate}
-                  markedDates={markedDates}
-                  markingType={'multi-dot'}
-                  style={styles.calendar}
-                  renderArrow={(direction: 'left' | 'right') => direction === 'left' ? customArrowLeft() : customArrowRight()}
-                  onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
-                  renderHeader={renderCustomHeader}
-                  theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
-                  onPressArrowLeft={(subtractMonth: () => void) => subtractMonth()}
-                  onPressArrowRight={(addMonth: () => void) => addMonth()}
-                />
-              ) : (
-                <View style={styles.yearPickerWrapper}>
-                  {renderYearPicker()}
-                </View>
-              )}
+              {viewMode === 'month' ? memoizedCalendar : renderYearPicker()}
             </View>
-            
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('income')}>
-                <Ionicons name="add-circle" size={24} color="white"/>
-                <Text style={styles.buttonTextCobro}>Ingreso</Text>
+                <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
+                <Text style={styles.buttonTextCobro}>Agregar cobro</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('outcome')}>
-                <Ionicons name="add-circle" size={24} color="#370185"/>
-                <Text style={styles.buttonTextPago}>Gasto</Text>
+                <Ionicons name="remove-circle-outline" size={24} color="#370185" />
+                <Text style={styles.buttonTextPago}>Agregar pago</Text>
               </TouchableOpacity>
             </View>
-
             <View style={styles.categoryListContainer}>
               <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId || ""} showAddButton={false}/>
             </View>
-        
           </View>
-        </SafeAreaView>
-
-        <CalendarAddModal
-          isVisible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          initialType={modalType}
-          refreshIncomeData={getIncomeData}
-          refreshOutcomeData={getOutcomeData}
-          refreshCategoryData={getCategoryData}
-          refreshTransactions={processTransactions}
-          currentProfileId={currentProfileId || ""}
-        />
-
+          <CalendarAddModal
+            isVisible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            initialType={modalType}
+            refreshIncomeData={getIncomeData}
+            refreshOutcomeData={getOutcomeData}
+            refreshCategoryData={getCategoryData}
+            refreshTransactions={processTransactions}
+            currentProfileId={currentProfileId || ""}
+          />
       </LinearGradient>
     </View>
   );
@@ -211,9 +194,6 @@ const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-  },
   contentContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -222,29 +202,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: '2.5%',
   },
-  barraSuperior: {
-    height: 61,
-    backgroundColor: '#ffffff',
-    borderRadius: 30,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 28,
-    marginHorizontal: 10,
-    marginBottom: 10,
-  },
-  usuario: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
   calendarContainer: {
     height: 320,
     borderRadius: 20,
@@ -252,12 +209,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     width: '100%',
-  },
-  calendar: {
-    height: '100%',
-  },
-  yearPickerWrapper: {
-    height: '100%',
   },
   arrowContainer: {
     width: 20,
@@ -302,11 +253,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#735BF2',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#735BF2',
-  },
   yearItem: {
     flex: 1,
     aspectRatio: 1.5,
@@ -325,17 +271,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 5,
-  },
-  tituloContainer: {
-    height: 55,
-    marginHorizontal: 20,
-    marginBottom: 10,
-  },
-  tituloTexto: {
-    color: '#ffffff',
-    fontSize: 32,
-    fontWeight: '400',
-    letterSpacing: -1.6,
   },
   subtituloTexto: {
     color: '#ffffff',
@@ -394,79 +329,6 @@ const styles = StyleSheet.create({
     color: '#370185',
     fontSize: 14,
     marginLeft: 10,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modal: {
-    backgroundColor: '#ffffff',
-    borderRadius: 17,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#B29BD3',
-    borderRadius: 12,
-    position: 'relative',
-    width: '80%',
-    height: 40,
-  },
-  toggleButton: {
-    padding: 10,
-    width: '50%',
-    alignItems: 'center',
-  },
-  bubble: {
-    position: 'absolute',
-    width: '48%',
-    height: '90%',
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    top: '5%',
-  },
-  toggleText: {
-    fontSize: 12,
-    color: '#370185',
-  },
-  activeToggleText: {
-    color: '#370185',
-  },
-  title: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#DDDDDD',
-    borderRadius: 7,
-    padding: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  button: {
-    backgroundColor: '#370185',
-    borderRadius: 10,
-    padding: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
   },
   categoryListContainer: {
     marginTop: 20,

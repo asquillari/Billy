@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,11 +16,16 @@ interface ProfileListProps {
 
 export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email, currentProfileId }) => {
   const navigation = useNavigation();
+  const [localCurrentProfileId, setLocalCurrentProfileId] = useState<string | null>(currentProfileId);
 
   const handleProfilePress = useCallback((profile: ProfileData) => {
-    changeCurrentProfile(email, profile.id ?? "null");
-    navigation.navigate('index' as never);
-  }, []);
+    const newProfileId = profile.id ?? "null";
+    changeCurrentProfile(email, newProfileId).then(() => {
+      setLocalCurrentProfileId(newProfileId);
+      refreshData();
+      navigation.navigate('index' as never);
+    });
+  }, [email, refreshData, navigation]);
 
   const handleRemoveProfile = async (id: string) => {
     await removeProfile(id);
@@ -37,7 +42,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [refreshData]);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
-    const isCurrentProfile = item !== 'add' && item.id === currentProfileId;
+    const isCurrentProfile = item !== 'add' && item.id === localCurrentProfileId;
     const isSharedProfile = item !== 'add' && item.is_shared == true;
     if (item === 'add') {
      return (
@@ -55,7 +60,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </TouchableOpacity>
     );
-  }, [onAddProfile, handleProfilePress, handleLongPress, currentProfileId]);
+  }, [onAddProfile, handleProfilePress, handleLongPress, localCurrentProfileId]);
 
   const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
 
