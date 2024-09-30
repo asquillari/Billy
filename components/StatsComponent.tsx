@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
 import { useUser } from '@/app/contexts/UserContext';
 import { useProfile } from '@/app/contexts/ProfileContext';
-    
+
 interface Expense {
   label: string;
   amount: number; 
@@ -22,6 +22,12 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
+  const getCategories = useCallback(async () => {
+    if (!currentProfileId) return;
+    const categories = await fetchCategories(currentProfileId);
+    setCategoryData(categories);
+  }, [currentProfileId]);
+
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
@@ -31,18 +37,12 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
     }
   }, [userEmail, setCurrentProfileId]);
 
-  useFocusEffect(useCallback(() => {
-    fetchProfile();
-  }, [fetchProfile]));
-
-  useEffect(() => {
-    if (!currentProfileId) return;
-    const getCategories = async () => {
-      const categories = await fetchCategories(currentProfileId);
-      setCategoryData(categories);
-    };
-    getCategories();
-  }, [currentProfileId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      getCategories();
+    }, [fetchProfile, fetchCategories])
+  );
 
   useEffect(() => {
     if (!categoryData || !currentProfileId) return;
