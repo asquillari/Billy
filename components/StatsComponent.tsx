@@ -112,8 +112,12 @@ const PieChart = React.memo(({ data }: { data: Expense[] }) => {
           const strokeDashoffset = circumference * (1 - percentage);
           const rotation = accumulatedPercentage * 360;
           accumulatedPercentage += percentage;
+
+          const validStrokeDashoffset = isNaN(strokeDashoffset) ? 0 : strokeDashoffset;
+          const validRotation = isNaN(rotation) ? 0 : rotation;
+
           return (
-            <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset} transform={`rotate(${rotation} ${center} ${center})`} strokeLinecap='round'/>
+            <Circle key={index} cx={center} cy={center} r={radius} stroke={item.color} strokeWidth={strokeWidth} fill="transparent" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={validStrokeDashoffset} transform={`rotate(${validRotation} ${center} ${center})`} strokeLinecap='round'/>
           );
         })}
       </Svg>
