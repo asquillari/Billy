@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
@@ -8,12 +8,12 @@ import { Dimensions } from "react-native";
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const Stats = React.memo(({ selectedMonth, selectedYear }: { selectedMonth: number; selectedYear: number }) => (
-  <View>
+  <ScrollView>
     <View style={styles.card}>
       <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-      <StatsComponent month={selectedMonth} year={selectedYear} />
+      <StatsComponent month={selectedMonth} year={selectedYear}/>
     </View>
-  </View>
+  </ScrollView>
 ));
 
 const App = () => {
