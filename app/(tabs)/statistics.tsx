@@ -6,9 +6,8 @@ import { BillyHeader } from "@/components/BillyHeader";
 import { Dimensions } from "react-native";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const years = [2022, 2023, 2024, 2025];
 
-const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, selectedYear:number}) => {
+const Stats = ({ selectedMonth, selectedYear } : {selectedMonth:number, selectedYear:number}) => {
 
   return (
     <View>
@@ -23,7 +22,7 @@ const Estadsticas = ({ selectedMonth, selectedYear } : {selectedMonth:number, se
 const App = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedYear, setSelectedYear] = useState(years.indexOf(currentDate.getFullYear()));
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [showMonthSelector, setShowMonthSelector] = useState(true);
   const [showYearSelector, setShowYearSelector] = useState(false);
   const [selectedButton, setSelectedButton] = useState('month');
@@ -49,11 +48,11 @@ const App = () => {
   };
 
   const nextYear = () => {
-    setSelectedYear((prev) => (prev + 1) % years.length);
+    setSelectedYear((prev) => prev + 1);
   };
 
   const prevYear = () => {
-    setSelectedYear((prev) => (prev - 1 + years.length) % years.length);
+    setSelectedYear((prev) => prev - 1);
   };
 
   return (
@@ -64,27 +63,13 @@ const App = () => {
         <View style={styles.selectorContainer}>
           <TouchableOpacity
             onPress={toggleMonthSelector}
-            style={[
-              styles.selectorButton,
-              { backgroundColor: selectedButton === 'month' ? '#4B00B8' : '#fff' }
-            ]}
-            >
-            <Text style={[
-              styles.selectorText,
-              { color: selectedButton === 'month' ? '#fff' : '#4A00E0' }
-            ]}>Mes</Text>
+            style={[ styles.selectorButton, { backgroundColor: selectedButton === 'month' ? '#4B00B8' : '#fff' } ]}>
+            <Text style={[ styles.selectorText, { color: selectedButton === 'month' ? '#fff' : '#4A00E0' } ]}>Mes</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={toggleYearSelector}
-            style={[
-              styles.selectorButton,
-              { backgroundColor: selectedButton === 'year' ? '#4B00B8' : '#fff' }
-            ]}
-            >
-            <Text style={[
-              styles.selectorText,
-              { color: selectedButton === 'year' ? '#fff' : '#4A00E0' }
-            ]}>Año</Text>
+            style={[ styles.selectorButton, { backgroundColor: selectedButton === 'year' ? '#4B00B8' : '#fff' } ]}>
+            <Text style={[ styles.selectorText, { color: selectedButton === 'year' ? '#fff' : '#4A00E0' } ]}> Año </Text>
           </TouchableOpacity>
         </View>
 
@@ -105,14 +90,14 @@ const App = () => {
               <TouchableOpacity onPress={prevYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{"<"}</Text>
               </TouchableOpacity>
-              <Text style={styles.selectorText}>{years[selectedYear]}</Text>
+              <Text style={styles.selectorText}>{selectedYear}</Text>
               <TouchableOpacity onPress={nextYear} style={styles.arrowButton}>
                 <Text style={styles.arrowText}>{">"}</Text>
               </TouchableOpacity>
             </View>
           )}
           
-          <Estadsticas selectedMonth={selectedMonth} selectedYear={years[selectedYear]} />
+          <Stats selectedMonth={selectedMonth} selectedYear={selectedYear}/>
        
       </LinearGradient>
     </SafeAreaView>
