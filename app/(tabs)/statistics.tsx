@@ -65,7 +65,6 @@ const App = () => {
   );
 };
 
-
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
@@ -76,42 +75,20 @@ const styles = StyleSheet.create({
   },
   card: {
     width: SCREEN_WIDTH,
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3,
-    marginBottom: 20,
     flex: 1
   },
   monthText: {
     fontSize: 28,
     color: '#3e0196',
     textAlign: 'center',
-  },
-  amountText: {
-    fontSize: 48,
-    color: '#3c3c3c',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  categoryList: {
-    marginVertical: 10,
-  },
-  category: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  categoryName: {
-    fontSize: 18,
-    color: '#3c3c3c',
-  },
-  categoryAmount: {
-    fontSize: 18,
-    color: '#3c3c3c',
   },
   selectorContainer: {
     flexDirection: 'row',
@@ -147,6 +124,14 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 10,
+    marginHorizontal: '2.5%',
   },
 });
 

@@ -61,7 +61,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
-        <Text style={styles.title}>Crear una carpeta</Text>
+        <Text style={styles.title}>Crear una categoría</Text>
 
           <TextInput 
             style={styles.input} 
