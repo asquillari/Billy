@@ -12,21 +12,14 @@ interface Expense {
   color: string;
 }
 
-interface ColorObject {
-  color: string;
-  id: string;
-}
-
 const generateRandomColor = () => {
   return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 };
 
-//month starts in 0 to 11.
 export const StatsComponent = ({ month, year }: { month: number; year: number }) => {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
-
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const fetchProfile = useCallback(async () => {
@@ -44,65 +37,52 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
   );
 
   useEffect(() => {
-    const fetchExpenses = async () => {
-      const categories = await fetchCategories(currentProfileId??"");  
-      const idColor: ColorObject[] = [];
-      const colorsRegistered: string[] = [];
-
+    if (!currentProfileId) return;
+    const getCategories = async () => {
+      const categories = await fetchCategories(currentProfileId);
       setCategoryData(categories);
-
-      if (categoryData) {
-        const calculatedExpenses = await Promise.all(
-          categoryData.map(async (category) => {
-            let colorRegistered: string | undefined; 
-          
-            const isRegistered = idColor.some(item => item.id === category.id);
-      
-            if (isRegistered) {
-              colorRegistered = idColor.find(item => item.id === category.id)?.color;
-            }
-
-            else {
-              const colors = JSON.parse(category.color);
-              const Color = colors[1]; 
-      
-              if (colorsRegistered.includes(Color)) {
-                colorRegistered = generateRandomColor();
-                colorsRegistered.push(colorRegistered);
-              }
-              
-              else {
-                colorRegistered = Color; 
-                colorsRegistered.push(colorRegistered||'');
-              }
-      
-              idColor.push({ id: category.id || "", color: colorRegistered || "" });
-            }
-
-            const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(
-              currentProfileId || '',
-              parseDate(month, year, 1),
-              parseDate(month, year, 30), 
-              category.id || ''
-            ); 
-
-            let total = 0;
-
-            if (Array.isArray(OutcomeFromCategory)) {
-              OutcomeFromCategory.forEach(outcome => {
-                total += outcome.amount;
-              }, [currentProfileId]);
-            };
-
-            return { label: category.name, amount: total, color: colorRegistered } as Expense;
-          })
-        );
-      
-        setExpenses(calculatedExpenses);
-      }
     };
-    fetchExpenses();
-  }, [categoryData, month, year]);
+    getCategories();
+  }, [currentProfileId]);
+
+  useEffect(() => {
+    if (!categoryData || !currentProfileId) return;
+
+    const calculateExpenses = async () => {
+      const idColorMap = new Map<string, string>();
+      const colorsRegistered = new Set<string>();
+
+      const calculatedExpenses = await Promise.all(
+        categoryData.map(async (category) => {
+          let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
+          idColorMap.set(category.id || "", color);
+
+          const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
+
+          return { label: category.name, amount: total, color } as Expense;
+        })
+      );
+    
+      setExpenses(calculatedExpenses);
+    };
+
+    calculateExpenses();
+  }, [categoryData, currentProfileId, month, year]);
+
+  const getColorForCategory = (category: CategoryData, colorsRegistered: Set<string>): string => {
+    const colors = JSON.parse(category.color);
+    let color = colors[1];
+    if (colorsRegistered.has(color)) {
+      color = generateRandomColor();
+    }
+    colorsRegistered.add(color);
+    return color;
+  };
+  
+  const getCategoryTotal = async (profileId: string, categoryId: string, month: number, year: number): Promise<number> => {
+    const OutcomeFromCategory = await getOutcomesFromDateRangeAndCategory(profileId, parseDate(month, year, 1), parseDate(month, year, 30), categoryId);
+    return Array.isArray(OutcomeFromCategory) ? OutcomeFromCategory.reduce((sum, outcome) => sum + outcome.amount, 0) : 0;
+  };
 
   const maxAmount = expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0);
 
@@ -118,7 +98,6 @@ export const StatsComponent = ({ month, year }: { month: number; year: number })
   );
 };
 
-// PieChart2 component
 const PieChart2 = ({ data }: { data: Expense[] }) => {
 
   const radius = 110;
