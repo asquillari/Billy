@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome, fetchCategories, CategoryData } from '@/api/api';
+import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers } from '@/api/api';
 import moment from 'moment';
 
 interface AddTransactionModalProps {
@@ -24,6 +24,18 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const [bubbleAnimation] = useState(new Animated.Value(0));
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [shared, setShared] = useState<boolean | null>(null);
+  const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
+  const [selectedSharedUser, setSelectedSharedUser] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    if (currentProfileId) {
+      isProfileShared(currentProfileId).then(setShared);
+      if (shared) {
+        getSharedUsers(currentProfileId).then(setSharedUsers);
+      }
+    }
+  }, [currentProfileId]);
 
   const fetchCategoriesData = useCallback(() => {
     fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
@@ -113,6 +125,13 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
               placeholderTextColor="#AAAAAA"
             />
 
+            {type==='Outcome' && shared && (
+               <ParticipantSelect
+               sharedUsers={sharedUsers}
+               onSelect={(users: string[]) => setSelectedSharedUser(users)}
+             />
+            )}
+
             {type === 'Outcome' && (
               <View style={styles.pickerContainer}>
                 <Picker
@@ -153,6 +172,81 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     </Modal>
   );
 };
+
+const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | null; onSelect: (users: string[]) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  const dummyUsers = [
+    'Alice Johnson',
+    'Bob Smith',
+    'Charlie Brown',
+    'Diana Prince',
+    'Ethan Hunt',
+    'Fiona Apple',
+    'George Clooney',
+    'Hannah Montana',
+  ];
+
+  const toggleUser = (user: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(user) ? prev.filter(u => u !== user) : [...prev, user]
+    );
+  };
+
+  const handleDone = () => {
+    onSelect(selectedUsers);
+    setIsOpen(false);
+    console.log({selectedUsers});
+  };
+
+
+  return (
+    <View style={styles.selectContainer}>
+      <TouchableOpacity 
+        style={styles.selectButton} 
+        onPress={() => setIsOpen(!isOpen)}
+      >
+        <Text style={styles.selectButtonText}>Participantes</Text>
+        <Icon name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={24} color="#000" />
+      </TouchableOpacity>
+      
+      {isOpen && (
+        <Modal transparent visible={isOpen} animationType="fade">
+          <TouchableOpacity 
+            style={styles.modalOverlay} 
+            activeOpacity={1} 
+          >
+            <View style={styles.dropdown}>
+              <ScrollView>
+
+                //Aca en vez de dummyUsers, usar sharedUsers. 
+                {dummyUsers?.map((user: string) => (
+                  <TouchableOpacity
+                    key={user}
+                    style={styles.option}
+                    onPress={() => toggleUser(user)}
+                  >
+                    <View style={styles.userRow}>
+                      <Text style={styles.optionText}>{user}</Text>
+                      <View style={[styles.checkbox, selectedUsers.includes(user) && styles.checkedBox]}>
+                        {selectedUsers.includes(user) && <Text style={styles.tick}>✓</Text>}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </View>
+  );
+};
+
 
 const styles = StyleSheet.create({
   modalBackground: {
@@ -297,6 +391,79 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 50,
   },
+  selectContainer: {
+    marginBottom: 16,
+  },
+  selectButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  selectButtonText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  dropdown: {
+    width: '80%',
+    maxHeight: 300,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 8,
+    elevation: 5,
+  },
+  option: {
+    padding: 12,
+  },
+  optionText: {
+    fontSize: 16,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  tick: {
+    color: '#FFFFFF',
+    fontSize: 18,
+  },
+  userRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5, // Adjust as needed
+  },
+
+checkedBox: {
+  backgroundColor: '#370185',
+  borderColor: '#370185',
+},
+doneButton: {
+  backgroundColor: '#370185',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  marginTop: 10,
+},
+doneButtonText: {
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
 });
 
 export default AddTransactionModal;
