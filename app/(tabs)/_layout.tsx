@@ -1,13 +1,8 @@
-import { Tabs } from 'expo-router';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
-
-const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
 
@@ -35,9 +30,13 @@ const TabNavigator = () => {
           borderTopWidth: 0,
           elevation: 0,
           height: 60,
+          paddingBottom: 5,
         },
         tabBarLabelStyle: {
           fontSize: 12,
+        },
+        tabBarSafeAreaInsets: {
+          bottom: 20,
         },
       })}
     >
