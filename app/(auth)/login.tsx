@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { logIn } from '@/api/api';
 import { useUser } from '../contexts/UserContext';
@@ -8,8 +9,13 @@ import { useUser } from '../contexts/UserContext';
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [password, setPassword] = useState('');
   const { setUserEmail } = useUser();
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   const handleLogin = async () => {
     try {
@@ -28,17 +34,29 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
-      </TouchableOpacity>
       <Image style={styles.logo} source={require('../../assets/images/Billy/billy-start.png')}/>
       <View style={styles.whiteContainer}>
-        <ThemedText style={styles.title}>Inicio de sesión</ThemedText>
+
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
+          </TouchableOpacity>
+          <ThemedText style={styles.title}>Inicio de sesión</ThemedText>
+        </View>
+        
         <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
-        <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
+
+        <View style={styles.inputContainer}>
+          <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry={!passwordVisible} value={password} onChangeText={setPassword}/>
+          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeButton}>
+            <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+        
         <TouchableOpacity>
           <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
         </TouchableOpacity>
+        
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
         </TouchableOpacity>
@@ -48,9 +66,16 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+  },
   container: {
     backgroundColor: '#4B00B8',
     justifyContent: 'center',
+    flex: 1,
   },
   whiteContainer: {
     backgroundColor: 'white',
@@ -62,12 +87,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 40,
-    left: 20,
+    left: 10,
+    bottom: 15,
   },
   backButtonText: {
     color: 'black',
-    fontSize: 24,
+    fontSize: 30,
   },
   logo: {
     width: '100%',
@@ -80,7 +105,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'black',
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: '50%',
+    transform: [{ translateY: -16 }], 
   },
   input: {
     borderColor: 'black',
@@ -93,6 +124,10 @@ const styles = StyleSheet.create({
   forgotPassword: {
     color: 'black',
     textDecorationLine: 'underline',
+  },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
   },
   loginButton: {
     backgroundColor: 'black',
