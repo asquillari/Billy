@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'black',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   input: {
     borderColor: 'black',
@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     color: 'black',
-    marginBottom: 20,
     textDecorationLine: 'underline',
   },
   loginButton: {
@@ -102,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',

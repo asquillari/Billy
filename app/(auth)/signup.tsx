@@ -44,27 +44,41 @@ export default function Signup() {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
       </TouchableOpacity>
-      <Image source={require('../../assets/images/Billy/logo1.png')} style={styles.logo}/>
-      <ThemedText style={styles.title}>Comenza en Billy</ThemedText>
-      <TextInput style={styles.input} placeholder="Nombre" placeholderTextColor="#999" value={name} onChangeText={setName}/>
-      <TextInput style={styles.input} placeholder="Apellido" placeholderTextColor="#999" value={lastName} onChangeText={setLastName}/>
-      <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
-      <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
-      <TextInput style={styles.input} placeholder="Repetir Contraseña" placeholderTextColor="#999" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword}/>
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-        <ThemedText style={styles.buttonText}>Registrarme</ThemedText>
-      </TouchableOpacity>
+      <Image source={require('../../assets/images/Billy/billy-signup.png')} style={styles.logo}/>
+      <View style={styles.whiteContainer}>
+        <ThemedText style={styles.title}>Comenza en Billy</ThemedText>
+        <View style={styles.nameContainer}>
+          <TextInput style={styles.miniInput} placeholder="Nombre" placeholderTextColor="#999" value={name} onChangeText={setName}/>
+          <TextInput style={styles.miniInput} placeholder="Apellido" placeholderTextColor="#999" value={lastName} onChangeText={setLastName}/>
+        </View>
+        <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
+        <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
+        <TextInput style={styles.input} placeholder="Repetir Contraseña" placeholderTextColor="#999" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword}/>
+        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+          <ThemedText style={styles.buttonText}>Registrarme</ThemedText>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#4B00B8',
-    alignItems: 'center',
     justifyContent: 'center',
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  whiteContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
+    width: '100%',
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -76,28 +90,34 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   logo: {
-    width: 100,
-    height: 40,
-    marginBottom: 20,
-  },
-  illustration: {
     width: '100%',
-    height: 200,
+    height: '47%',
     resizeMode: 'contain',
     marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
     marginBottom: 20,
   },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     width: '100%',
     padding: 15,
     borderRadius: 25,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  miniInput: {
+    backgroundColor: 'transparent',
+    width: '49%',
+    padding: 15,
+    borderRadius: 25,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'black',
   },
   signupButton: {
     backgroundColor: 'black',
@@ -106,7 +126,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
-    marginTop: 10,
   },
   buttonText: {
     color: 'white',
