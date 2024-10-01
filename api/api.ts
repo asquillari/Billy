@@ -493,7 +493,7 @@ export async function removeSharedUsers(profileId: string, emails: string[]) {
 }
 
 export async function getSharedUsers(profileId: string): Promise<string[] | null> {
-  return await getValueFromData(PROFILES_TABLE, 'shared_users', 'id', profileId);
+  return await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
 }
 
 export async function isProfileShared(profileId: string): Promise<boolean | null> {
