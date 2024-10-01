@@ -31,27 +31,34 @@ export default function Login() {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ThemedText style={styles.backButtonText}>{'<'}</ThemedText>
       </TouchableOpacity>
-      <Image style={styles.logo} source={require('../../assets/images/Billy/logo1.png')}/>
-      <ThemedText style={styles.title}>Inicio de sesión</ThemedText>
-      <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
-      <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
-      <TouchableOpacity>
-        <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
-      </TouchableOpacity>
+      <Image style={styles.logo} source={require('../../assets/images/Billy/billy-start.png')}/>
+      <View style={styles.whiteContainer}>
+        <ThemedText style={styles.title}>Inicio de sesión</ThemedText>
+        <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
+        <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword}/>
+        <TouchableOpacity>
+          <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#4B00B8',
-    alignItems: 'center',
     justifyContent: 'center',
+  },
+  whiteContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
+    width: '100%',
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -59,36 +66,34 @@ const styles = StyleSheet.create({
     left: 20,
   },
   backButtonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 24,
   },
   logo: {
-    width: 100,
-    height: 40,
-    marginBottom: 20,
-  },
-  illustration: {
     width: '100%',
-    height: 200,
+    height: '60%',
     resizeMode: 'contain',
     marginBottom: 20,
   },
   title: {
+    paddingTop: 5,
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
     marginBottom: 20,
   },
   input: {
-    backgroundColor: 'white',
+    borderColor: 'black',
+    borderWidth: 1,
     width: '100%',
     padding: 15,
     borderRadius: 25,
     marginBottom: 10,
   },
   forgotPassword: {
-    color: 'white',
+    color: 'black',
     marginBottom: 20,
+    textDecorationLine: 'underline',
   },
   loginButton: {
     backgroundColor: 'black',
