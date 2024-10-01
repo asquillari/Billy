@@ -21,6 +21,7 @@ export interface IncomeData {
   profile: string;
   amount: number;
   description: string;
+  added_by?: string;
   created_at?: Date;
 }
 
@@ -30,6 +31,9 @@ export interface OutcomeData {
   category: string; 
   amount: number;
   description: string;
+  added_by?: string;
+  to_pay?: string[];
+  has_paid?: boolean[];
   created_at?: Date;
 }
 
@@ -49,6 +53,7 @@ export interface ProfileData {
   balance?: number;
   created_at?: Date;
   owner: string;
+  users?: string[];
   is_shared?: boolean;
 }
 
@@ -432,10 +437,11 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
     const newProfile: ProfileData = { name, owner: user };
     const profile = await addData(PROFILES_TABLE, newProfile);
 
-    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
+    const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
+    const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profile.id, new_user: user });
 
-    if (error) {
-      console.error("Failed to append new profile to user's my_profiles:", error);
+    if (userError || profileError) {
+      console.error("Failed to append new profile to user's my_profiles:", userError && profileError);
       await removeData(PROFILES_TABLE, profile.id);
       return null;
     }
@@ -459,7 +465,6 @@ export async function removeProfile(profileId: string) {
     }
 
     return removedProfile;
-
   } 
   
   catch (error) {
@@ -471,8 +476,19 @@ export async function removeProfile(profileId: string) {
 export async function addSharedUsers(profileId: string, emails: string[]) {
   updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
   for (const email of emails) {
-    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
-    if (error) console.error(`Failed to share profile with ${email}:`, error);
+    const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
+    if (userError) console.error(`Failed to share profile with ${email}:`, userError);
+    const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
+    if (profileError) console.error(`Failed to add ${email} to profile ${profileId}:`, profileError);
+  }
+}
+
+export async function removeSharedUsers(profileId: string, emails: string[]) {
+  for (const email of emails) {
+    const { error: userError } = await supabase.rpc('remove_from_my_profiles', { profile_id_param: profileId, user_email: email });
+    if (userError) console.error(`Failed to remove ${email} from profile ${profileId}:`, userError);
+    const { error: profileError } = await supabase.rpc('remove_user_from_profile', { profile_id: profileId, user_email: email });
+    if (profileError) console.error(`Failed to remove ${email} from profile ${profileId}:`, profileError);
   }
 }
 
