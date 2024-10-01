@@ -31,8 +31,10 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   useEffect(() => {
     if (currentProfileId) {
       isProfileShared(currentProfileId).then(setShared);
+      //console.log({shared});
       if (shared) {
         getSharedUsers(currentProfileId).then(setSharedUsers);
+        //console.log({sharedUsers});
       }
     }
   }, [currentProfileId]);
@@ -177,16 +179,16 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const dummyUsers = [
-    'Alice Johnson',
-    'Bob Smith',
-    'Charlie Brown',
-    'Diana Prince',
-    'Ethan Hunt',
-    'Fiona Apple',
-    'George Clooney',
-    'Hannah Montana',
-  ];
+  // const dummyUsers = [
+  //   'Alice Johnson',
+  //   'Bob Smith',
+  //   'Charlie Brown',
+  //   'Diana Prince',
+  //   'Ethan Hunt',
+  //   'Fiona Apple',
+  //   'George Clooney',
+  //   'Hannah Montana',
+  // ];
 
   const toggleUser = (user: string) => {
     setSelectedUsers(prev => 
@@ -197,7 +199,7 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
   const handleDone = () => {
     onSelect(selectedUsers);
     setIsOpen(false);
-    console.log({selectedUsers});
+    //console.log({selectedUsers});
   };
 
 
@@ -221,7 +223,7 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
               <ScrollView>
 
                 {/* //Usar dummyUsers para testear.  */}
-                {dummyUsers?.map((user: string) => (
+                {sharedUsers?.map((user: string) => (
                   <TouchableOpacity
                     key={user}
                     style={styles.option}
@@ -231,7 +233,7 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
                       <Text style={styles.optionText}>{user}</Text>
                       <View style={[styles.checkbox, selectedUsers.includes(user) && styles.checkedBox]}>
                         {selectedUsers.includes(user) && (
-                          <Text style={styles.tick}>✓</Text> // Ensure the tick is directly within a Text component
+                          <Text style={styles.tick}>✓</Text>
                         )}
                       </View>
                     </View>
