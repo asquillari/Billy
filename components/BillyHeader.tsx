@@ -37,7 +37,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
   );
 });
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 30 : (StatusBar.currentHeight ?? 0) + 10;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 35 : (StatusBar.currentHeight ?? 0) + 10;
 
 const styles = StyleSheet.create({
   barraSuperior: {
