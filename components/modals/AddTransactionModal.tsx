@@ -220,7 +220,7 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
             <View style={styles.dropdown}>
               <ScrollView>
 
-                //Aca en vez de dummyUsers, usar sharedUsers. 
+                {/* //Usar dummyUsers para testear.  */}
                 {dummyUsers?.map((user: string) => (
                   <TouchableOpacity
                     key={user}
@@ -230,7 +230,9 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
                     <View style={styles.userRow}>
                       <Text style={styles.optionText}>{user}</Text>
                       <View style={[styles.checkbox, selectedUsers.includes(user) && styles.checkedBox]}>
-                        {selectedUsers.includes(user) && <Text style={styles.tick}>✓</Text>}
+                        {selectedUsers.includes(user) && (
+                          <Text style={styles.tick}>✓</Text> // Ensure the tick is directly within a Text component
+                        )}
                       </View>
                     </View>
                   </TouchableOpacity>
