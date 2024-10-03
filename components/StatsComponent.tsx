@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
-import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
+import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers } from '../api/api';
 import { useUser } from '@/app/contexts/UserContext';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
@@ -16,7 +16,8 @@ const generateRandomColor = () => `#${Math.floor(Math.random() * 16777215).toStr
 
 const parseDate = (month: number, year: number, init: number): Date => { return new Date(year, month, init); }
 
-export const StatsComponent = React.memo(({ month, year }: { month: number; year: number }) => {
+//if mode is false, then it's category. TODO: optimize this. Should be a better way.
+export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
@@ -31,10 +32,13 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
   const calculateExpenses = useCallback(async () => {
     if (!categoryData || !currentProfileId) return;
 
+    let calculatedExpenses: Expense[] = [];
+
+    if (mode === false) { 
     const idColorMap = new Map<string, string>();
     const colorsRegistered = new Set<string>();
 
-    const calculatedExpenses = await Promise.all(
+    calculatedExpenses = await Promise.all(
       categoryData.map(async (category) => {
         let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
         idColorMap.set(category.id || "", color);
@@ -42,6 +46,21 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
         return { label: category.name, amount: total, color } as Expense;
       })
     );
+    }
+    else {
+      const sharedUsers = await getSharedUsers(currentProfileId);
+      if (sharedUsers) {
+        calculatedExpenses = await Promise.all(
+        sharedUsers.map(async (user) => {
+
+          return { label: "test"+ Math.random().toPrecision(1), amount: 10, color: generateRandomColor() } as Expense;
+        //TODO: falta que el back me pase las funciones para que funcione esto. 
+        //const total = await getUserTotal(currentProfileId, user.id || '', month, year);
+        //  return { label: user.name, amount: total, color: generateRandomColor() } as Expense;
+        })
+      );
+      }
+    }
   
     setExpenses(calculatedExpenses);
   }, [categoryData, currentProfileId, month, year]);
