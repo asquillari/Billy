@@ -205,8 +205,14 @@ export async function getIncome(id: string): Promise<IncomeData | null> {
 
 export async function addIncome(profile: string, amount: number, description: string, created_at?: Date): Promise<IncomeData[] | null> {
   try {
-    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at };
-
+    const newIncome: IncomeData = { 
+      profile: profile, 
+      amount: amount, 
+      description: description, 
+      created_at: created_at, 
+      added_by: undefined 
+    };
+    
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(INCOMES_TABLE).insert(newIncome).select(),
       updateBalance(profile, amount)
@@ -273,8 +279,16 @@ export async function addOutcome(profile: string, category: string, amount: numb
       return null;
     }
 
-    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at };
-
+    const newOutcome: OutcomeData = { 
+      profile: profile, 
+      amount: amount, 
+      category: category, 
+      description: description, 
+      created_at: created_at, 
+      added_by: undefined, 
+      has_paid: undefined, 
+      to_pay: undefined 
+    };
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
       updateBalance(profile, -amount),
@@ -695,4 +709,55 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
     console.error("Unexpected error fetching outcomes from date range and category:", error);
     return { error: "An unexpected error occurred." };
   }
+}
+
+/* Shared Profiles */
+export async function addGroupOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, to_pay?: string[], has_paid?: boolean[]): Promise<OutcomeData[] | null> {
+  try {
+    if (category === "" || !(await checkCategoryLimit(category, amount))) {
+      console.log("Couldn't add due to category limit or missing category");
+      return null;
+    }
+
+    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at, to_pay: to_pay, has_paid: has_paid };
+
+    const [{ data: insertData, error: insertError }] = await Promise.all([
+      supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
+      updateBalance(profile, -amount),
+      updateCategorySpent(category, amount)
+    ]);
+
+    if (insertError) {
+      console.error("Error adding outcome:", insertError);
+      return null;
+    }
+
+    return insertData;
+  } catch (error) {
+    console.error("Unexpected error adding outcome:", error);
+    return null;
+  }
+
+}
+
+export async function addGroupIncome(profile: string, category: string, amount: number, description: string, created_at?: Date, added_by?: string): Promise<IncomeData[] | null> {
+  try {
+    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at, added_by: added_by };
+
+    const [{ data: insertData, error: insertError }] = await Promise.all([
+      supabase.from(INCOMES_TABLE).insert(newIncome).select(),
+      updateBalance(profile, amount)
+    ]);
+
+    if (insertError) {
+      console.error("Error adding income:", insertError);
+      return null;
+    }
+
+    return insertData;
+  } catch (error) {
+    console.error("Unexpected error adding income:", error);
+    return null;
+  }
+
 }
