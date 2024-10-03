@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
@@ -6,7 +6,7 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
 import useProfileData from '@/hooks/useProfileData';
-import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
+import { IncomeData, OutcomeData, fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,12 +17,20 @@ export default function HomeScreen() {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
-  
+  const [shared, setShared] = useState<boolean | null>(null);
+  const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
+
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
       if (profileData && typeof profileData === 'string') {
         setCurrentProfileId(profileData);
+        const shared = await isProfileShared(currentProfileId || "");
+        setShared(shared);
+        if (shared) {
+        const sharedUsers = await getSharedUsers(currentProfileId || "");
+          setSharedUsers(sharedUsers);
+        }
       }
     }
   }, [userEmail, setCurrentProfileId]);
@@ -47,8 +55,15 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
+            { !shared && (
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-            
+            )}
+
+            {/* Todo: implement shared users balance card
+            { shared && (
+            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData} sharedUsers={sharedUsers}/>
+            )} */}
+
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
           
             <View style={styles.sectionContainer}> 
