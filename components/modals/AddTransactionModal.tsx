@@ -27,6 +27,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
   const [selectedSharedUser, setSelectedSharedUser] = useState<string[] | null>(null);
+  const [whoPaidIt, setWhoPaidIt] = useState<string[]| null>(null);
 
   useEffect(() => {
     if (currentProfileId) {
@@ -127,11 +128,22 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
               placeholderTextColor="#AAAAAA"
             />
 
+          {/* no me la quiero complicar, voy a copiar codigo. Despues optmizo */}
+            {type==='Outcome' && shared && (
+               <ParticipantSelect
+               sharedUsers={sharedUsers}
+               onSelect={(users: string[]) => setWhoPaidIt(users)}
+               singleSelection={true}
+             />
+            )}
+
             {type==='Outcome' && shared && (
                <ParticipantSelect
                sharedUsers={sharedUsers}
                onSelect={(users: string[]) => setSelectedSharedUser(users)}
-             />
+               singleSelection={false}
+               whoPaidIt={whoPaidIt ? whoPaidIt[0] : undefined}
+               />
             )}
 
             {type === 'Outcome' && (
@@ -175,7 +187,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   );
 };
 
-const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | null; onSelect: (users: string[]) => void }) => {
+const ParticipantSelect = ({ sharedUsers, onSelect, singleSelection, whoPaidIt }: { sharedUsers: string[] | null; onSelect: (users: string[]) => void, singleSelection: boolean, whoPaidIt?: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
@@ -191,16 +203,24 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
   // ];
 
   const toggleUser = (user: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(user) ? prev.filter(u => u !== user) : [...prev, user]
-    );
+    setSelectedUsers(prev => {
+      if (singleSelection) {
+        return [user];
+      }
+      return prev.includes(user) ? prev.filter(u => u !== user) : [...prev, user];
+    });
   };
+
 
   const handleDone = () => {
     onSelect(selectedUsers);
     setIsOpen(false);
     //console.log({selectedUsers});
   };
+
+  // Filter out whoPaidIt from sharedUsers when not in single selection mode
+  const displayedUsers = singleSelection ? sharedUsers : sharedUsers?.filter(user => user !== whoPaidIt) || [];
+
 
 
   return (
@@ -209,7 +229,9 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
         style={styles.selectButton} 
         onPress={() => setIsOpen(!isOpen)}
       >
-        <Text style={styles.selectButtonText}>Participantes</Text>
+        <Text style={styles.selectButtonText}> 
+          {singleSelection ? 'Quien Pago?' : 'Participantes'}
+          </Text>
         <Icon name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={24} color="#000" />
       </TouchableOpacity>
       
@@ -222,8 +244,8 @@ const ParticipantSelect = ({ sharedUsers, onSelect }: { sharedUsers: string[] | 
             <View style={styles.dropdown}>
               <ScrollView>
 
-                {/* //Usar dummyUsers para testear.  */}
-                {sharedUsers?.map((user: string) => (
+                {/* Usar dummyUsers para testear.  */}
+                {displayedUsers?.map((user: string) => (
                   <TouchableOpacity
                     key={user}
                     style={styles.option}
