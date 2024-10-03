@@ -12,6 +12,7 @@ import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { SharedBalanceCard } from '@/components/SharedBalanceCard';
 
 export default function HomeScreen() {
   const { userEmail } = useUser();
@@ -57,12 +58,13 @@ export default function HomeScreen() {
             
             { !shared && (
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-            )}
+             )} 
 
-            {/* Todo: implement shared users balance card
-            { shared && (
-            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData} sharedUsers={sharedUsers}/>
-            )} */}
+            {/* Todo: implement shared users balance card*/}
+             { shared && (
+              // <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+             <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/>
+            )}  
 
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
           

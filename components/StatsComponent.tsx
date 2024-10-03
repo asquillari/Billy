@@ -47,13 +47,14 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
       })
     );
     }
+    
     else {
       const sharedUsers = await getSharedUsers(currentProfileId);
       if (sharedUsers) {
         calculatedExpenses = await Promise.all(
         sharedUsers.map(async (user) => {
 
-          return { label: "test"+ Math.random().toPrecision(1), amount: 10, color: generateRandomColor() } as Expense;
+          return { label: "test"+ Math.random().toPrecision(3), amount: 10, color: generateRandomColor() } as Expense;
         //TODO: falta que el back me pase las funciones para que funcione esto. 
         //const total = await getUserTotal(currentProfileId, user.id || '', month, year);
         //  return { label: user.name, amount: total, color: generateRandomColor() } as Expense;

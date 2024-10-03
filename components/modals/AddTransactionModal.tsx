@@ -37,7 +37,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
         getSharedUsers(currentProfileId).then(setSharedUsers);
         //console.log({sharedUsers});
       }
-    }
+    } 
   }, [currentProfileId]);
 
   const fetchCategoriesData = useCallback(() => {
