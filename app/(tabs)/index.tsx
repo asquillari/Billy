@@ -26,12 +26,12 @@ export default function HomeScreen() {
       const profileData = await fetchCurrentProfile(userEmail);
       if (profileData && typeof profileData === 'string') {
         setCurrentProfileId(profileData);
-        const shared = await isProfileShared(currentProfileId || "");
-        setShared(shared);
-        if (shared) {
-        const sharedUsers = await getSharedUsers(currentProfileId || "");
-          setSharedUsers(sharedUsers);
-        }
+        // const shared = await isProfileShared(currentProfileId || "");
+        // setShared(shared);
+        // if (shared) {
+        // const sharedUsers = await getSharedUsers(currentProfileId || "");
+        //   setSharedUsers(sharedUsers);
+        // }
       }
     }
   }, [userEmail, setCurrentProfileId]);
@@ -56,15 +56,15 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
-            { !shared && (
+            {/* { !shared && ( */}
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-             )} 
+             {/* )}  */}
 
             {/* Todo: implement shared users balance card*/}
-             { shared && (
-              // <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-             <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/>
-            )}  
+             {/* { shared && ( */}
+               <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+             {/* <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/> */}
+            {/* )}   */}
 
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
           
