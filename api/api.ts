@@ -712,14 +712,14 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 }
 
 /* Shared Profiles */
-export async function addGroupOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, to_pay?: string[], has_paid?: boolean[]): Promise<OutcomeData[] | null> {
+export async function addGroupOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, added_by?: string, to_pay?: string[], has_paid?: boolean[]): Promise<OutcomeData[] | null> {
   try {
     if (category === "" || !(await checkCategoryLimit(category, amount))) {
       console.log("Couldn't add due to category limit or missing category");
       return null;
     }
 
-    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at, to_pay: to_pay, has_paid: has_paid };
+    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at, to_pay: to_pay, has_paid: has_paid, added_by: added_by };
 
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
