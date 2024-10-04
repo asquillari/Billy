@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
@@ -11,14 +11,19 @@ import { useFocusEffect } from "@react-navigation/native";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-const Stats = React.memo(({ selectedMonth, selectedYear, mode }: { selectedMonth: number; selectedYear: number, mode: boolean | null }) => (
-  <ScrollView>
-    <View style={styles.card}>
-      <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-      <StatsComponent month={selectedMonth} year={selectedYear} mode={mode}/>
-    </View>
-  </ScrollView>
-));
+const Stats = React.memo(({ selectedMonth, selectedYear, mode }: { selectedMonth: number; selectedYear: number, mode: boolean | null }) => {
+  // Use useMemo to create a memoized key that changes when any prop changes
+  const memoKey = useMemo(() => `${selectedMonth}-${selectedYear}-${mode}`, [selectedMonth, selectedYear, mode]);
+
+  return (
+    <ScrollView>
+      <View style={styles.card}>
+        <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
+        <StatsComponent key={memoKey} month={selectedMonth} year={selectedYear} mode={mode}/>
+      </View>
+    </ScrollView>
+  );
+});
 
 const App = () => {
   const currentDate = new Date();

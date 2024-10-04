@@ -62,7 +62,7 @@ export default function HomeScreen() {
 
             {/* Todo: implement shared users balance card*/}
              {/* { shared && ( */}
-               <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+               {/* <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/> */}
              {/* <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/> */}
             {/* )}   */}
 

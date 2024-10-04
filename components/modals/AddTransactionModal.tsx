@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, S
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers } from '@/api/api';
+import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers, addGroupOutcome } from '@/api/api';
 import moment from 'moment';
 
 interface AddTransactionModalProps {
@@ -30,14 +30,19 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const [whoPaidIt, setWhoPaidIt] = useState<string[]| null>(null);
 
   useEffect(() => {
-    if (currentProfileId) {
-      isProfileShared(currentProfileId).then(setShared);
-      //console.log({shared});
-      if (shared) {
-        getSharedUsers(currentProfileId).then(setSharedUsers);
-        //console.log({sharedUsers});
+    const fetchProfileData = async () => {
+      if (currentProfileId) {
+        const isShared = await isProfileShared(currentProfileId);
+        setShared(isShared);
+        
+        if (isShared) {
+          const users = await getSharedUsers(currentProfileId);
+          setSharedUsers(users);
+        }
       }
-    } 
+    };
+  
+    fetchProfileData();
   }, [currentProfileId]);
 
   const fetchCategoriesData = useCallback(() => {
@@ -58,7 +63,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description);
+      if (shared) await addGroupOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date, selectedSharedUser as string[]);
+      else await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date);
       refreshOutcomeData();
       refreshCategoryData();
     }
