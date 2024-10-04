@@ -63,7 +63,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      if (shared) await addGroupOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date, selectedSharedUser as string[]);
+      if (shared) await addGroupOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date, whoPaidIt? whoPaidIt[0] as string : undefined, selectedSharedUser as string[]);
       else await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date);
       refreshOutcomeData();
       refreshCategoryData();
