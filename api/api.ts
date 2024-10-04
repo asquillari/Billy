@@ -21,7 +21,6 @@ export interface IncomeData {
   profile: string;
   amount: number;
   description: string;
-  added_by?: string;
   created_at?: Date;
 }
 
@@ -31,9 +30,6 @@ export interface OutcomeData {
   category: string; 
   amount: number;
   description: string;
-  added_by?: string;
-  to_pay?: string[];
-  has_paid?: boolean[];
   created_at?: Date;
 }
 
@@ -55,6 +51,15 @@ export interface ProfileData {
   owner: string;
   users?: string[];
   is_shared?: boolean;
+}
+
+export interface DebtData {
+  id?: string;
+  outcome: string;
+  paid_by: string;
+  debtor: string;
+  has_paid: boolean;
+  amount: number;
 }
 
 /* General data */
@@ -210,7 +215,6 @@ export async function addIncome(profile: string, amount: number, description: st
       amount: amount, 
       description: description, 
       created_at: created_at, 
-      added_by: undefined 
     };
     
     const [{ data: insertData, error: insertError }] = await Promise.all([
@@ -272,39 +276,64 @@ export async function getOutcome(id: string): Promise<OutcomeData | null> {
   return await getData(OUTCOMES_TABLE, id);
 }
 
-export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date): Promise<OutcomeData[] | null> {
+export async function addOutcome(
+  profile: string, 
+  category: string, 
+  amount: number, 
+  description: string, 
+  created_at?: Date,
+  paid_by?: string,
+  debtors?: string[]
+): Promise<OutcomeData[] | null> {
   try {
     if (category === "" || !(await checkCategoryLimit(category, amount))) {
-      console.log("Couldn't add due to category limit or missing category");
+      console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
       return null;
     }
 
     const newOutcome: OutcomeData = { 
-      profile: profile, 
-      amount: amount, 
-      category: category, 
-      description: description, 
-      created_at: created_at, 
-      added_by: undefined, 
-      has_paid: undefined, 
-      to_pay: undefined 
+      profile, 
+      amount, 
+      category, 
+      description, 
+      created_at: created_at || new Date()
     };
-    const [{ data: insertData, error: insertError }] = await Promise.all([
-      supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
+    
+    const { data: outcomeData, error: outcomeError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .insert(newOutcome)
+      .select()
+      .single();
+
+    if (outcomeError) {
+      console.error("Error añadiendo gasto:", outcomeError);
+      return null;
+    }
+
+    // Si es un gasto grupal, añadir las deudas correspondientes
+    if (paid_by && debtors && debtors.length > 0) {
+      const amountPerPerson = amount / (debtors.length + 1);
+      
+      for (const debtor of debtors) {
+        const success = await addDebt(outcomeData.id, paid_by, debtor, amountPerPerson);
+        if (!success) {
+          console.error("Error añadiendo deuda para", debtor);
+          await supabase.from(OUTCOMES_TABLE).delete().eq('id', outcomeData.id);
+          return null;
+        }
+      }
+    }
+
+    await Promise.all([
       updateBalance(profile, -amount),
       updateCategorySpent(category, amount)
     ]);
 
-    if (insertError) {
-      console.error("Error adding outcome:", insertError);
-      return null;
-    }
-
-    return insertData;
+    return [outcomeData];
   } 
 
   catch (error) {
-    console.error("Unexpected error adding outcome:", error);
+    console.error("Error inesperado añadiendo gasto:", error);
     return null;
   }
 };
@@ -488,12 +517,39 @@ export async function removeProfile(profileId: string) {
 }
 
 export async function addSharedUsers(profileId: string, emails: string[]) {
-  updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
-  for (const email of emails) {
-    const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
-    if (userError) console.error(`Failed to share profile with ${email}:`, userError);
-    const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
-    if (profileError) console.error(`Failed to add ${email} to profile ${profileId}:`, profileError);
+  try {
+    // Verificar que todos los emails existan en la tabla users
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('users')
+      .select('email')
+      .in('email', emails);
+
+    if (checkError) {
+      console.error("Error al verificar usuarios existentes:", checkError);
+      return;
+    }
+
+    const existingEmails = existingUsers.map(user => user.email);
+    const invalidEmails = emails.filter(email => !existingEmails.includes(email));
+
+    if (invalidEmails.length > 0) {
+      console.error("Los siguientes emails no existen en la tabla users:", invalidEmails);
+      return;
+    }
+
+    // Actualizar el perfil como compartido
+    await updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
+
+    // Compartir el perfil con los usuarios verificados
+    for (const email of existingEmails) {
+      const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
+      if (userError) console.error(`Error al compartir el perfil con ${email}:`, userError);
+
+      const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
+      if (profileError) console.error(`Error al añadir ${email} al perfil ${profileId}:`, profileError);
+    }
+  } catch (error) {
+    console.error("Error inesperado en addSharedUsers:", error);
   }
 }
 
@@ -712,52 +768,27 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 }
 
 /* Shared Profiles */
-export async function addGroupOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, added_by?: string, to_pay?: string[], has_paid?: boolean[]): Promise<OutcomeData[] | null> {
+
+export async function addDebt(outcomeId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
-    if (category === "" || !(await checkCategoryLimit(category, amount))) {
-      console.log("Couldn't add due to category limit or missing category");
-      return null;
+    const { error } = await supabase
+      .from('Debts')
+      .insert({
+        outcome: outcomeId,
+        paid_by: paidBy,
+        debtor: debtor,
+        has_paid: false,
+        amount: amount
+      });
+
+    if (error) {
+      console.error("Error añadiendo deuda:", error);
+      return false;
     }
 
-    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at, to_pay: to_pay, has_paid: has_paid, added_by: added_by };
-
-    const [{ data: insertData, error: insertError }] = await Promise.all([
-      supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
-      updateBalance(profile, -amount),
-      updateCategorySpent(category, amount)
-    ]);
-
-    if (insertError) {
-      console.error("Error adding outcome:", insertError);
-      return null;
-    }
-
-    return insertData;
+    return true;
   } catch (error) {
-    console.error("Unexpected error adding outcome:", error);
-    return null;
+    console.error("Error inesperado añadiendo deuda:", error);
+    return false;
   }
-
-}
-
-export async function addGroupIncome(profile: string, category: string, amount: number, description: string, created_at?: Date, added_by?: string): Promise<IncomeData[] | null> {
-  try {
-    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at, added_by: added_by };
-
-    const [{ data: insertData, error: insertError }] = await Promise.all([
-      supabase.from(INCOMES_TABLE).insert(newIncome).select(),
-      updateBalance(profile, amount)
-    ]);
-
-    if (insertError) {
-      console.error("Error adding income:", insertError);
-      return null;
-    }
-
-    return insertData;
-  } catch (error) {
-    console.error("Unexpected error adding income:", error);
-    return null;
-  }
-
 }

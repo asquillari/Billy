@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, S
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers, addGroupOutcome } from '@/api/api';
+import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers} from '@/api/api';
 import moment from 'moment';
 
 interface AddTransactionModalProps {
@@ -63,8 +63,19 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
     } else {
-      if (shared) await addGroupOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date, whoPaidIt? whoPaidIt[0] as string : undefined, selectedSharedUser as string[]);
-      else await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date);
+      if (shared && whoPaidIt && whoPaidIt.length > 0) {
+        await addOutcome(
+          currentProfileId, 
+          selectedCategory, 
+          parseFloat(amount), 
+          description, 
+          date, 
+          whoPaidIt[0], 
+          selectedSharedUser || []
+        );
+      } else {
+        await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date);
+      }
       refreshOutcomeData();
       refreshCategoryData();
     }
@@ -74,7 +85,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     setDate(new Date());
     setSelectedCategory('');
     onClose();
-  }, [type, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, onClose]);
+  }, [type, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, onClose, shared, whoPaidIt, selectedSharedUser, date]);
 
   const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
