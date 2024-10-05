@@ -1,11 +1,25 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
+
+let BASE_URL: string;
+
+if (__DEV__) {
+  // En desarrollo, usa la URL de Expo
+  BASE_URL = `exp://${Constants.expoConfig?.hostUri?.split(':')[0]}:19000`;
+} else {
+  // En producción, usa la URL de tu aplicación publicada
+  BASE_URL = 'https://tu-app-publicada.com'; // Cambia esto por la URL real de tu app publicada
+}
+
+export { BASE_URL };
 
 export interface UserData {
   email: string;
@@ -538,7 +552,9 @@ export async function addSharedUsers(profileId: string, emails: string[]) {
     }
 
     // Actualizar el perfil como compartido
-    await updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
+    if (await isProfileShared(profileId) === false) {
+      await updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
+    }
 
     // Compartir el perfil con los usuarios verificados
     for (const email of existingEmails) {
@@ -782,13 +798,82 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
       });
 
     if (error) {
-      console.error("Error añadiendo deuda:", error);
+      console.error("Error adding debt:", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Error inesperado añadiendo deuda:", error);
+    console.error("Unexpected error adding debt:", error);
+    return false;
+  }
+}
+
+export async function generateInvitationLink(profile: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('invitationLink')
+      .insert({ profile: profile })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error generating invitation link:", error);
+      return null;
+    }
+
+    // Uses the configured base URL
+    return `${BASE_URL}/invite/${data.id}`;
+  } catch (error) {
+    console.error("Unexpected error generating invitation link:", error);
+    return null;
+  }
+}
+
+export async function processInvitation(invitationId: string, email: string): Promise<boolean> {
+  try {
+    // Get the invitation
+    const { data: invitation, error: invitationError } = await supabase
+      .from('invitationLink')
+      .select('profile')
+      .eq('id', invitationId)
+      .single();
+
+    if (invitationError || !invitation) {
+      console.error("Error obtaining the invitation:", invitationError);
+      return false;
+    }
+
+    const { data: existingProfile, error: profileError } = await supabase
+      .from('Users')
+      .select('my_profiles')
+      .eq('email', email);
+
+    if (profileError) {
+      console.error("Error getting existing profiles:", profileError);
+      return false;
+    }
+
+    if (existingProfile && existingProfile.length > 0) {
+      const profileExists = existingProfile.includes(invitation.profile);
+      if (profileExists) {
+        console.error("The profile already exists for this user");
+        return false;
+      }
+    }
+
+    await addSharedUsers(invitation.profile, [email]);
+
+    // Delete the invitation after using it
+    // Delete the invitation from the database after using it
+    // await supabase
+    //   .from('invitationLink')
+    //   .delete()
+    //   .eq('id', invitationId);
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error processing the invitation:", error);
     return false;
   }
 }
