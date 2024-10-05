@@ -29,8 +29,8 @@ const TabNavigator = () => {
           backgroundColor: '#ffffff',
           borderTopWidth: 0,
           elevation: 0,
-          height: 60,
-          paddingBottom: 5,
+          height: 80,
+          paddingBottom: 20,
         },
         tabBarLabelStyle: {
           fontSize: 12,
