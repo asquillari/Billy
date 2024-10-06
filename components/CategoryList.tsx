@@ -21,15 +21,6 @@ const parseGradient = (color: string): string[] => {
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
-    const getDefaultOtrosCategory = useCallback((): CategoryData => ({
-        id: 'otros-default',
-        profile: currentProfileId,
-        name: 'Otros',
-        color: JSON.stringify(['#AAAAAA', '#AAAAAA']), 
-        spent: 0,
-        limit: 0,
-    }), [currentProfileId]);
-
     const [modalVisible, setModalVisible] = useState(false);
 
     // For details
@@ -46,10 +37,10 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
-        if (!categoryData) return [getDefaultOtrosCategory()];
-        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || getDefaultOtrosCategory();
+        if (!categoryData) return [];
+        const otherCategory = categoryData.find(cat => cat.name === "Otros");
         const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
-        return [...otherCategories, otrosCategory];
+        return [...otherCategories, otherCategory];
     }, [categoryData]);
 
     // See category details
@@ -94,7 +85,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {sortedCategories.map(renderCategory)}
+            {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
 
             {/* Add button */}
             {showAddButton && ( // Condicional para mostrar el botón de agregar

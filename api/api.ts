@@ -414,6 +414,13 @@ export async function getCategory(category: string): Promise<CategoryData | null
   return await getData(CATEGORIES_TABLE, category);
 };
 
+export async function getCategoryIdByName(profile: string, categoryName: string): Promise<string | null> {
+  const categories = await fetchData(CATEGORIES_TABLE, 'profile', profile);
+  if (!categories) return null;
+  const category = categories.find(cat => cat.name === categoryName);
+  return category ? category.id : null;
+}
+
 export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
   const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
   return await addData(CATEGORIES_TABLE, newCategory);

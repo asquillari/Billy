@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { addProfile, addSharedUsers } from '@/api/api';
+import { addProfile, addSharedUsers, addCategory } from '@/api/api';
 
 interface AddProfileModalProps {
   isVisible: boolean;
@@ -16,6 +16,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
   const handleAddProfile = async () => {
     if (profileName.trim()) {
       const newProfile = await addProfile(profileName, email);
+      await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
       if (sharedUsers.trim()) {
         const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];
         await addSharedUsers(newProfile?.id ?? "", emails);

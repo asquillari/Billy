@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, S
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers} from '@/api/api';
+import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers, getCategoryIdByName } from '@/api/api';
 import moment from 'moment';
 
 interface AddTransactionModalProps {
@@ -63,10 +63,14 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
     } else {
+      let categoryToUse = selectedCategory;
+      console.log(selectedCategory);
+      
+      if (selectedCategory === '') categoryToUse = await getCategoryIdByName(currentProfileId, 'Otros') ?? "null";
       if (shared && whoPaidIt && whoPaidIt.length > 0) {
         await addOutcome(
           currentProfileId, 
-          selectedCategory, 
+          categoryToUse || '', 
           parseFloat(amount), 
           description, 
           date, 
@@ -74,7 +78,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
           selectedSharedUser || []
         );
       } else {
-        await addOutcome(currentProfileId, selectedCategory, parseFloat(amount), description, date);
+        await addOutcome(currentProfileId, categoryToUse || '', parseFloat(amount), description, date);
       }
       refreshOutcomeData();
       refreshCategoryData();
@@ -237,8 +241,6 @@ const ParticipantSelect = ({ sharedUsers, onSelect, singleSelection, whoPaidIt }
 
   // Filter out whoPaidIt from sharedUsers when not in single selection mode
   const displayedUsers = singleSelection ? sharedUsers : sharedUsers?.filter(user => user !== whoPaidIt) || [];
-
-
 
   return (
     <View style={styles.selectContainer}>

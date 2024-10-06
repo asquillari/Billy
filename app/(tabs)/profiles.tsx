@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
 import { fetchProfiles, ProfileData } from '@/api/api';
