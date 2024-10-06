@@ -27,8 +27,8 @@ export function useProfileData(profileId: string) {
       setBalance(null);
       return;
     }
-    Promise.all([ fetchIncomes(profileId), fetchOutcomes(profileId), fetchCategories(profileId), fetchBalance(profileId)
-    ]).then(([incomes, outcomes, categories, newBalance]) => {
+    Promise.all([ fetchIncomes(profileId), fetchOutcomes(profileId), fetchCategories(profileId), fetchBalance(profileId) ])
+    .then(([incomes, outcomes, categories, newBalance]) => {
       setIncomeData(incomes);
       setOutcomeData(outcomes);
       setCategoryData(categories);
