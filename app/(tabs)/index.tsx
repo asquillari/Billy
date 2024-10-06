@@ -17,7 +17,7 @@ import { SharedBalanceCard } from '@/components/SharedBalanceCard';
 export default function HomeScreen() {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
-  const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
+  const { incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData } = useProfileData(currentProfileId || "");
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
 
@@ -47,10 +47,8 @@ export default function HomeScreen() {
   );
   
   const { totalIncome, totalExpenses } = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    incomeData?.forEach(item => { income += parseFloat(item.amount.toString()); });
-    outcomeData?.forEach(item => { expenses += parseFloat(item.amount.toString()); });
+    const income = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+    const expenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
     return { totalIncome: income, totalExpenses: expenses };
   }, [incomeData, outcomeData]);
 
