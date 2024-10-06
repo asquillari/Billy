@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useCallback, useState } from 'react';
 import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
@@ -40,6 +40,10 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       }
     }]);
   }, [refreshData]);
+
+  const sortedData = useMemo(() => {
+    if (profileData) return [...profileData].sort((a, b) => a.name.localeCompare(b.name));
+  }, [profileData]);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
     const isCurrentProfile = item !== 'add' && item.id === localCurrentProfileId;
@@ -62,7 +66,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
     );
   }, [onAddProfile, handleProfilePress, handleLongPress, localCurrentProfileId]);
 
-  const data = profileData ? [...profileData, 'add' as const] : ['add' as const];
+  const data = sortedData ? [...sortedData, 'add' as const] : ['add' as const];
 
   const keyExtractor = useCallback((item: ProfileData | 'add') => typeof item === 'string' ? item : item.id?.toString() ?? '', []);
 

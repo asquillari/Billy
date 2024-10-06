@@ -22,10 +22,12 @@ export default function Profiles() {
         setProfileData(data);
     }, []);
 
-    useFocusEffect(() => {
-        getBalanceData();
-        getProfileData();
-    }, );
+    useFocusEffect(
+        useCallback(() => {
+            getBalanceData();
+            getProfileData();
+        }, [getBalanceData, getProfileData])
+    );
 
     const handleAddProfile = useCallback(() => {
         setIsModalVisible(true);
