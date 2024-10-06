@@ -62,10 +62,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (type === 'Income') {
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
-    } else {
+    } 
+    else {
       let categoryToUse = selectedCategory;
-      console.log(selectedCategory);
-      
       if (selectedCategory === '') categoryToUse = await getCategoryIdByName(currentProfileId, 'Otros') ?? "null";
       if (shared && whoPaidIt && whoPaidIt.length > 0) {
         await addOutcome(
@@ -77,7 +76,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
           whoPaidIt[0], 
           selectedSharedUser || []
         );
-      } else {
+      }
+      else {
         await addOutcome(currentProfileId, categoryToUse || '', parseFloat(amount), description, date);
       }
       refreshOutcomeData();

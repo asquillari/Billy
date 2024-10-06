@@ -38,9 +38,9 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
         if (!categoryData) return [];
-        const otherCategory = categoryData.find(cat => cat.name === "Otros");
+        const othersCategory = categoryData.find(cat => cat.name === "Otros");
         const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
-        return [...otherCategories, otherCategory];
+        return [...otherCategories, othersCategory];
     }, [categoryData]);
 
     // See category details
