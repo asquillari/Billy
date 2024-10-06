@@ -39,7 +39,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const sortedCategories = useMemo(() => {
         if (!categoryData) return [];
         const othersCategory = categoryData.find(cat => cat.name === "Otros");
-        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
+        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").sort((a, b) => parseFloat(String(b.spent ?? '0')) - parseFloat(String(a.spent ?? '0')));
         return [...otherCategories, othersCategory];
     }, [categoryData]);
 
