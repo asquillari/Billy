@@ -66,6 +66,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     else {
       let categoryToUse = selectedCategory;
       if (selectedCategory === '') categoryToUse = await getCategoryIdByName(currentProfileId, 'Otros') ?? "null";
+      if (categoryToUse === "null") return;
       if (shared && whoPaidIt && whoPaidIt.length > 0) {
         await addOutcome(
           currentProfileId, 
