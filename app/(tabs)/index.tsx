@@ -38,16 +38,21 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-      getCategoryData();
-      getIncomeData();
-      getOutcomeData();
-    }, [fetchProfile])
+      const fetchData = async () => {
+        await fetchProfile();
+        await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+      };
+      fetchData();
+    }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData])
   );
   
-  const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
-
-  const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
+  const { totalIncome, totalExpenses } = useMemo(() => {
+    let income = 0;
+    let expenses = 0;
+    incomeData?.forEach(item => { income += parseFloat(item.amount.toString()); });
+    outcomeData?.forEach(item => { expenses += parseFloat(item.amount.toString()); });
+    return { totalIncome: income, totalExpenses: expenses };
+  }, [incomeData, outcomeData]);
 
   return (
     <View style={styles.container}>
