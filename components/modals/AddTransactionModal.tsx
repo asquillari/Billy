@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet, Modal, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -29,21 +29,24 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const [selectedSharedUser, setSelectedSharedUser] = useState<string[] | null>(null);
   const [whoPaidIt, setWhoPaidIt] = useState<string[]| null>(null);
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (currentProfileId) {
-        const isShared = await isProfileShared(currentProfileId);
-        setShared(isShared);
-        
-        if (isShared) {
-          const users = await getSharedUsers(currentProfileId);
-          setSharedUsers(users);
-        }
+  const fetchProfileData = useCallback(async () => {
+    if (currentProfileId) {
+      const isShared = await isProfileShared(currentProfileId);
+      setShared(isShared);
+      
+      if (isShared) {
+        const users = await getSharedUsers(currentProfileId);
+        setSharedUsers(users);
       }
-    };
-  
-    fetchProfileData();
+    }
   }, [currentProfileId]);
+  
+  useEffect(() => {
+    if (isVisible) {
+      fetchProfileData();
+      fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
+    }
+  }, [isVisible, currentProfileId, fetchProfileData]);
 
   const fetchCategoriesData = useCallback(() => {
     fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
@@ -58,7 +61,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (selectedDate) setDate(selectedDate);
   }, []);
 
-  const handleSubmit = useCallback(async (): Promise<void> => {
+  const handleSubmit = useCallback(async () => {
     if (type === 'Income') {
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
@@ -110,6 +113,22 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     return type === buttonType ? '#000000' : '#FFFFFF';
   };
 
+  const renderTypeSelector = useMemo(() => (
+    <View style={styles.typeSelector}>
+      <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
+        <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
+      </View>
+      
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
+      </TouchableOpacity>
+    </View>
+  ), [bubbleInterpolation, switchType, getTextColor]);
+
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
       <View style={styles.modalBackground}>
@@ -119,19 +138,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
           </TouchableOpacity>
           
           <View style={styles.contentContainer}>
-            <View style={styles.typeSelector}>
-              <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
-                <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
-              </View>
-              
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
-              </TouchableOpacity>
-            </View>
+            {renderTypeSelector}
 
             <TextInput
               style={styles.input}
@@ -493,23 +500,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 5, // Adjust as needed
   },
-
-checkedBox: {
-  backgroundColor: '#370185',
-  borderColor: '#370185',
-},
-doneButton: {
-  backgroundColor: '#370185',
-  padding: 10,
-  borderRadius: 5,
-  alignItems: 'center',
-  marginTop: 10,
-},
-doneButtonText: {
-  color: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: 'bold',
-},
+  checkedBox: {
+    backgroundColor: '#370185',
+    borderColor: '#370185',
+  },
+  doneButton: {
+    backgroundColor: '#370185',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  doneButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
-export default AddTransactionModal;
+export default React.memo(AddTransactionModal);
