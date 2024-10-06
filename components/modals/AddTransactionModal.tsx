@@ -257,8 +257,8 @@ const ParticipantSelect = ({ sharedUsers, onSelect, singleSelection, whoPaidIt }
         onPress={() => setIsOpen(!isOpen)}
       >
         <Text style={styles.selectButtonText}> 
-          {singleSelection ? 'Quien Pago?' : 'Participantes'}
-          </Text>
+          {singleSelection ? '¿Quién Pago?' : 'Participantes'}
+        </Text>
         <Icon name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={24} color="#000" />
       </TouchableOpacity>
       
@@ -488,11 +488,9 @@ const styles = StyleSheet.create({
     borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
   },
   tick: {
     color: '#FFFFFF',
-    fontSize: 18,
   },
   userRow: {
     flexDirection: 'row',
