@@ -38,18 +38,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
     setSelectedTransaction(transaction);
     Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId, transaction.id ?? 0);
-        else handleRemoveOutcome(currentProfileId, transaction.id ?? 0);
+        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId, transaction.id ?? "");
+        else handleRemoveOutcome(currentProfileId, transaction.id ?? "");
       }
     }]);
   }, [refreshIncomeData, refreshOutcomeData, refreshCategoryData]);
 
-  const handleRemoveIncome = async (profile: string, id: number) => {
+  const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
     refreshIncomeData();  // Actualiza los datos después de eliminar
   };
 
-  const handleRemoveOutcome = async (profile: string, id: number) => {
+  const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();   // Actualiza los datos después de eliminar
     refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
