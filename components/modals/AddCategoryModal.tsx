@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { addCategory } from '@/api/api';
 
 interface AddCategoryModalProps {
@@ -15,21 +15,29 @@ const gradients = [
   ['#7E91F7', '#41D9FA'],
   ['#F77EE4', '#B06ECF'],
   ['#CBEC48', '#50B654'],
-  ['#48ECE2', '#62D29C']
+  ['#48ECE2', '#62D29C'],
+  ['#FF9A8B', '#FF6A88'],
+  ['#66A6FF', '#89F7FE'],
+  ['#FDCB6E', '#FF7979'],
+  ['#7ED56F', '#28B485'],
+  ['#D4FC79', '#96E6A1'],
+  ['#84FAB0', '#8FD3F4'],
+  ['#FA709A', '#FEE140'],
+  ['#43E97B', '#38F9D7'],
+  ['#F6D365', '#FDA085'],
+  ['#5EE7DF', '#B490CA'],
+  ['#D299C2', '#FEF9D7'],
+  ['#6A11CB', '#2575FC'],
+  ['#FF867A', '#FF8C7F'],
+  ['#FFD26F', '#3677FF'],
+  ['#72EDF2', '#5151E5']
 ];
 
-let currentGradientIndex = 0;
-
-const getNextGradient = () => {
-  const gradient = gradients[currentGradientIndex];
-  currentGradientIndex = (currentGradientIndex + 1) % gradients.length;
-  return gradient;
-};
-
-const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, currentProfileId,sortedCategories }) => {
+const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, currentProfileId, sortedCategories }) => {
   const [name, setName] = useState('');
   const [limit, setLimit] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedGradient, setSelectedGradient] = useState(gradients[0]);
 
   const handleNameChange = useCallback((text: string) => {
     setName(text);
@@ -38,7 +46,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
 
   const validateCategoryName = useCallback(() => {
     const categoryExists = sortedCategories.some(
-      category => category.name.toLowerCase() === name.toLowerCase()
+      category => category && category.name && category.name.toLowerCase() === name.toLowerCase()
     );
     if (categoryExists) {
       setErrorMessage('Ya existe una categoría con ese nombre');
@@ -49,13 +57,20 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
 
   const handleAddCategory = useCallback(async () => {
     if (!validateCategoryName()) return;
-    const gradient = getNextGradient();
-    await addCategory(currentProfileId, name, JSON.stringify(gradient), parseFloat(limit));
+    await addCategory(currentProfileId, name, JSON.stringify(selectedGradient), parseFloat(limit));
     setName('');
     setLimit('');
+    setSelectedGradient(gradients[0]);
     onCategoryAdded();
     onClose();
-  }, [validateCategoryName, currentProfileId, name, limit, onCategoryAdded, onClose]);
+  }, [validateCategoryName, currentProfileId, name, limit, selectedGradient, onCategoryAdded, onClose]);
+
+  const renderGradientItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={[ styles.gradientItem, { backgroundColor: item[0] }, selectedGradient === item && styles.selectedGradient ]}
+      onPress={() => setSelectedGradient(item)}
+    />
+  );
 
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
@@ -77,6 +92,15 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
             value={limit} 
             onChangeText={setLimit} 
             placeholder="Ingresar límite"
+          />
+
+          <FlatList
+            data={gradients}
+            renderItem={renderGradientItem}
+            keyExtractor={(index) => index.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.gradientList}
           />
 
           <View style={styles.buttonContainer}>
@@ -140,6 +164,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  gradientList: {
+    marginBottom: 20,
+  },
+  gradientItem: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 10,
+  },
+  selectedGradient: {
+    borderWidth: 2,
+    borderColor: '#4B00B8',
   },
 });
 
