@@ -79,7 +79,7 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     useCallback(() => {
       fetchProfile();
       getCategories();
-    }, [fetchProfile, fetchCategories])
+    }, [fetchProfile, fetchCategories, currentProfileId])
   );
 
   useEffect(() => {
