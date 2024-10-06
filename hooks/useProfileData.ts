@@ -20,11 +20,21 @@ export function useProfileData(profileId: string) {
   const getBalanceData = useCallback(() => fetchData(fetchBalance, setBalance), [fetchData]);
   
   const refreshAllData = useCallback(() => {
-    getIncomeData();
-    getOutcomeData();
-    getCategoryData();
-    getBalanceData();
-  }, [getIncomeData, getOutcomeData, getCategoryData, getBalanceData]);
+    if (!profileId) {
+      setIncomeData(null);
+      setOutcomeData(null);
+      setCategoryData(null);
+      setBalance(null);
+      return;
+    }
+    Promise.all([ fetchIncomes(profileId), fetchOutcomes(profileId), fetchCategories(profileId), fetchBalance(profileId)
+    ]).then(([incomes, outcomes, categories, newBalance]) => {
+      setIncomeData(incomes);
+      setOutcomeData(outcomes);
+      setCategoryData(categories);
+      setBalance(newBalance);
+    });
+  }, [profileId]);
   
   useEffect(() => {
     refreshAllData();
