@@ -46,6 +46,8 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
         return { label: category.name, amount: total, color } as Expense;
       })
     );
+    
+    calculatedExpenses.sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
     }
     
     else {
