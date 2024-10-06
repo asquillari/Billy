@@ -157,6 +157,22 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
               placeholderTextColor="#AAAAAA"
             />
 
+            {type === 'Outcome' && (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedCategory}
+                  onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                >
+                  <Picker.Item label="Selecciona una categoría" value=""/>
+                  {categories.map((category) => (
+                    <Picker.Item key={category.id} label={category.name} value={category.id} />
+                  ))}
+                </Picker>
+              </View>
+            )}
+
           {/* no me la quiero complicar, voy a copiar codigo. Despues optmizo */}
             {type==='Outcome' && shared && (
                <ParticipantSelect
@@ -173,22 +189,6 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
                singleSelection={false}
                whoPaidIt={whoPaidIt ? whoPaidIt[0] : undefined}
                />
-            )}
-
-            {type === 'Outcome' && (
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedCategory}
-                  onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-                  style={styles.picker}
-                  itemStyle={styles.pickerItem}
-                >
-                  <Picker.Item label="Selecciona una categoría" value="" />
-                  {categories.map((category) => (
-                    <Picker.Item key={category.id} label={category.name} value={category.id} />
-                  ))}
-                </Picker>
-              </View>
             )}
 
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
@@ -369,7 +369,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 12,
     marginBottom: 16,
-    width: '100%',
     backgroundColor: '#f9f9f9',
     fontSize: 16,
   },
@@ -429,8 +428,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   picker: {
-    height: 50,
-    width: '100%',
   },
   pickerContainer: {
     borderWidth: 1,
