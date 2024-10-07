@@ -335,7 +335,7 @@ export async function addOutcome(
       const amountPerPerson = amount / (debtors.length + 1);
       
       for (const debtor of debtors) {
-        const success = await addDebt(outcomeData.profile, paid_by, debtor, amountPerPerson);
+        const success = await addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson);
         if (!success) {
           console.error("Error añadiendo deuda para", debtor);
           await removeOutcome(profile, outcomeData.id);
@@ -903,56 +903,56 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
   }
 }
 
-export async function addDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+export async function addDebt(outcomeId: string, profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: existingDebt, error: existingDebtError } = await supabase
       .from('Debts')
       .select('*')
+      .eq('profile', profileId)
       .eq('paid_by', paidBy)
       .eq('debtor', debtor)
       .eq('has_paid', false)
       .single();
 
     if (existingDebtError && existingDebtError.code !== 'PGRST116') {
-      console.error("Error checking existing debt:", existingDebtError);
+      console.error("Error comprobando deuda existente:", existingDebtError);
       return false;
     }
 
     if (existingDebt) {
-      if (existingDebt.amount >= amount) {
-        const { error: updateError } = await supabase
-          .from('Debts')
-          .update({ amount: existingDebt.amount - amount })
-          .eq('id', existingDebt.id);
+      const newAmount = existingDebt.amount + amount;
+      const { error: updateError } = await supabase
+        .from('Debts')
+        .update({ amount: newAmount })
+        .eq('profile', profileId)
+        .eq('paid_by', paidBy)
+        .eq('debtor', debtor);
 
-        if (updateError) {
-          console.error("Error updating existing debt:", updateError);
-          return false;
-        }
+      if (updateError) {
+        console.error("Error actualizando deuda existente:", updateError);
+        return false;
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from('Debts')
+        .insert({
+          profile: profileId,
+          paid_by: paidBy,
+          debtor: debtor,
+          amount: amount,
+          has_paid: false
+        });
 
-        return true;
-      } 
-      
-      else {
-        const { error: deleteError } = await supabase
-          .from('Debts')
-          .delete()
-          .eq('id', existingDebt.id);
-
-        if (deleteError) {
-          console.error("Error deleting existing debt:", deleteError);
-          return false;
-        }
-
-        amount -= existingDebt.amount;
+      if (insertError) {
+        console.error("Error insertando nueva deuda:", insertError);
+        removeOutcome(profileId, outcomeId);
+        return false;
       }
     }
-
-    return await redistributeDebt(profileId, paidBy, debtor, amount);
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error adding debt:", error);
+    await redistributeDebt(profileId, paidBy, debtor, amount);
+    return true;
+  } catch (error) {
+    console.error("Error inesperado añadiendo deuda:", error);
     return false;
   }
 }
