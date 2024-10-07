@@ -830,7 +830,7 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 /* Shared Profiles */
 
-async function redistributeDebt(outcomeId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+async function redistributeDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: debtorOwes, error: debtorError } = await supabase
       .from('Debts')
@@ -860,7 +860,7 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
         const { error: newDebtError } = await supabase
           .from('Debts')
           .insert({
-            outcome: outcomeId,
+            outcome: profileId,
             paid_by: paidBy,
             debtor: debt.paid_by,
             has_paid: false,
@@ -881,7 +881,7 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
       const { error } = await supabase
         .from('Debts')
         .insert({
-          outcome: outcomeId, 
+          outcome: profileId, 
           paid_by: paidBy,
           debtor: debtor,
           has_paid: false,
