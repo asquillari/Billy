@@ -1061,7 +1061,29 @@ export async function processInvitation(invitationId: string, email: string): Pr
   }
 }
 
-export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
+export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', debtor)
+      .eq('has_paid', false);
+
+    if (error) {
+      console.error("Error fetching debts to user:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts to user:", error);
+    return null;
+  }
+}
+
+export async function getDebtsFromUser(debtor: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
       .from('Debts')
@@ -1070,49 +1092,50 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
       .eq('has_paid', false);
 
     if (error) {
-      console.error("Error fetching user debts:", error);
+      console.error("Error fetching debts from user:", error);
       return null;
     }
 
     return data;
-  } catch (error) {
-    console.error("Unexpected error fetching user debts:", error);
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts from user:", error);
     return null;
   }
 }
 
 export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
-  
   try {
-    // primero chequeo que el perfil exista y sea compartido
+    // Primero, verificamos que el perfil exista
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from(PROFILES_TABLE)
       .select('*')
       .eq('id', profileId)
-      .eq('name', profileName)
-      .eq('is_shared', true)
       .single();
 
-    if (profileError || !profile) {
-      throw new Error('Profile not found or not shared');
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return { error: "Profile not found", details: profileError.message };
     }
 
-    // si el perfil existe y es compartido, obtengo los outcomes
+    // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
     const { data: outcomes, error: outcomesError } = await supabase
-      .from('outcomes')
+      .from(OUTCOMES_TABLE)
       .select('*')
-      .eq('profile_id', profileId)
-      .gte('date', start.toISOString())
-      .lte('date', end.toISOString());
+      .eq('id', profileId)
+      .eq('profile', profileName)
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString());
 
     if (outcomesError) {
       console.error("Error fetching shared outcomes:", outcomesError);
-      return null;
+      return { error: "Failed to fetch outcomes", details: outcomesError.message };
     }
 
     return outcomes;
   } catch (error) {
-    console.error("Error fetching shared outcomes:", error);
-    return null;
+    console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
+    return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }
