@@ -519,6 +519,10 @@ export async function getProfileName(profileId: string): Promise<string | null> 
   return await getValueFromData(PROFILES_TABLE, 'name', 'id', profileId);
 }
 
+export async function updateProfileName(profileId: string, newName: string) {
+  return await updateData(PROFILES_TABLE, 'name', newName, 'id', profileId);
+}
+
 export async function addProfile(name: string, user: string): Promise<ProfileData | null> {
   try {
     const newProfile: ProfileData = { name, owner: user };
