@@ -63,15 +63,22 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
-            { !shared && (
-            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-              )}  
+          {!shared && (
+              <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+            )}  
 
-             { shared && (
-              <SharedBalanceCard outcomes={totalExpenses} refreshData={getBalanceData} sharedUsers={sharedUsers || []} profileEmail={userEmail}/> 
-             )}  
+            {shared && (
+              <View style={styles.sharedBalanceContainer}>
+                <SharedBalanceCard outcomes={totalExpenses} refreshData={getBalanceData} sharedUsers={sharedUsers || []} profileEmail={userEmail}/> 
+                <View style={styles.addButtonContainer}>
+                  <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+                </View>
+              </View>
+            )}  
 
-            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            {!shared && (
+              <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            )}
           
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Categorías</ThemedText>
@@ -92,6 +99,14 @@ export default function HomeScreen() {
 
 
 const styles = StyleSheet.create({
+  sharedBalanceContainer: {
+    position: 'relative',
+  },
+  addButtonContainer: {
+    position: 'absolute',
+    top: 235,
+    right: -5,
+  },
   container: {
     flex: 1,
   },
