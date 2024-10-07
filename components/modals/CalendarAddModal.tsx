@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -34,21 +34,22 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [recurrence, setRecurrence] = useState('Nunca');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const bubbleAnimationConfig = useMemo(() => ({
+    toValue: initialType === 'income' ? 0 : 1,
+    duration: 0,
+    useNativeDriver: false,
+  }), [initialType]);
+
   useEffect(() => {
     if (isVisible) {
       fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
     }
-  }, [isVisible]);
-
+  }, [isVisible, currentProfileId]);
+  
   useEffect(() => {
-    // Actualizar la posición del bubble cuando cambia initialType
-    Animated.timing(bubbleAnimation, {
-      toValue: initialType === 'income' ? 0 : 1,
-      duration: 0, // Sin animación para el cambio inicial
-      useNativeDriver: false,
-    }).start();
+    Animated.timing(bubbleAnimation, bubbleAnimationConfig).start();
     setType(initialType === 'income' ? 'Income' : 'Outcome');
-  }, [initialType]);
+  }, [initialType, bubbleAnimation, bubbleAnimationConfig]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);

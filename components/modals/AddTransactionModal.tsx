@@ -102,7 +102,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
     Animated.timing(bubbleAnimation, {
-      toValue: newType === 'Income' ? 1 : 0,
+      toValue: newType === 'Outcome' ? 1 : 0,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -122,13 +122,13 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
         <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
       </View>
-      
-      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
-        <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
         <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
       </TouchableOpacity>
     </View>
   ), [bubbleInterpolation, switchType, getTextColor]);
