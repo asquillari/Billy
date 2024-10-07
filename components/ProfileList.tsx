@@ -5,6 +5,7 @@ import { ProfileData, removeProfile, changeCurrentProfile, generateInvitationLin
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 
 interface ProfileListProps {
     profileData: ProfileData[] | null;
@@ -49,9 +50,9 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   const handleSharePress = useCallback(async (profileId: string) => {
     try {
       const link = await generateInvitationLink(profileId);
-      await Clipboard.arguments.setString(link);
+      await Clipboard.setStringAsync(link??"");
       Alert.alert("Enlace copiado", "El enlace de invitación ha sido copiado al portapapeles.");
-    } 
+    }   
     catch (error) {
       console.error("Error generating or copying invitation link:", error);
       Alert.alert("Error", "No se pudo generar o copiar el enlace de invitación.");
