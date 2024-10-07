@@ -34,7 +34,7 @@ export default function Profiles() {
                     setCurrentProfileId(profileId);
                     Alert.alert("Perfil añadido", "Se ha añadido el perfil compartido a tu lista de perfiles.");
                     // Limpiar los parámetros de la ruta después de procesar la invitación
-                    navigation.setParams({ invitationId: undefined });
+                    navigation.setParams({ invitationId: undefined } as any);
                 }
             } catch (error) {
                 console.error("Error procesando la invitación:", error);
@@ -43,9 +43,17 @@ export default function Profiles() {
         }
     }, [route.params, userEmail, getProfileData, setCurrentProfileId, navigation]);
 
+    const clearInvitationParams = useCallback(() => {
+        const invitationId = (route.params as { invitationId?: string })?.invitationId;
+        if (invitationId) {
+            navigation.setParams({ invitationId: undefined } as any);
+        }
+    }, [navigation]);
+
     useEffect(() => {
         processInvitationLink();
-    }, [processInvitationLink]);
+        clearInvitationParams();
+    }, [processInvitationLink, clearInvitationParams]);
 
     useFocusEffect(
         useCallback(() => {
