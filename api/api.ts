@@ -794,6 +794,8 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
   }
 }
 
+
+
 /* Shared Profiles */
 
 async function redistributeDebt(paidBy: string, debtor: string, amount: number): Promise<boolean> {
@@ -874,7 +876,6 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
     const { data: existingDebt, error: existingDebtError } = await supabase
       .from('Debts')
       .select('*')
-      .eq('outcome', outcomeId)
       .eq('paid_by', debtor)
       .eq('debtor', paidBy)
       .eq('has_paid', false)
