@@ -1094,13 +1094,26 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
   }
 }
 
-export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date) {
+export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
   try {
+    // Primero, verificamos que el perfil exista
+    const { data: profile, error: profileError } = await supabase
+      .from(PROFILES_TABLE)
+      .select('*')
+      .eq('id', profileId)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return { error: "Profile not found", details: profileError.message };
+    }
+
     // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
     const { data: outcomes, error: outcomesError } = await supabase
       .from(OUTCOMES_TABLE)
       .select('*')
-      .eq('profile', profileId)
+      .eq('id', profileId)
+      .eq('profile', profileName)
       .gte('created_at', start.toISOString())
       .lte('created_at', end.toISOString());
 
