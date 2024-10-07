@@ -1133,7 +1133,7 @@ export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: st
       return { error: "Failed to fetch outcomes", details: outcomesError.message };
     }
 
-    return { data: outcomes };
+    return outcomes;
   } catch (error) {
     console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
     return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
