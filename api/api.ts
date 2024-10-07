@@ -861,7 +861,9 @@ async function redistributeDebt(paidBy: string, debtor: string, amount: number):
     }
 
     return true;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error redistributing debt:", error);
     return false;
   }
@@ -872,6 +874,7 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
     const { data: existingDebt, error: existingDebtError } = await supabase
       .from('Debts')
       .select('*')
+      .eq('outcome', outcomeId)
       .eq('paid_by', debtor)
       .eq('debtor', paidBy)
       .eq('has_paid', false)
@@ -893,8 +896,11 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
           console.error("Error updating existing debt:", updateError);
           return false;
         }
+
         return true;
-      } else {
+      } 
+      
+      else {
         const { error: deleteError } = await supabase
           .from('Debts')
           .delete()
@@ -910,7 +916,9 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
     }
 
     return await redistributeDebt(paidBy, debtor, amount);
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error adding debt:", error);
     return false;
   }
