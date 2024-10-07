@@ -1,26 +1,59 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { StyleSheet, View, Alert } from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
-import { fetchProfiles, ProfileData } from '@/api/api';
+import { fetchProfiles, ProfileData, processInvitation } from '@/api/api';
 import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import useProfileData from '@/hooks/useProfileData';
 import { useProfile } from '../contexts/ProfileContext';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
 
 export default function Profiles() {
     const { userEmail } = useUser();
-    const { currentProfileId } = useProfile();
+    const { currentProfileId, setCurrentProfileId } = useProfile();
     const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { getBalanceData } = useProfileData(currentProfileId || "");
+    const route = useRoute();
+    const navigation = useNavigation();
     
     const getProfileData = useCallback(async () => {
         const data = await fetchProfiles(userEmail);
         setProfileData(data);
-    }, []);
+    }, [userEmail]);
+
+    const processInvitationLink = useCallback(async () => {
+        const params = route.params as { invitationId?: string } | undefined;
+        if (params?.invitationId) {
+            try {
+                const profileId = await processInvitation(params.invitationId, userEmail);
+                if (profileId) {
+                    await getProfileData();
+                    setCurrentProfileId(profileId);
+                    Alert.alert("Perfil añadido", "Se ha añadido el perfil compartido a tu lista de perfiles.");
+                    // Limpiar los parámetros de la ruta después de procesar la invitación
+                    navigation.setParams({ invitationId: undefined } as any);
+                }
+            } catch (error) {
+                console.error("Error procesando la invitación:", error);
+                Alert.alert("Error", "No se pudo procesar la invitación.");
+            }
+        }
+    }, [route.params, userEmail, getProfileData, setCurrentProfileId, navigation]);
+
+    const clearInvitationParams = useCallback(() => {
+        const invitationId = (route.params as { invitationId?: string })?.invitationId;
+        if (invitationId) {
+            navigation.setParams({ invitationId: undefined } as any);
+        }
+    }, [navigation]);
+
+    useEffect(() => {
+        processInvitationLink();
+        clearInvitationParams();
+    }, [processInvitationLink, clearInvitationParams]);
 
     useFocusEffect(
         useCallback(() => {
