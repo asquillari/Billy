@@ -868,13 +868,17 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
 
         if (netAmount > 0) {
           await updateDebt(profileId, creditor, debtor, netAmount);
+          removeDebt(profileId, debtor, creditor);
         } else if (netAmount < 0) {
           await updateDebt(profileId, debtor, creditor, -netAmount);
+          removeDebt(profileId, creditor, debtor);
         }
 
         // Eliminar las deudas originales
-        await removeDebt(profileId, creditor, debtor);
-        await removeDebt(profileId, debtor, creditor);
+        if (netAmount === 0) {
+          await removeDebt(profileId, creditor, debtor);
+          await removeDebt(profileId, debtor, creditor);
+        }
       }
     }
 
@@ -901,7 +905,7 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
   }
 
   if (existingDebt) {
-    await supabase.from('Debts').update({ amount: amount }).eq('id', existingDebt.id);
+    await supabase.from('Debts').update({ amount: amount }).eq('profile', existingDebt.profile).eq('paid_by', paidBy).eq('debtor', debtor);
   } else {
     await supabase.from('Debts').insert({
       profile: profileId,
