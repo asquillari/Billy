@@ -35,9 +35,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isVisible) {
-      fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
-    }
+    if (isVisible) fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
   }, [isVisible, currentProfileId]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -117,6 +115,22 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     return type === buttonType ? '#000000' : '#FFFFFF';
   };
 
+  const renderTypeSelector = useMemo(() => (
+    <View style={styles.typeSelector}>
+      <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
+        <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
+      </View>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
+      </TouchableOpacity>
+    </View>
+  ), [bubbleInterpolation, switchType, getTextColor]);
+
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
       <View style={styles.modalBackground}>
@@ -126,19 +140,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
           </TouchableOpacity>
           
           <View style={styles.contentContainer}>
-            <View style={styles.typeSelector}>
-              <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
-                <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
-              </View>
-              
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
-              </TouchableOpacity>
-            </View>
+            {renderTypeSelector}
 
             <TextInput
               style={styles.input}
