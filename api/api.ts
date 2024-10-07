@@ -804,12 +804,12 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 /* Shared Profiles */
 
-async function redistributeDebt(paidBy: string, debtor: string, amount: number): Promise<boolean> {
+async function redistributeDebt(outcomeId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: debtorOwes, error: debtorError } = await supabase
       .from('Debts')
       .select('*')
-      .eq('paid_by', debtor)
+      .eq('debtor', debtor)
       .eq('has_paid', false);
 
     if (debtorError) {
@@ -834,9 +834,9 @@ async function redistributeDebt(paidBy: string, debtor: string, amount: number):
         const { error: newDebtError } = await supabase
           .from('Debts')
           .insert({
-            outcome: debt.outcome,
+            outcome: outcomeId,
             paid_by: paidBy,
-            debtor: debt.debtor,
+            debtor: debt.paid_by,
             has_paid: false,
             amount: amountToRedistribute
           });
@@ -855,7 +855,7 @@ async function redistributeDebt(paidBy: string, debtor: string, amount: number):
       const { error } = await supabase
         .from('Debts')
         .insert({
-          outcome: null, 
+          outcome: outcomeId, 
           paid_by: paidBy,
           debtor: debtor,
           has_paid: false,
@@ -882,12 +882,12 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
     const { data: existingDebt, error: existingDebtError } = await supabase
       .from('Debts')
       .select('*')
-      .eq('paid_by', debtor)
-      .eq('debtor', paidBy)
+      .eq('paid_by', paidBy)
+      .eq('debtor', debtor)
       .eq('has_paid', false)
       .single();
 
-    if (existingDebtError && existingDebtError.code !== 'PGRST116') { // PGRST116 is the error code for no rows returned
+    if (existingDebtError && existingDebtError.code !== 'PGRST116') {
       console.error("Error checking existing debt:", existingDebtError);
       return false;
     }
@@ -922,7 +922,7 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
       }
     }
 
-    return await redistributeDebt(paidBy, debtor, amount);
+    return await redistributeDebt(outcomeId, paidBy, debtor, amount);
   } 
   
   catch (error) {
