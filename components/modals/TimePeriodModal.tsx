@@ -17,8 +17,8 @@ const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, s
     const [transactions, setTransactions] = useState<{ incomes: IncomeData[], outcomes: OutcomeData[] }>({ incomes: [], outcomes: [] });
 
     const dateRange = useMemo(() => ({
-        start: moment(startDate).startOf('day'),
-        end: moment(endDate).endOf('day')
+        start: moment.utc(startDate).startOf('day').format('YYYY-MM-DD'),
+        end: moment.utc(endDate).endOf('day').format('YYYY-MM-DD')
     }), [startDate, endDate]);
 
     const fetchTransactions = useCallback(async () => {
@@ -38,8 +38,8 @@ const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, s
     }, [onClose]);
 
     const formattedDateRange = useMemo(() => ({
-        start: dateRange.start.format('DD/MM/YYYY'),
-        end: dateRange.end.format('DD/MM/YYYY')
+        start: moment(dateRange.start).format('DD/MM/YYYY'),
+        end: moment(dateRange.end).format('DD/MM/YYYY'),
     }), [dateRange]);
 
     return (
