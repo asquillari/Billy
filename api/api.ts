@@ -860,24 +860,38 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
       paidByDebts.set(debt.debtor, (paidByDebts.get(debt.debtor) || 0) + debt.amount);
     }
 
-    // Aplicar las deudas netas
-    for (const [creditor, debtors] of netDebts) {
-      for (const [debtor, amount] of debtors) {
-        const reverseDebt = netDebts.get(debtor)?.get(creditor) || 0;
-        const netAmount = amount - reverseDebt;
-
-        if (netAmount > 0) {
-          await updateDebt(profileId, creditor, debtor, netAmount);
-          removeDebt(profileId, debtor, creditor);
-        } else if (netAmount < 0) {
-          await updateDebt(profileId, debtor, creditor, -netAmount);
-          removeDebt(profileId, creditor, debtor);
+    // Redistribuir deudas
+    let cambios = true;
+    while (cambios) {
+      cambios = false;
+      for (const [acreedor, deudores] of netDebts) {
+        for (const [deudor, cantidad] of deudores) {
+          const deudasDeudor = netDebts.get(deudor);
+          if (deudasDeudor) {
+            for (const [tercero, cantidadTercero] of deudasDeudor) {
+              if (tercero !== acreedor) {
+                const cantidadTransferir = Math.min(cantidad, cantidadTercero);
+                if (cantidadTransferir > 0) {
+                  deudores.set(deudor, cantidad - cantidadTransferir);
+                  if (deudores.get(deudor) === 0) deudores.delete(deudor);
+                  deudasDeudor.set(tercero, cantidadTercero - cantidadTransferir);
+                  if (deudasDeudor.get(tercero) === 0) deudasDeudor.delete(tercero);
+                  deudores.set(tercero, (deudores.get(tercero) || 0) + cantidadTransferir);
+                  cambios = true;
+                }
+              }
+            }
+          }
         }
+      }
+    }
 
-        // Eliminar las deudas originales
-        if (netAmount === 0) {
-          await removeDebt(profileId, creditor, debtor);
-          await removeDebt(profileId, debtor, creditor);
+    // Aplicar las deudas redistribuidas
+    await removeAllDebts(profileId);
+    for (const [acreedor, deudores] of netDebts) {
+      for (const [deudor, cantidad] of deudores) {
+        if (cantidad > 0) {
+          await updateDebt(profileId, acreedor, deudor, cantidad);
         }
       }
     }
@@ -887,6 +901,14 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
     console.error("Unexpected error redistributing debts:", error);
     return false;
   }
+}
+
+async function removeAllDebts(profileId: string): Promise<void> {
+  await supabase
+    .from('Debts')
+    .delete()
+    .eq('profile', profileId)
+    .eq('has_paid', false);
 }
 
 async function updateDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<void> {
