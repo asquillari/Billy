@@ -22,8 +22,8 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
   const [totalToPay, setTotalToPay] = useState(0);
-  const [debtsToUser, setDebtsToUser] = useState<DebtData[]>([]); // Explicitly type as DebtData[]
-  const [debtsFromUser, setDebtsFromUser] = useState<DebtData[]>([]); // Explicitly type as DebtData[]
+  const [debtsToUser, setDebtsToUser] = useState<DebtData[]>([]); 
+  const [debtsFromUser, setDebtsFromUser] = useState<DebtData[]>([]);
 
   const fetchDebts = useCallback(async () => {
     try {
@@ -36,8 +36,8 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
       if (debtsToUser && debtsFromUser) {
         setDebtsToUser(debtsToUser);
         setDebtsFromUser(debtsFromUser);
-        console.log(debtsToUser);
-        console.log(debtsFromUser);
+        // console.log(debtsToUser);
+        // console.log(debtsFromUser);
         setTotalDebtsToUser(debtsToUser.reduce((total, debt) => total + debt.amount, 0));
         setTotalDebtsFromUser(debtsFromUser.reduce((total, debt) => total + debt.amount, 0));
       }
@@ -130,7 +130,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
         <View style={styles.expenseItem}>
           <Text style={styles.expenseLabel}>Mis Gastos:</Text>
           <View style={styles.expenseValueContainer}>
-            {/* TODO: Falta la funcion del back para tener el total de los gastos del usuario */}
             <Text style={styles.expenseValue}>${totalToPay}</Text>
           </View>
         </View>
@@ -153,15 +152,17 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
 
 
       <View style={styles.userDebtSection}>
-        {debtsToUser.map((debt) => (
-          <DebtEntryComponent key={debt.id} name1={"Tú"} name2={debt.debtor} amount={debt.amount} />
+        {debtsToUser.length > 0 && (
+          <DebtEntryComponent name1="Tú" name2={debtsToUser[0].debtor} amount={debtsToUser[0].amount} />
+        )}
+
+        {isExpanded && debtsToUser.slice(1).map((debt, index) => (
+          <DebtEntryComponent key={debt.id || index} name1="Tú" name2={debt.debtor} amount={debt.amount} />
         ))}
 
-       {/* {isExpanded && ( */}
-        {debtsFromUser.map((debt) => (
-          <DebtEntryComponent key={debt.id} name1={debt.paid_by} name2={debt.debtor} amount={debt.amount} />
+        {isExpanded && debtsFromUser.map((debt, index) => (
+          <DebtEntryComponent key={debt.id || index} name1={debt.paid_by} name2={debt.debtor} amount={debt.amount} />
         ))}
-       {/* )} */}
       </View>
 
       <TouchableOpacity onPress={toggleExpanded}>
