@@ -887,6 +887,17 @@ export async function getTotalToPayInDateRange(profileId: string, startDate: Dat
   }
 }
 
+export async function getTotalToPayForUserInDateRange(userEmail: string, profileId: string, startDate: Date, endDate: Date): Promise<number> {
+  try {
+    const allTotalsToPay = await getTotalToPayInDateRange(profileId, startDate, endDate);
+    return allTotalsToPay[userEmail] || 0;
+  } 
+  catch (error) {
+    console.error("Error in getTotalToPayForUserInDateRange:", error);
+    return 0;
+  }
+}
+
 
 
 /* Shared Profiles */
