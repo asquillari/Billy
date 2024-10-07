@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, TextInput, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -18,7 +18,7 @@ interface CobroPagoPopUpProps {
 }
 
 const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
-  const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'income' ? 'Income' : 'Outcome');
+  const [type, setType] = useState<'Income' | 'Outcome'>('Income');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -34,22 +34,11 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [recurrence, setRecurrence] = useState('Nunca');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const bubbleAnimationConfig = useMemo(() => ({
-    toValue: initialType === 'income' ? 0 : 1,
-    duration: 0,
-    useNativeDriver: false,
-  }), [initialType]);
-
   useEffect(() => {
     if (isVisible) {
       fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
     }
   }, [isVisible, currentProfileId]);
-  
-  useEffect(() => {
-    Animated.timing(bubbleAnimation, bubbleAnimationConfig).start();
-    setType(initialType === 'income' ? 'Income' : 'Outcome');
-  }, [initialType, bubbleAnimation, bubbleAnimationConfig]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -110,16 +99,19 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     onClose();
   }
 
-  const switchType = (newType: 'Income' | 'Outcome') => {
+  const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
     Animated.timing(bubbleAnimation, {
-      toValue: newType === 'Income' ? 0 : 1,
+      toValue: newType === 'Outcome' ? 1 : 0,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  };
-
-  const bubbleInterpolation = bubbleAnimation.interpolate({ inputRange: [0, 1], outputRange: ['2%', '48%'] });
+  }, [bubbleAnimation]);
+  
+  const bubbleInterpolation = bubbleAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['2%', '48%'],
+  });
 
   const getTextColor = (buttonType: 'Income' | 'Outcome') => {
     return type === buttonType ? '#000000' : '#FFFFFF';

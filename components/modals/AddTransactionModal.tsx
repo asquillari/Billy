@@ -16,7 +16,7 @@ interface AddTransactionModalProps {
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, onClose, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
-  const [type, setType] = useState<'Income' | 'Outcome'>('Outcome');
+  const [type, setType] = useState<'Income' | 'Outcome'>('Income');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
