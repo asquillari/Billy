@@ -1074,7 +1074,29 @@ export async function processInvitation(invitationId: string, email: string): Pr
   }
 }
 
-export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
+export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', debtor)
+      .eq('has_paid', false);
+
+    if (error) {
+      console.error("Error fetching debts to user:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts to user:", error);
+    return null;
+  }
+}
+
+export async function getDebtsFromUser(debtor: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
       .from('Debts')
@@ -1083,13 +1105,15 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
       .eq('has_paid', false);
 
     if (error) {
-      console.error("Error fetching user debts:", error);
+      console.error("Error fetching debts from user:", error);
       return null;
     }
 
     return data;
-  } catch (error) {
-    console.error("Unexpected error fetching user debts:", error);
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts from user:", error);
     return null;
   }
 }
