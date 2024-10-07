@@ -1,25 +1,12 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-
+import { createURL } from 'expo-linking';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
-
-let BASE_URL: string;
-
-if (__DEV__) {
-  // En desarrollo, usa la URL de Expo
-  BASE_URL = `exp://${Constants.expoConfig?.hostUri?.split(':')[0]}:19000`;
-} else {
-  // En producción, usa la URL de tu aplicación publicada
-  BASE_URL = 'https://tu-app-publicada.com'; // Cambia esto por la URL real de tu app publicada
-}
-
-export { BASE_URL };
 
 export interface UserData {
   email: string;
@@ -1017,7 +1004,7 @@ export async function generateInvitationLink(profile: string): Promise<string | 
     }
 
     // Uses the configured base URL
-    return `${BASE_URL}/invite/${data.id}`;
+    return createURL(`/(tabs)/profiles?invitationId=${data.id}`);
   } 
   
   catch (error) {
@@ -1026,9 +1013,9 @@ export async function generateInvitationLink(profile: string): Promise<string | 
   }
 }
 
-export async function processInvitation(invitationId: string, email: string): Promise<boolean> {
+export async function processInvitation(invitationId: string, email: string): Promise<string | null> {
   try {
-    // Get the invitation
+    // Obtener la invitación
     const { data: invitation, error: invitationError } = await supabase
       .from('invitationLink')
       .select('profile')
@@ -1036,28 +1023,28 @@ export async function processInvitation(invitationId: string, email: string): Pr
       .single();
 
     if (invitationError || !invitation) {
-      console.error("Error obtaining the invitation:", invitationError);
-      return false;
+      console.error("Error obteniendo la invitación:", invitationError);
+      return null;
     }
 
+    // Verificar si el usuario ya tiene este perfil
     const { data: existingProfile, error: profileError } = await supabase
       .from('Users')
       .select('my_profiles')
-      .eq('email', email);
+      .eq('email', email)
+      .single();
 
     if (profileError) {
-      console.error("Error getting existing profiles:", profileError);
-      return false;
+      console.error("Error obteniendo perfiles existentes:", profileError);
+      return null;
     }
 
-    if (existingProfile && existingProfile.length > 0) {
-      const profileExists = existingProfile.includes(invitation.profile);
-      if (profileExists) {
-        console.error("The profile already exists for this user");
-        return false;
-      }
+    if (existingProfile && existingProfile.my_profiles.includes(invitation.profile)) {
+      console.error("El perfil ya existe para este usuario");
+      return invitation.profile; // Devolvemos el ID del perfil aunque ya exista
     }
 
+    // Añadir el usuario al perfil compartido
     await addSharedUsers(invitation.profile, [email]);
 
     // Delete the invitation after using it
@@ -1067,10 +1054,10 @@ export async function processInvitation(invitationId: string, email: string): Pr
     //   .delete()
     //   .eq('id', invitationId);
 
-    return true;
+    return invitation.profile; // Devolvemos el ID del perfil añadido
   } catch (error) {
-    console.error("Unexpected error processing the invitation:", error);
-    return false;
+    console.error("Error inesperado procesando la invitación:", error);
+    return null;
   }
 }
 
