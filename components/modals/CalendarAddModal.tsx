@@ -105,8 +105,8 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     setEndDate(new Date());
     setSelectedCategory('');
     setRecurrence('Nunca');
-    onClose();
     setIsSubmitting(false);
+    onClose();
   }
 
   const switchType = (newType: 'Income' | 'Outcome') => {
