@@ -73,6 +73,15 @@ export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amo
   );
 };
 
+const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value }) => (
+  <View style={styles.expenseItem}>
+    <Text style={styles.expenseLabel}>{label}</Text>
+    <View style={styles.expenseValueContainer}>
+      <Text style={styles.expenseValue}>${value.toFixed(2)}</Text>
+    </View>
+  </View>
+);
+
 export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('Bariloche 2025');
@@ -121,33 +130,13 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       </View>
 
       <View style={styles.expensesContainer}>
-        <View style={styles.expenseItem}>
-          <Text style={styles.expenseLabel}>Gastos totales:</Text>
-          <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>${outcomes}</Text>
-          </View>
-        </View>
-        <View style={styles.expenseItem}>
-          <Text style={styles.expenseLabel}>Mis Gastos:</Text>
-          <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>${totalToPay}</Text>
-          </View>
-        </View>
+        <ExpenseItem label="Gastos totales:" value={outcomes} />
+        <ExpenseItem label="Mis Gastos:" value={totalToPay} />
       </View>
 
       <View style={styles.expensesContainer}>
-        <View style={styles.expenseItem}>
-          <Text style={styles.expenseLabel}>Te deben:</Text>
-          <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>${totalDebtsToUser}</Text>
-          </View>
-        </View>
-        <View style={styles.expenseItem}>
-          <Text style={styles.expenseLabel}>Tu deuda:</Text>
-          <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>${totalDebtsFromUser}</Text>
-          </View>
-        </View>
+        <ExpenseItem label="Te deben:" value={totalDebtsToUser} />
+        <ExpenseItem label="Tu deuda:" value={totalDebtsFromUser} />
       </View>
 
 
