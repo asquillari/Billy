@@ -38,7 +38,7 @@ export default function CalendarScreen() {
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
+  const [modalType, setModalType] = useState<'Income' | 'Outcome'>('Outcome');
 
   const { incomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
@@ -89,7 +89,7 @@ export default function CalendarScreen() {
     />
   ), [years, selectYear]);
 
-  const openModal = useCallback((type: 'income' | 'outcome') => {
+  const openModal = useCallback((type: 'Income' | 'Outcome') => {
     setModalType(type);
     setModalVisible(true);
   }, []);
@@ -105,8 +105,8 @@ export default function CalendarScreen() {
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
     const addDot = (date: string, id: string, color: string) => {
-      if (marked[date]) marked[date].dots.push({ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }); 
-      else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }] };
+      if (marked[date]) marked[date].dots.push({ key: `${color === '#4CAF50' ? 'Income' : 'Outcome'}-${id}`, color }); 
+      else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'Income' : 'Outcome'}-${id}`, color }] };
     };
 
     incomeData?.forEach(income => {
@@ -159,11 +159,11 @@ export default function CalendarScreen() {
               {viewMode === 'month' ? memoizedCalendar : renderYearPicker()}
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('income')}>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('Income')}>
                 <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
                 <Text style={styles.buttonTextCobro}>Agregar cobro</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('outcome')}>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('Outcome')}>
                 <Ionicons name="remove-circle-outline" size={24} color="#370185" />
                 <Text style={styles.buttonTextPago}>Agregar pago</Text>
               </TouchableOpacity>
