@@ -830,7 +830,7 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 /* Shared Profiles */
 
-async function redistributeDebt(outcomeId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+async function redistributeDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: debtorOwes, error: debtorError } = await supabase
       .from('Debts')
@@ -860,7 +860,7 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
         const { error: newDebtError } = await supabase
           .from('Debts')
           .insert({
-            outcome: outcomeId,
+            outcome: profileId,
             paid_by: paidBy,
             debtor: debt.paid_by,
             has_paid: false,
@@ -881,7 +881,7 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
       const { error } = await supabase
         .from('Debts')
         .insert({
-          outcome: outcomeId, 
+          outcome: profileId, 
           paid_by: paidBy,
           debtor: debtor,
           has_paid: false,
@@ -1025,5 +1025,104 @@ export async function processInvitation(invitationId: string, email: string): Pr
   } catch (error) {
     console.error("Unexpected error processing the invitation:", error);
     return false;
+  }
+}
+
+export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('debtor', debtor)
+      .eq('has_paid', false);
+
+    if (error) {
+      console.error("Error fetching user debts:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Unexpected error fetching user debts:", error);
+    return null;
+  }
+}
+
+export async function getSharedIncomesFromDateRange(profile: string, start: Date, end: Date) {
+  const startISO = start.toISOString();
+  const endISO = end.toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from(INCOMES_TABLE)
+      .select('*')
+      .eq('profile', profile)
+      .eq('is_shared', true)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching shared incomes from date range:", error);
+      return { error: "Failed to fetch shared incomes." };
+    }
+    
+    return data;
+  } 
+  catch (error) {
+    console.error("Unexpected error fetching shared incomes from date range:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function getSharedOutcomesFromDateRange(profile: string, start: Date, end: Date) {
+  const startISO = start.toISOString();
+  const endISO = end.toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select('*')
+      .eq('profile', profile)
+      .eq('is_shared', true)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching shared outcomes from date range:", error);
+      return { error: "Failed to fetch shared outcomes." };
+    }
+    
+    return data;
+  } 
+  catch (error) {
+    console.error("Unexpected error fetching shared outcomes from date range:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function getSharedOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
+  const startISO = start.toISOString();
+  const endISO = end.toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select('*')
+      .eq('profile', profile)
+      .eq('is_shared', true)
+      .eq('category', category)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching shared outcomes from date range and category:", error);
+      return { error: "Failed to fetch shared outcomes by category." };
+    }
+    
+    return data;
+  } 
+  catch (error) {
+    console.error("Unexpected error fetching shared outcomes from date range and category:", error);
+    return { error: "An unexpected error occurred." };
   }
 }
