@@ -857,28 +857,24 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
       }
 
       const paidByDebts = netDebts.get(debt.paid_by)!;
-      const debtorDebts = netDebts.get(debt.debtor)!;
-
       paidByDebts.set(debt.debtor, (paidByDebts.get(debt.debtor) || 0) + debt.amount);
-      debtorDebts.set(debt.paid_by, (debtorDebts.get(debt.paid_by) || 0) - debt.amount);
     }
 
-    // Redistribuir deudas
-    for (const [debtor, debts] of netDebts) {
-      for (const [creditor, amount] of debts) {
-        if (amount > 0) {
-          let remainingAmount = amount;
-          for (const [thirdParty, thirdPartyDebt] of netDebts.get(creditor)!) {
-            if (thirdPartyDebt < 0 && remainingAmount > 0) {
-              const transferAmount = Math.min(remainingAmount, -thirdPartyDebt);
-              // Transferir deuda de debtor a thirdParty
-              await updateDebt(profileId, debtor, thirdParty, transferAmount);
-              await updateDebt(profileId, debtor, creditor, -transferAmount);
-              await updateDebt(profileId, creditor, thirdParty, -transferAmount);
-              remainingAmount -= transferAmount;
-            }
-          }
+    // Aplicar las deudas netas
+    for (const [creditor, debtors] of netDebts) {
+      for (const [debtor, amount] of debtors) {
+        const reverseDebt = netDebts.get(debtor)?.get(creditor) || 0;
+        const netAmount = amount - reverseDebt;
+
+        if (netAmount > 0) {
+          await updateDebt(profileId, creditor, debtor, netAmount);
+        } else if (netAmount < 0) {
+          await updateDebt(profileId, debtor, creditor, -netAmount);
         }
+
+        // Eliminar las deudas originales
+        await removeDebt(profileId, creditor, debtor);
+        await removeDebt(profileId, debtor, creditor);
       }
     }
 
@@ -905,21 +901,26 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
   }
 
   if (existingDebt) {
-    const newAmount = existingDebt.amount + amount;
-    if (newAmount === 0) {
-      await supabase.from('Debts').delete().eq('id', existingDebt.id);
-    } else {
-      await supabase.from('Debts').update({ amount: newAmount }).eq('id', existingDebt.id);
-    }
-  } else if (amount !== 0) {
+    await supabase.from('Debts').update({ amount: amount }).eq('id', existingDebt.id);
+  } else {
     await supabase.from('Debts').insert({
       profile: profileId,
       paid_by: paidBy,
       debtor: debtor,
-      amount: Math.abs(amount),
+      amount: amount,
       has_paid: false
     });
   }
+}
+
+async function removeDebt(profileId: string, paidBy: string, debtor: string): Promise<void> {
+  await supabase
+    .from('Debts')
+    .delete()
+    .eq('profile', profileId)
+    .eq('paid_by', paidBy)
+    .eq('debtor', debtor)
+    .eq('has_paid', false);
 }
 
 export async function addDebt(outcomeId: string, profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
