@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange } from '@/api/api';
+import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData } from '@/api/api';
 
 interface BalanceCardProps {
   currentProfileId: string;
@@ -22,18 +22,24 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
   const [totalToPay, setTotalToPay] = useState(0);
+  const [debtsToUser, setDebtsToUser] = useState<DebtData[]>([]); // Explicitly type as DebtData[]
+  const [debtsFromUser, setDebtsFromUser] = useState<DebtData[]>([]); // Explicitly type as DebtData[]
 
   const fetchDebts = useCallback(async () => {
     try {
-      const [debtsTo, debtsFrom, totalToPay] = await Promise.all([
+      const [debtsToUser, debtsFromUser, totalToPay] = await Promise.all([
         getDebtsToUser(profileEmail, currentProfileId),
         getDebtsFromUser(profileEmail, currentProfileId),
         getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2024-12-31'))
       ]);
 
-      if (debtsTo && debtsFrom) {
-        setTotalDebtsToUser(debtsTo.reduce((total, debt) => total + debt.amount, 0));
-        setTotalDebtsFromUser(debtsFrom.reduce((total, debt) => total + debt.amount, 0));
+      if (debtsToUser && debtsFromUser) {
+        setDebtsToUser(debtsToUser);
+        setDebtsFromUser(debtsFromUser);
+        console.log(debtsToUser);
+        console.log(debtsFromUser);
+        setTotalDebtsToUser(debtsToUser.reduce((total, debt) => total + debt.amount, 0));
+        setTotalDebtsFromUser(debtsFromUser.reduce((total, debt) => total + debt.amount, 0));
       }
       setTotalToPay(totalToPay);
     } catch (error) {
@@ -45,7 +51,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
     fetchDebts();
   }, [fetchDebts]);
 
-  return { totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts: fetchDebts };
+  return { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts: fetchDebts };
 };
 
 export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amount }) => {
@@ -71,7 +77,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('Bariloche 2025');
   const [isExpanded, setIsExpanded] = useState(false);
-  const { totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
+  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
 
 
   useEffect(() => {
@@ -108,14 +114,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
           <Ionicons name="pencil" size={20} color="#666" />
         </TouchableOpacity>
         {isEditing ? (
-          <TextInput
-            style={styles.titleInput}
-            value={title}
-            onChangeText={handleTitleChange}
-            onBlur={handleTitleSubmit}
-            onSubmitEditing={handleTitleSubmit}
-            autoFocus
-          />
+          <TextInput style={styles.titleInput} value={title} onChangeText={handleTitleChange} onBlur={handleTitleSubmit} onSubmitEditing={handleTitleSubmit} autoFocus />
         ) : (
           <Text style={styles.title}>{title}</Text>
         )}
@@ -154,11 +153,15 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
 
 
       <View style={styles.userDebtSection}>
-        <DebtEntryComponent name1="Tú" name2="Juan Gómez" amount={500.00} />
+        {debtsToUser.map((debt) => (
+          <DebtEntryComponent key={debt.id} name1={"Tú"} name2={debt.debtor} amount={debt.amount} />
+        ))}
 
-       {isExpanded && (
-          <DebtEntryComponent name1="Tú" name2="Juan Gómez" amount={500.00} />
-        )}
+       {/* {isExpanded && ( */}
+        {debtsFromUser.map((debt) => (
+          <DebtEntryComponent key={debt.id} name1={debt.paid_by} name2={debt.debtor} amount={debt.amount} />
+        ))}
+       {/* )} */}
       </View>
 
       <TouchableOpacity onPress={toggleExpanded}>
