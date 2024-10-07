@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useCallback, useState } from 'react';
 import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import { ProfileData, removeProfile, changeCurrentProfile } from '@/api/api';
+import { ProfileData, removeProfile, changeCurrentProfile, generateInvitationLink } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -33,13 +33,26 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [refreshData]);
   
   const handleLongPress = useCallback((profile: ProfileData) => {
-    Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
-      onPress: async () => {
-        if (profile) handleRemoveProfile(profile.id ?? "null");
-        refreshData();
-      }
-    }]);
-  }, [refreshData]);
+    if (profile.is_shared) { 
+      generateInvitationLink(profile.id ?? "null").then(link => {
+        console.log(link);
+        Clipboard.arguments.setString(link);
+        Alert.alert("Enlace copiado", "El enlace de invitación ha sido copiado al portapapeles.");
+      });
+    } else {
+      Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{
+        text: "Cancelar",
+        style: "cancel"
+      }, {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: async () => {
+          if (profile) handleRemoveProfile(profile.id ?? "null");
+          refreshData();
+        }
+      }]);
+    }
+  }, [refreshData, handleRemoveProfile]);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
     const isCurrentProfile = item !== 'add' && item.id === localCurrentProfileId;

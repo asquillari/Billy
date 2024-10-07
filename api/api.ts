@@ -76,6 +76,12 @@ export interface DebtData {
   amount: number;
 }
 
+export interface InvitationData {
+  id?: string;
+  profile: string;
+  created_at?: Date;
+}
+
 /* General data */
 
 async function fetchData(table: string, columnToCheck: string, parentID: string): Promise<any[] | null> {
@@ -940,7 +946,9 @@ export async function generateInvitationLink(profile: string): Promise<string | 
 
     // Uses the configured base URL
     return `${BASE_URL}/invite/${data.id}`;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error generating invitation link:", error);
     return null;
   }
