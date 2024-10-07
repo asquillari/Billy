@@ -69,7 +69,7 @@ export default function HomeScreen() {
 
             {shared && (
               <View style={styles.sharedBalanceContainer}>
-                <SharedBalanceCard outcomes={totalExpenses} refreshData={getBalanceData} sharedUsers={sharedUsers || []} profileEmail={userEmail}/> 
+                <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
                 <View style={styles.addButtonContainer}>
                   <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
                 </View>

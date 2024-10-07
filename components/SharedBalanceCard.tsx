@@ -2,21 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDebtsToUser,getDebtsFromUser } from '@/api/api';
+import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange } from '@/api/api';
 
 interface BalanceCardProps {
+  currentProfileId: string;
   outcomes: number;
   refreshData: () => void;
-  sharedUsers: string[]; // por ahora no se usa. Lo dejo por si despues es necesario.
   profileEmail: string;
 }
 
-export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ outcomes, refreshData, sharedUsers, profileEmail }) => {
+export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('Bariloche 2025');
   const [isExpanded, setIsExpanded] = useState(false);
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
+  const [totalToPay, setTotalToPay] = useState(0);
 
   useEffect(() => {
     fetchDebts();
@@ -30,6 +31,8 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ outcomes, refres
         setTotalDebtsToUser(debtsTo.reduce((total, debt) => total + debt.amount, 0));
         setTotalDebtsFromUser(debtsFrom.reduce((total, debt) => total + debt.amount, 0));
       }
+      const totalToPay = await getTotalToPayForUserInDateRange(profileEmail, currentProfileId,  new Date('2024-01-01'), new Date('2024-12-31'));
+      setTotalToPay(totalToPay);
     } catch (error) {
       console.error('Error fetching debts:', error);
     }
@@ -91,7 +94,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ outcomes, refres
           <Text style={styles.expenseLabel}>Mis Gastos:</Text>
           <View style={styles.expenseValueContainer}>
             {/* TODO: Falta la funcion del back para tener el total de los gastos del usuario */}
-            <Text style={styles.expenseValue}>$0.00</Text>
+            <Text style={styles.expenseValue}>${totalToPay}</Text>
           </View>
         </View>
       </View>
