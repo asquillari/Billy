@@ -329,8 +329,10 @@ export async function addOutcome(
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
       const amountPerPerson = amount / (debtors.length + 1);
-      
-      const sharedOutcomeId = await addSharedOutcome(debtors, [amountPerPerson]);
+
+      const allUsers = [paid_by, ...debtors];
+      const allAmounts = allUsers.map(() => amountPerPerson);
+      const sharedOutcomeId = await addSharedOutcome(allUsers, allAmounts);
       await updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id);
 
       for (const debtor of debtors) {
@@ -358,7 +360,7 @@ export async function addOutcome(
 };
 
 export async function addSharedOutcome(users: string[], toPay: number[]) {
-  const hasPaid: boolean[] = users.map(() => false);
+  const hasPaid: boolean[] = users.map((_, index) => index === 0);
   const newSharedOutcome: SharedOutcomeData = { 
     users: users,
     to_pay: toPay,
