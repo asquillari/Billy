@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData } from '@/api/api';
+import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName } from '@/api/api';
 
 interface BalanceCardProps {
   currentProfileId: string;
@@ -17,7 +17,7 @@ interface DebtEntryProps {
   amount: number;
 }
 
-
+{/* Debts data component */}
 const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
@@ -36,8 +36,6 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
       if (debtsToUser && debtsFromUser) {
         setDebtsToUser(debtsToUser);
         setDebtsFromUser(debtsFromUser);
-        // console.log(debtsToUser);
-        // console.log(debtsFromUser);
         setTotalDebtsToUser(debtsToUser.reduce((total, debt) => total + debt.amount, 0));
         setTotalDebtsFromUser(debtsFromUser.reduce((total, debt) => total + debt.amount, 0));
       }
@@ -54,6 +52,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   return { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts: fetchDebts };
 };
 
+{/* Debts entry component */}
 export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amount }) => {
   return (
     <View style={styles.debtEntry}>
@@ -73,6 +72,7 @@ export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amo
   );
 };
 
+{/* Expense item component */}
 const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value }) => (
   <View style={styles.expenseItem}>
     <Text style={styles.expenseLabel}>{label}</Text>
@@ -82,6 +82,7 @@ const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value 
   </View>
 );
 
+{/* Shared balance card component */}
 export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('Bariloche 2025');
