@@ -1069,37 +1069,47 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
 }
 
 export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
-  
   try {
-    // primero chequeo que el perfil exista y sea compartido
+    // Primero, verificamos que el perfil exista
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from(PROFILES_TABLE)
       .select('*')
       .eq('id', profileId)
-      .eq('name', profileName)
-      .eq('is_shared', true)
       .single();
 
-    if (profileError || !profile) {
-      throw new Error('Profile not found or not shared');
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return { error: "Profile not found", details: profileError.message };
     }
 
-    // si el perfil existe y es compartido, obtengo los outcomes
+    if (!profile) {
+      return { error: "Profile not found", details: `No profile found with id: ${profileId}` };
+    }
+
+    if (profile.name !== profileName) {
+      return { error: "Profile name mismatch", details: `The provided profile name does not match the profile's actual name` };
+    }
+
+    if (!profile.is_shared) {
+      return { error: "Profile not shared", details: `The profile with id: ${profileId} is not a shared profile` };
+    }
+
+    // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
     const { data: outcomes, error: outcomesError } = await supabase
-      .from('outcomes')
+      .from(OUTCOMES_TABLE)
       .select('*')
-      .eq('profile_id', profileId)
-      .gte('date', start.toISOString())
-      .lte('date', end.toISOString());
+      .eq('profile', profileId)
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString());
 
     if (outcomesError) {
       console.error("Error fetching shared outcomes:", outcomesError);
-      return null;
+      return { error: "Failed to fetch outcomes", details: outcomesError.message };
     }
 
-    return outcomes;
+    return { data: outcomes };
   } catch (error) {
-    console.error("Error fetching shared outcomes:", error);
-    return null;
+    console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
+    return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }
