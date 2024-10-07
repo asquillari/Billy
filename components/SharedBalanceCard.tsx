@@ -84,11 +84,37 @@ const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value 
 
 {/* Shared balance card component */}
 export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
+
+  const [profileName, setProfileName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState('Bariloche 2025');
+  const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
   const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
 
+
+  const fetchProfileName = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const name = await getProfileName(currentProfileId);
+      setProfileName(name || '');
+    } catch (error) {
+      console.error('Error fetching profile name:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentProfileId]);
+
+
+  useEffect(() => {
+    fetchProfileName();
+  }, [fetchProfileName]);
+  
+  useEffect(() => {
+    if (!isLoading) {
+      setTitle(profileName);
+    }
+  }, [profileName, isLoading]);
 
   useEffect(() => {
     refreshData();
@@ -107,8 +133,16 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
     setTitle(newTitle);
   };
 
-  const handleTitleSubmit = () => {
+  const handleTitleSubmit = async () => {
     setIsEditing(false);
+    try {
+      await updateProfileName(currentProfileId, title);
+      setProfileName(title);
+    } catch (error) {
+      console.error('Error updating profile name:', error);
+      // Optionally, revert the title if the update fails
+      setTitle(profileName);
+    }
   };
 
 
@@ -244,7 +278,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
     textAlign: 'center',
-    //fontFamily: 'Roboto_700Bold', // Changed font family
 
   },
   debtDetailsContainer: {
