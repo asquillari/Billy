@@ -747,6 +747,32 @@ export async function fetchCurrentProfile(user: string) {
 
 /* Stats */
 
+export async function getIncomesFromDateRange(profile: string, start: Date, end: Date) {
+  const startISO = start.toISOString();
+  const endISO = end.toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from(INCOMES_TABLE)
+      .select()
+      .eq('profile', profile)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching incomes from date range:", error);
+      return { error: "Failed to fetch incomes." };
+    }
+    
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching incomes from date range:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
   const startISO = start.toISOString();
   const endISO = end.toISOString();

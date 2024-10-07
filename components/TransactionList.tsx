@@ -11,7 +11,7 @@ interface TransactionListProps {
   outcomeData: OutcomeData[] | null;
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
-  refreshCategoryData: () => void;
+  refreshCategoryData?: () => void;
   currentProfileId: string;
   scrollEnabled?: boolean;
 }
@@ -52,7 +52,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();   // Actualiza los datos después de eliminar
-    refreshCategoryData();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
+    refreshCategoryData?.();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
   };
 
   const renderTransactionItem = useCallback(({ item }: { item: (IncomeData | OutcomeData) }) => (

@@ -12,6 +12,7 @@ import { useProfile } from '../contexts/ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
 import { useUser } from '@/app/contexts/UserContext';
+import TimePeriodModal from "@/components/modals/TimePeriodModal";
 
 const customArrowLeft = () => {
   return (
@@ -40,6 +41,10 @@ export default function CalendarScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'Income' | 'Outcome'>('Outcome');
 
+  const [isTimePeriodModalVisible, setIsTimePeriodModalVisible] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<{start: string, end: string} | null>(null);
+  const [selectedTransactions, setSelectedTransactions] = useState<Array<any>>([]);
+
   const { incomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const currentYear = moment().year();
@@ -57,6 +62,20 @@ export default function CalendarScreen() {
   const onYearPress = () => {
     setViewMode('year');
   };
+
+  const onDayPress = useCallback((day: any) => {
+    if (!selectedRange || (selectedRange.start && selectedRange.end)) {
+      setSelectedRange({ start: day.dateString, end: day.dateString });
+    } 
+    else if (selectedRange.start && !selectedRange.end) {
+      const start = moment(selectedRange.start);
+      const end = moment(day.dateString);
+      if (end.isBefore(start)) setSelectedRange({ start: day.dateString, end: selectedRange.start });
+      else setSelectedRange({ ...selectedRange, end: day.dateString });
+    }
+    setIsTimePeriodModalVisible(true);
+    console.log(selectedRange);
+  }, [selectedRange]);
 
   const selectYear = useCallback((year: number) => {
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
@@ -147,8 +166,9 @@ export default function CalendarScreen() {
       onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
       renderHeader={renderCustomHeader}
       theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
+      onDayPress={onDayPress}
     />
-  ), [key, currentDate, markedDates, renderCustomHeader]);
+  ), [key, currentDate, markedDates, renderCustomHeader, onDayPress]);
 
   return (
     <View style={styles.container}>
@@ -182,6 +202,16 @@ export default function CalendarScreen() {
             refreshTransactions={processTransactions}
             currentProfileId={currentProfileId || ""}
           />
+          {selectedRange && (
+            <TimePeriodModal
+              isVisible={isTimePeriodModalVisible}
+              onClose={() => setIsTimePeriodModalVisible(false)}
+              startDate={new Date(selectedRange.start)}
+              endDate={new Date(selectedRange.end)}
+              refreshData={refreshAllData}
+                currentProfileId={currentProfileId || ""}
+              />
+          )}
       </LinearGradient>
     </View>
   );
