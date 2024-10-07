@@ -140,7 +140,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       setProfileName(title);
     } catch (error) {
       console.error('Error updating profile name:', error);
-      // Optionally, revert the title if the update fails
       setTitle(profileName);
     }
   };
@@ -287,12 +286,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f3ff',
     borderRadius: 20,
     padding: 8,
-  },
-  debtRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 8,
   },
   avatar: {
     width: 40,
