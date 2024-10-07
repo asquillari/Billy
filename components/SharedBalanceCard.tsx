@@ -5,15 +5,35 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getDebtsToUser,getDebtsFromUser } from '@/api/api';
 
 interface BalanceCardProps {
+  outcomes: number;
   refreshData: () => void;
-  sharedUsers: string[];
+  sharedUsers: string[]; // por ahora no se usa. Lo dejo por si despues es necesario.
+  profileEmail: string;
 }
 
-export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ refreshData, sharedUsers }) => {
+export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ outcomes, refreshData, sharedUsers, profileEmail }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('Bariloche 2025');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
+  const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
 
+  useEffect(() => {
+    fetchDebts();
+  }, [profileEmail]);
+
+  const fetchDebts = async () => {
+    try {
+      const debtsTo = await getDebtsToUser(profileEmail);
+      const debtsFrom = await getDebtsFromUser(profileEmail);
+      if (debtsTo && debtsFrom) {
+        setTotalDebtsToUser(debtsTo.reduce((total, debt) => total + debt.amount, 0));
+        setTotalDebtsFromUser(debtsFrom.reduce((total, debt) => total + debt.amount, 0));
+      }
+    } catch (error) {
+      console.error('Error fetching debts:', error);
+    }
+  };
 
   const handleEditPress = () => {
     setIsEditing(true);
@@ -64,13 +84,14 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ refreshData, sha
         <View style={styles.expenseItem}>
           <Text style={styles.expenseLabel}>Gastos totales:</Text>
           <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>$567.00</Text>
+            <Text style={styles.expenseValue}>${outcomes}</Text>
           </View>
         </View>
         <View style={styles.expenseItem}>
           <Text style={styles.expenseLabel}>Mis Gastos:</Text>
           <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>$345.00</Text>
+            {/* TODO: Falta la funcion del back para tener el total de los gastos del usuario */}
+            <Text style={styles.expenseValue}>$0.00</Text>
           </View>
         </View>
       </View>
@@ -79,13 +100,13 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ refreshData, sha
         <View style={styles.expenseItem}>
           <Text style={styles.expenseLabel}>Te deben:</Text>
           <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>$0.00</Text>
+            <Text style={styles.expenseValue}>${totalDebtsToUser}</Text>
           </View>
         </View>
         <View style={styles.expenseItem}>
           <Text style={styles.expenseLabel}>Tu deuda:</Text>
           <View style={styles.expenseValueContainer}>
-            <Text style={styles.expenseValue}>$345.00</Text>
+            <Text style={styles.expenseValue}>${totalDebtsFromUser}</Text>
           </View>
         </View>
       </View>
