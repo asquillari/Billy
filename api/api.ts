@@ -913,6 +913,150 @@ export async function getTotalToPayForUserInDateRange(userEmail: string, profile
 
 /* Shared Profiles */
 
+export async function generateInvitationLink(profile: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('invitationLink')
+      .insert({ profile: profile })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error generating invitation link:", error);
+      return null;
+    }
+
+    // Uses the configured base URL
+    return createURL(`/(tabs)/profiles?invitationId=${data.id}`);
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error generating invitation link:", error);
+    return null;
+  }
+}
+
+export async function processInvitation(invitationId: string, email: string): Promise<string | null> {
+  try {
+    // Obtener la invitación
+    const { data: invitation, error: invitationError } = await supabase
+      .from('invitationLink')
+      .select('profile')
+      .eq('id', invitationId)
+      .single();
+
+    if (invitationError || !invitation) {
+      console.error("Error obteniendo la invitación:", invitationError);
+      return null;
+    }
+
+    // Verificar si el usuario ya tiene este perfil
+    const { data: existingProfile, error: profileError } = await supabase
+      .from('Users')
+      .select('my_profiles')
+      .eq('email', email)
+      .single();
+
+    if (profileError) {
+      console.error("Error obteniendo perfiles existentes:", profileError);
+      return null;
+    }
+
+    if (existingProfile && existingProfile.my_profiles.includes(invitation.profile)) {
+      console.error("El perfil ya existe para este usuario");
+      return invitation.profile; // Devolvemos el ID del perfil aunque ya exista
+    }
+
+    // Añadir el usuario al perfil compartido
+    await addSharedUsers(invitation.profile, [email]);
+
+    // Delete the invitation after using it
+    // Delete the invitation from the database after using it
+    // await supabase
+    //   .from('invitationLink')
+    //   .delete()
+    //   .eq('id', invitationId);
+
+    return invitation.profile; // Devolvemos el ID del perfil añadido
+  } catch (error) {
+    console.error("Error inesperado procesando la invitación:", error);
+    return null;
+  }
+}
+
+/* Debts */
+
+export async function getDebtsBeetweenUsers(user1: string, user2: string) {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', user1)
+      .eq('debtor', user2)
+      .eq('has_paid', false);
+      
+  }
+  catch (error) {
+    console.error("Unexpected error fetching debts between users:", error);
+    return null;
+  }
+}
+
+export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', debtor)
+      .eq('has_paid', false);
+    
+    if (error) {
+      console.error("Error fetching debts to user:", error);
+      return null;
+    }
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts to user:", error);
+    return null;
+  }
+}
+
+export async function getDebtsFromUser(debtor: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('debtor', debtor)
+      .eq('has_paid', false);
+
+    if (error) {
+      console.error("Error fetching debts from user:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts from user:", error);
+    return null;
+  }
+}
+
+export async function removeSharedProfile(profileId: string, email: string) {
+  const profile = await getProfile(profileId);
+  if(profile?.owner !== email) {
+    await removeSharedUsers(profileId, [email]);
+  }else{
+    await removeSharedUsers(profileId, profile.users ?? []);
+    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+  }
+  return true;
+}
+
+
 async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
     // Obtener todas las deudas del perfil
@@ -1086,120 +1230,7 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
-export async function generateInvitationLink(profile: string): Promise<string | null> {
-  try {
-    const { data, error } = await supabase
-      .from('invitationLink')
-      .insert({ profile: profile })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error generating invitation link:", error);
-      return null;
-    }
-
-    // Uses the configured base URL
-    return createURL(`/(tabs)/profiles?invitationId=${data.id}`);
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error generating invitation link:", error);
-    return null;
-  }
-}
-
-export async function processInvitation(invitationId: string, email: string): Promise<string | null> {
-  try {
-    // Obtener la invitación
-    const { data: invitation, error: invitationError } = await supabase
-      .from('invitationLink')
-      .select('profile')
-      .eq('id', invitationId)
-      .single();
-
-    if (invitationError || !invitation) {
-      console.error("Error obteniendo la invitación:", invitationError);
-      return null;
-    }
-
-    // Verificar si el usuario ya tiene este perfil
-    const { data: existingProfile, error: profileError } = await supabase
-      .from('Users')
-      .select('my_profiles')
-      .eq('email', email)
-      .single();
-
-    if (profileError) {
-      console.error("Error obteniendo perfiles existentes:", profileError);
-      return null;
-    }
-
-    if (existingProfile && existingProfile.my_profiles.includes(invitation.profile)) {
-      console.error("El perfil ya existe para este usuario");
-      return invitation.profile; // Devolvemos el ID del perfil aunque ya exista
-    }
-
-    // Añadir el usuario al perfil compartido
-    await addSharedUsers(invitation.profile, [email]);
-
-    // Delete the invitation after using it
-    // Delete the invitation from the database after using it
-    // await supabase
-    //   .from('invitationLink')
-    //   .delete()
-    //   .eq('id', invitationId);
-
-    return invitation.profile; // Devolvemos el ID del perfil añadido
-  } catch (error) {
-    console.error("Error inesperado procesando la invitación:", error);
-    return null;
-  }
-}
-
-export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null> {
-  try {
-    const { data, error } = await supabase
-      .from('Debts')
-      .select('*')
-      .eq('paid_by', debtor)
-      .eq('has_paid', false);
-
-    if (error) {
-      console.error("Error fetching debts to user:", error);
-      return null;
-    }
-
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error fetching debts to user:", error);
-    return null;
-  }
-}
-
-export async function getDebtsFromUser(debtor: string): Promise<DebtData[] | null> {
-  try {
-    const { data, error } = await supabase
-      .from('Debts')
-      .select('*')
-      .eq('debtor', debtor)
-      .eq('has_paid', false);
-
-    if (error) {
-      console.error("Error fetching debts from user:", error);
-      return null;
-    }
-
-    return data;
-  } 
-  
-  catch (error) {
-    console.error("Unexpected error fetching debts from user:", error);
-    return null;
-  }
-}
+/* Shared Calendar*/
 
 export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
   try {
@@ -1235,15 +1266,3 @@ export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: st
     return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }
-
-export async function removeSharedProfile(profileId: string, email: string) {
-  const profile = await getProfile(profileId);
-  if(profile?.owner !== email) {
-    await removeSharedUsers(profileId, [email]);
-  }else{
-    await removeSharedUsers(profileId, profile.users ?? []);
-    const removedProfile = await removeData(PROFILES_TABLE, profileId);
-  }
-  return true;
-}
-
