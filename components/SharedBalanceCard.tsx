@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,33 +11,73 @@ interface BalanceCardProps {
   profileEmail: string;
 }
 
-export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState('Bariloche 2025');
-  const [isExpanded, setIsExpanded] = useState(false);
+interface DebtEntryProps {
+  name1: string;
+  name2: string;
+  amount: number;
+}
+
+
+const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
   const [totalToPay, setTotalToPay] = useState(0);
 
-  useEffect(() => {
-    fetchDebts();
-  }, [profileEmail]);
-
-  const fetchDebts = async () => {
+  const fetchDebts = useCallback(async () => {
     try {
-      const debtsTo = await getDebtsToUser(profileEmail, currentProfileId
-      );
-      const debtsFrom = await getDebtsFromUser(profileEmail, currentProfileId);
+      const [debtsTo, debtsFrom, totalToPay] = await Promise.all([
+        getDebtsToUser(profileEmail, currentProfileId),
+        getDebtsFromUser(profileEmail, currentProfileId),
+        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2024-12-31'))
+      ]);
+
       if (debtsTo && debtsFrom) {
         setTotalDebtsToUser(debtsTo.reduce((total, debt) => total + debt.amount, 0));
         setTotalDebtsFromUser(debtsFrom.reduce((total, debt) => total + debt.amount, 0));
       }
-      const totalToPay = await getTotalToPayForUserInDateRange(profileEmail, currentProfileId,  new Date('2024-01-01'), new Date('2024-12-31'));
       setTotalToPay(totalToPay);
     } catch (error) {
       console.error('Error fetching debts:', error);
     }
-  };
+  }, [profileEmail, currentProfileId]);
+
+  useEffect(() => {
+    fetchDebts();
+  }, [fetchDebts]);
+
+  return { totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts: fetchDebts };
+};
+
+export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amount }) => {
+  return (
+    <View style={styles.debtEntry}>
+      <Text style={styles.debtText}>{name1} le debe a {name2}</Text>
+      <View style={styles.debtDetailsContainer}>
+        <Image
+          source={require('@/assets/images/icons/UserIcon.png')}
+          style={styles.avatar}
+        />
+        <Text style={styles.userAmount}>$ {amount.toFixed(2)}</Text>
+        <Image
+          source={require('@/assets/images/icons/UserIcon.png')}
+          style={styles.avatar}
+        />
+      </View>
+    </View>
+  );
+};
+
+export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState('Bariloche 2025');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
+
+
+  useEffect(() => {
+    refreshData();
+    refreshDebts();
+  }, [refreshData, refreshDebts]);
 
   const handleEditPress = () => {
     setIsEditing(true);
@@ -55,9 +95,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
     setIsEditing(false);
   };
 
-  useEffect(() => {
-    refreshData();
-  }, []);
 
   return (
     <LinearGradient
@@ -117,36 +154,10 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
 
 
       <View style={styles.userDebtSection}>
-        <View style={styles.debtEntry}>
-          <Text style={styles.debtText}>Tú le debes a Juan Gómez</Text>
-          <View style={styles.debtDetailsContainer}>
-            <Image
-              source={require('@/assets/images/icons/UserIcon.png')}
-              style={styles.avatar}
-            />
-            <Text style={styles.userAmount}>$ 345,00</Text>
-            <Image
-              source={require('@/assets/images/icons/UserIcon.png')}
-              style={styles.avatar}
-            />
-          </View>
-        </View>
+        <DebtEntryComponent name1="Tú" name2="Juan Gómez" amount={500.00} />
 
        {isExpanded && (
-          <View style={styles.debtEntry}>
-            <Text style={styles.debtText}>Leticia le debe a Juan Gómez</Text>
-            <View style={styles.debtDetailsContainer}>
-              <Image
-                source={require('@/assets/images/icons/UserIcon.png')}
-                style={styles.avatar}
-              />
-              <Text style={styles.userAmount}>$ 345,00</Text>
-              <Image
-                source={require('@/assets/images/icons/UserIcon.png')}
-                style={styles.avatar}
-              />
-            </View>
-          </View>
+          <DebtEntryComponent name1="Tú" name2="Juan Gómez" amount={500.00} />
         )}
       </View>
 
