@@ -335,10 +335,10 @@ export async function addOutcome(
       const amountPerPerson = amount / (debtors.length + 1);
       
       for (const debtor of debtors) {
-        const success = await addDebt(outcomeData.id, paid_by, debtor, amountPerPerson);
+        const success = await addDebt(outcomeData.profile, paid_by, debtor, amountPerPerson);
         if (!success) {
           console.error("Error añadiendo deuda para", debtor);
-          await supabase.from(OUTCOMES_TABLE).delete().eq('id', outcomeData.id);
+          await removeOutcome(profile, outcomeData.id);
           return null;
         }
       }
@@ -903,7 +903,7 @@ async function redistributeDebt(outcomeId: string, paidBy: string, debtor: strin
   }
 }
 
-export async function addDebt(outcomeId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+export async function addDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: existingDebt, error: existingDebtError } = await supabase
       .from('Debts')
@@ -948,7 +948,7 @@ export async function addDebt(outcomeId: string, paidBy: string, debtor: string,
       }
     }
 
-    return await redistributeDebt(outcomeId, paidBy, debtor, amount);
+    return await redistributeDebt(profileId, paidBy, debtor, amount);
   } 
   
   catch (error) {
