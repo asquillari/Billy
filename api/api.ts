@@ -832,72 +832,52 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 async function redistributeDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
-    const { data: debtorOwes, error: debtorError } = await supabase
+    const { data: existingDebt, error: debtError } = await supabase
       .from('Debts')
       .select('*')
+      .eq('profile', profileId)
+      .eq('paid_by', paidBy)
       .eq('debtor', debtor)
-      .eq('has_paid', false);
+      .eq('has_paid', false)
+      .single();
 
-    if (debtorError) {
-      console.error("Error checking debtor's debts:", debtorError);
+    if (debtError && debtError.code !== 'PGRST116') {
+      console.error("Error checking existing debt:", debtError);
       return false;
     }
 
-    if (debtorOwes && debtorOwes.length > 0) {
-      for (const debt of debtorOwes) {
-        const amountToRedistribute = Math.min(amount, debt.amount);
-      
-        const { error: updateError } = await supabase
-          .from('Debts')
-          .update({ amount: debt.amount - amountToRedistribute })
-          .eq('id', debt.id);
+    if (existingDebt) {
+      // Actualizar la deuda existente
+      const newAmount = existingDebt.amount + amount;
+      const { error: updateError } = await supabase
+        .from('Debts')
+        .update({ amount: newAmount })
+        .eq('id', existingDebt.id);
 
-        if (updateError) {
-          console.error("Error updating existing debt:", updateError);
-          return false;
-        }
-
-        const { error: newDebtError } = await supabase
-          .from('Debts')
-          .insert({
-            outcome: profileId,
-            paid_by: paidBy,
-            debtor: debt.paid_by,
-            has_paid: false,
-            amount: amountToRedistribute
-          });
-
-        if (newDebtError) {
-          console.error("Error creating new redistributed debt:", newDebtError);
-          return false;
-        }
-
-        amount -= amountToRedistribute;
-        if (amount <= 0) break;
+      if (updateError) {
+        console.error("Error updating existing debt:", updateError);
+        return false;
       }
-    }
-
-    if (amount > 0) {
-      const { error } = await supabase
+    } else {
+      // Crear una nueva deuda
+      const { error: newDebtError } = await supabase
         .from('Debts')
         .insert({
-          outcome: profileId, 
+          profile: profileId,
           paid_by: paidBy,
           debtor: debtor,
-          has_paid: false,
-          amount: amount
+          amount: amount,
+          has_paid: false
         });
 
-      if (error) {
-        console.error("Error adding remaining debt:", error);
+      if (newDebtError) {
+        console.error("Error creating new debt:", newDebtError);
         return false;
       }
     }
 
     return true;
-  } 
-  
-  catch (error) {
+  } catch (error) {
     console.error("Unexpected error redistributing debt:", error);
     return false;
   }
