@@ -25,8 +25,9 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
 
   const fetchDebts = async () => {
     try {
-      const debtsTo = await getDebtsToUser(profileEmail);
-      const debtsFrom = await getDebtsFromUser(profileEmail);
+      const debtsTo = await getDebtsToUser(profileEmail, currentProfileId
+      );
+      const debtsFrom = await getDebtsFromUser(profileEmail, currentProfileId);
       if (debtsTo && debtsFrom) {
         setTotalDebtsToUser(debtsTo.reduce((total, debt) => total + debt.amount, 0));
         setTotalDebtsFromUser(debtsFrom.reduce((total, debt) => total + debt.amount, 0));

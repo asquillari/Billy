@@ -1002,12 +1002,13 @@ export async function getDebtsBeetweenUsers(user1: string, user2: string) {
   }
 }
 
-export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null> {
+export async function getDebtsToUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
       .from('Debts')
       .select('*')
       .eq('paid_by', debtor)
+      .eq('profile', profileId)
       .eq('has_paid', false);
     
     if (error) {
@@ -1023,12 +1024,13 @@ export async function getDebtsToUser(debtor: string): Promise<DebtData[] | null>
   }
 }
 
-export async function getDebtsFromUser(debtor: string): Promise<DebtData[] | null> {
+export async function getDebtsFromUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
       .from('Debts')
       .select('*')
       .eq('debtor', debtor)
+      .eq('profile', profileId)
       .eq('has_paid', false);
 
     if (error) {
