@@ -838,6 +838,55 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
   }
 }
 
+export async function getTotalToPayInDateRange(profileId: string, startDate: Date, endDate: Date): Promise<{ [key: string]: number }> {
+  try {
+    const { data: outcomes, error: outcomesError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select()
+      .eq('profile', profileId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .not('shared_outcome', 'is', null);
+
+    if (outcomesError) {
+      console.error("Error fetching outcomes:", outcomesError);
+      return {};
+    }
+
+    if (!outcomes || outcomes.length === 0) {
+      return {};
+    }
+
+    const sharedOutcomeIds = outcomes.map(outcome => outcome.shared_outcome);
+    const { data: sharedOutcomes, error: sharedError } = await supabase
+      .from(SHARED_OUTCOMES_TABLE)
+      .select('*')
+      .in('id', sharedOutcomeIds);
+
+    if (sharedError) {
+      console.error("Error fetching shared outcomes:", sharedError);
+      return {};
+    }
+
+    const totalToPay: { [key: string]: number } = {};
+    sharedOutcomes.forEach(sharedOutcome => {
+      sharedOutcome.users.forEach((user: string, index: number) => {
+        if (!totalToPay[user]) {
+          totalToPay[user] = 0;
+        }
+        totalToPay[user] += sharedOutcome.to_pay[index];
+      });
+    });
+
+    return totalToPay;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error in getTotalToPayInDateRange:", error);
+    return {};
+  }
+}
+
 
 
 /* Shared Profiles */
