@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView, Alert } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
@@ -44,6 +44,9 @@ export default function CalendarScreen() {
   const [isTimePeriodModalVisible, setIsTimePeriodModalVisible] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{start: string, end: string} | null>(null);
 
+  const [selectionStart, setSelectionStart] = useState<string | null>(null);
+  const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
+
   const { categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
   const years = useMemo(() => {
@@ -65,17 +68,33 @@ export default function CalendarScreen() {
   };
 
   const onDayPress = useCallback((day: any) => {
-    if (!selectedRange || (selectedRange.start && selectedRange.end)) {
-      setSelectedRange({ start: day.dateString, end: day.dateString });
-    } 
-    else if (selectedRange.start && !selectedRange.end) {
-      const start = moment(selectedRange.start);
+    if (selectionStart) {
+      const start = moment(selectionStart);
       const end = moment(day.dateString);
-      if (end.isBefore(start)) setSelectedRange({ start: day.dateString, end: selectedRange.start });
-      else setSelectedRange({ ...selectedRange, end: day.dateString });
+      if (end.isBefore(start)) setSelectedRange({ start: day.dateString, end: selectionStart });
+      else setSelectedRange({ start: selectionStart, end: day.dateString });
+      setSelectionStart(null);
+      setIsTimePeriodModalVisible(true);
+    } 
+    else {
+      setSelectedRange({ start: day.dateString, end: day.dateString });
+      setIsTimePeriodModalVisible(true);
     }
-    setIsTimePeriodModalVisible(true);
-  }, [selectedRange]);
+  }, [selectionStart]);
+
+  const onDayLongPress = useCallback((day: any) => {
+    setSelectionStart(day.dateString);
+    Alert.alert('Fecha de inicio', `${day.dateString} seleccionada. Ahora seleccione una fecha final.`);
+  }, []);
+
+  const handleDayPressIn = useCallback((day: any) => {
+    const timeout = setTimeout(() => { onDayLongPress(day); }, 500);
+    setLongPressTimeout(timeout);
+  }, [onDayLongPress]);
+
+  const handleDayPressOut = useCallback(() => {
+    if (longPressTimeout) clearTimeout(longPressTimeout);
+  }, [longPressTimeout]);
 
   const selectYear = useCallback((year: number) => {
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
@@ -169,6 +188,9 @@ export default function CalendarScreen() {
       renderHeader={renderCustomHeader}
       theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
       onDayPress={onDayPress}
+      onDayLongPress={onDayLongPress}
+      dayPressAndHold={handleDayPressIn}
+      dayPressOut={handleDayPressOut}
     />
   ), [key, currentDate, markedDates, renderCustomHeader, onDayPress]);
 
