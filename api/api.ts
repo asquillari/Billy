@@ -832,71 +832,52 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 async function redistributeDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
-    const { data: debtorOwes, error: debtorError } = await supabase
+    const { data: existingDebt, error: debtError } = await supabase
       .from('Debts')
       .select('*')
       .eq('profile', profileId)
+      .eq('paid_by', paidBy)
       .eq('debtor', debtor)
-      .eq('has_paid', false);
+      .eq('has_paid', false)
+      .single();
 
-    if (debtorError) {
-      console.error("Error checking debtor's debts:", debtorError);
+    if (debtError && debtError.code !== 'PGRST116') {
+      console.error("Error checking existing debt:", debtError);
       return false;
     }
 
-    if (debtorOwes && debtorOwes.length > 0) {
-      for (const debt of debtorOwes) {
-        if (debt.paid_by === paidBy) {
-          // Si ya existe una deuda del deudor al pagador, simplemente la actualizamos
-          const newAmount = debt.amount - amount;
-          if (newAmount > 0) {
-            const { error: updateError } = await supabase
-              .from('Debts')
-              .update({ amount: newAmount })
-              .eq('id', debt.id);
+    if (existingDebt) {
+      // Actualizar la deuda existente
+      const newAmount = existingDebt.amount + amount;
+      const { error: updateError } = await supabase
+        .from('Debts')
+        .update({ amount: newAmount })
+        .eq('id', existingDebt.id);
 
-            if (updateError) {
-              console.error("Error updating existing debt:", updateError);
-              return false;
-            }
-          } else {
-            // Si la deuda se salda completamente, la marcamos como pagada
-            const { error: updateError } = await supabase
-              .from('Debts')
-              .update({ has_paid: true })
-              .eq('id', debt.id);
+      if (updateError) {
+        console.error("Error updating existing debt:", updateError);
+        return false;
+      }
+    } else {
+      // Crear una nueva deuda
+      const { error: newDebtError } = await supabase
+        .from('Debts')
+        .insert({
+          profile: profileId,
+          paid_by: paidBy,
+          debtor: debtor,
+          amount: amount,
+          has_paid: false
+        });
 
-            if (updateError) {
-              console.error("Error marking debt as paid:", updateError);
-              return false;
-            }
-          }
-          return true; // Terminamos aquí porque ya hemos manejado la deuda existente
-        }
+      if (newDebtError) {
+        console.error("Error creating new debt:", newDebtError);
+        return false;
       }
     }
 
-    // Si llegamos aquí, significa que no había una deuda directa entre el deudor y el pagador
-    // Creamos una nueva deuda en la dirección opuesta
-    const { error: newDebtError } = await supabase
-      .from('Debts')
-      .insert({
-        profile: profileId,
-        paid_by: paidBy,
-        debtor: debtor,
-        amount: amount,
-        has_paid: false
-      });
-
-    if (newDebtError) {
-      console.error("Error creating new debt:", newDebtError);
-      return false;
-    }
-
     return true;
-  } 
-  
-  catch (error) {
+  } catch (error) {
     console.error("Unexpected error redistributing debt:", error);
     return false;
   }
