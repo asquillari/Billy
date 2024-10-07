@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useCallback, useState } from 'react';
-import { Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, FlatList, View } from 'react-native';
 import { ProfileData, removeProfile, changeCurrentProfile, generateInvitationLink } from '@/api/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
@@ -33,26 +33,30 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [refreshData]);
   
   const handleLongPress = useCallback((profile: ProfileData) => {
-    if (profile.is_shared) { 
-      generateInvitationLink(profile.id ?? "null").then(link => {
-        console.log(link);
-        Clipboard.arguments.setString(link);
-        Alert.alert("Enlace copiado", "El enlace de invitación ha sido copiado al portapapeles.");
-      });
-    } else {
-      Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{
-        text: "Cancelar",
-        style: "cancel"
-      }, {
-        text: "Eliminar",
-        style: "destructive",
-        onPress: async () => {
-          if (profile) handleRemoveProfile(profile.id ?? "null");
-          refreshData();
-        }
-      }]);
-    }
+    Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{
+      text: "Cancelar",
+      style: "cancel"
+    }, {
+      text: "Eliminar",
+      style: "destructive",
+      onPress: async () => {
+        if (profile) handleRemoveProfile(profile.id ?? "null");
+        refreshData();
+      }
+    }]);
   }, [refreshData, handleRemoveProfile]);
+
+  const handleSharePress = useCallback(async (profileId: string) => {
+    try {
+      const link = await generateInvitationLink(profileId);
+      await Clipboard.arguments.setString(link);
+      Alert.alert("Enlace copiado", "El enlace de invitación ha sido copiado al portapapeles.");
+    } 
+    catch (error) {
+      console.error("Error generating or copying invitation link:", error);
+      Alert.alert("Error", "No se pudo generar o copiar el enlace de invitación.");
+    }
+  }, []);
   
   const renderItem = useCallback(({ item }: { item: ProfileData | 'add' }) => {
     const isCurrentProfile = item !== 'add' && item.id === localCurrentProfileId;
@@ -66,13 +70,28 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       );
     }
     return (
-      <TouchableOpacity style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
+      <TouchableOpacity 
+        style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} 
+        onPress={() => handleProfilePress(item)} 
+        onLongPress={() => handleLongPress(item)}
+      >
+      <View style={styles.profileContent}>
         <Ionicons name={isSharedProfile ? "globe-outline" : "person-circle-outline"} size={40} color="#4B00B8"/>
         <Text style={styles.profileName}>{item.name}</Text>
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
+      </View>
+      {isSharedProfile && (
+        <TouchableOpacity 
+          style={styles.shareButton} 
+          onPress={() => handleSharePress(item.id ?? "null")}
+        >
+          <Ionicons name="share-outline" size={24} color="#4B00B8" />
+        </TouchableOpacity>
+      )}
       </TouchableOpacity>
     );
-  }, [onAddProfile, handleProfilePress, handleLongPress, localCurrentProfileId]);
+  }, [onAddProfile, handleProfilePress, handleLongPress, localCurrentProfileId, handleSharePress]);
+
 
   const sortedData = useMemo(() => {
     return profileData ? [...profileData].sort((a, b) => a.name.localeCompare(b.name)) : [];
@@ -136,5 +155,16 @@ const styles = StyleSheet.create({
   currentProfile: {
     borderColor: '#4B00B8',
     borderWidth: 2,
+  },
+  profileContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  shareButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    padding: 5,
   },
 });
