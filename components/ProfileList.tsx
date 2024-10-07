@@ -29,7 +29,7 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
   }, [email, refreshData, navigation]);
 
   const handleRemoveProfile = useCallback(async (id: string) => {
-    await removeProfile(id);
+    await removeProfile(id, email);
     refreshData();
   }, [refreshData]);
   

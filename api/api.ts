@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
+import FeComponentTransferFunction from 'react-native-svg/lib/typescript/elements/filters/FeComponentTransferFunction';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -516,8 +517,14 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
   }
 }
 
-export async function removeProfile(profileId: string) {
+export async function removeProfile(profileId: string, email: string) {
   try {
+
+    if(await isProfileShared(profileId) === true){
+      await removeSharedProfile(profileId, email);
+      return true;
+    }
+
     const removedProfile = await removeData(PROFILES_TABLE, profileId);
 
     if (removedProfile) {
@@ -575,10 +582,14 @@ export async function addSharedUsers(profileId: string, emails: string[]) {
 
 export async function removeSharedUsers(profileId: string, emails: string[]) {
   for (const email of emails) {
-    const { error: userError } = await supabase.rpc('remove_from_my_profiles', { profile_id_param: profileId, user_email: email });
-    if (userError) console.error(`Failed to remove ${email} from profile ${profileId}:`, userError);
-    const { error: profileError } = await supabase.rpc('remove_user_from_profile', { profile_id: profileId, user_email: email });
-    if (profileError) console.error(`Failed to remove ${email} from profile ${profileId}:`, profileError);
+    const { error } = await supabase.rpc('remove_user_and_profile', { 
+      profile_id: profileId, 
+      user_email: email 
+    });
+    
+    if (error) {
+      console.error(`Failed to remove ${email} from profile ${profileId}:`, error);
+    }
   }
 }
 
@@ -1139,3 +1150,15 @@ export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: st
     return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }
+
+export async function removeSharedProfile(profileId: string, email: string) {
+  const profile = await getProfile(profileId);
+  if(profile?.owner !== email) {
+    await removeSharedUsers(profileId, [email]);
+  }else{
+    await removeSharedUsers(profileId, profile.users ?? []);
+    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+  }
+  return true;
+}
+
