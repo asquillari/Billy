@@ -830,56 +830,95 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
 
 /* Shared Profiles */
 
-async function redistributeDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
-    const { data: existingDebt, error: debtError } = await supabase
+    // Obtener todas las deudas del perfil
+    const { data: debts, error: debtsError } = await supabase
       .from('Debts')
       .select('*')
       .eq('profile', profileId)
-      .eq('paid_by', paidBy)
-      .eq('debtor', debtor)
-      .eq('has_paid', false)
-      .single();
+      .eq('has_paid', false);
 
-    if (debtError && debtError.code !== 'PGRST116') {
-      console.error("Error checking existing debt:", debtError);
+    if (debtsError) {
+      console.error("Error fetching debts:", debtsError);
       return false;
     }
 
-    if (existingDebt) {
-      // Actualizar la deuda existente
-      const newAmount = existingDebt.amount + amount;
-      const { error: updateError } = await supabase
-        .from('Debts')
-        .update({ amount: newAmount })
-        .eq('id', existingDebt.id);
+    // Crear un mapa de deudas netas
+    const netDebts = new Map<string, Map<string, number>>();
 
-      if (updateError) {
-        console.error("Error updating existing debt:", updateError);
-        return false;
+    // Calcular deudas netas
+    for (const debt of debts) {
+      if (!netDebts.has(debt.paid_by)) {
+        netDebts.set(debt.paid_by, new Map<string, number>());
       }
-    } else {
-      // Crear una nueva deuda
-      const { error: newDebtError } = await supabase
-        .from('Debts')
-        .insert({
-          profile: profileId,
-          paid_by: paidBy,
-          debtor: debtor,
-          amount: amount,
-          has_paid: false
-        });
+      if (!netDebts.has(debt.debtor)) {
+        netDebts.set(debt.debtor, new Map<string, number>());
+      }
 
-      if (newDebtError) {
-        console.error("Error creating new debt:", newDebtError);
-        return false;
+      const paidByDebts = netDebts.get(debt.paid_by)!;
+      const debtorDebts = netDebts.get(debt.debtor)!;
+
+      paidByDebts.set(debt.debtor, (paidByDebts.get(debt.debtor) || 0) + debt.amount);
+      debtorDebts.set(debt.paid_by, (debtorDebts.get(debt.paid_by) || 0) - debt.amount);
+    }
+
+    // Redistribuir deudas
+    for (const [debtor, debts] of netDebts) {
+      for (const [creditor, amount] of debts) {
+        if (amount > 0) {
+          let remainingAmount = amount;
+          for (const [thirdParty, thirdPartyDebt] of netDebts.get(creditor)!) {
+            if (thirdPartyDebt < 0 && remainingAmount > 0) {
+              const transferAmount = Math.min(remainingAmount, -thirdPartyDebt);
+              // Transferir deuda de debtor a thirdParty
+              await updateDebt(profileId, debtor, thirdParty, transferAmount);
+              await updateDebt(profileId, debtor, creditor, -transferAmount);
+              await updateDebt(profileId, creditor, thirdParty, -transferAmount);
+              remainingAmount -= transferAmount;
+            }
+          }
+        }
       }
     }
 
     return true;
   } catch (error) {
-    console.error("Unexpected error redistributing debt:", error);
+    console.error("Unexpected error redistributing debts:", error);
     return false;
+  }
+}
+
+async function updateDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<void> {
+  const { data: existingDebt, error: debtError } = await supabase
+    .from('Debts')
+    .select('*')
+    .eq('profile', profileId)
+    .eq('paid_by', paidBy)
+    .eq('debtor', debtor)
+    .eq('has_paid', false)
+    .single();
+
+  if (debtError && debtError.code !== 'PGRST116') {
+    console.error("Error checking existing debt:", debtError);
+    return;
+  }
+
+  if (existingDebt) {
+    const newAmount = existingDebt.amount + amount;
+    if (newAmount === 0) {
+      await supabase.from('Debts').delete().eq('id', existingDebt.id);
+    } else {
+      await supabase.from('Debts').update({ amount: newAmount }).eq('id', existingDebt.id);
+    }
+  } else if (amount !== 0) {
+    await supabase.from('Debts').insert({
+      profile: profileId,
+      paid_by: paidBy,
+      debtor: debtor,
+      amount: Math.abs(amount),
+      has_paid: false
+    });
   }
 }
 
@@ -929,7 +968,7 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
         return false;
       }
     }
-    await redistributeDebt(profileId, paidBy, debtor, amount);
+    await redistributeDebts(profileId);
     return true;
   } catch (error) {
     console.error("Error inesperado añadiendo deuda:", error);
