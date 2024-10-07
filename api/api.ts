@@ -5,6 +5,7 @@ import FeComponentTransferFunction from 'react-native-svg/lib/typescript/element
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
+const SHARED_OUTCOMES_TABLE = 'SharedOutcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
@@ -33,6 +34,14 @@ export interface OutcomeData {
   amount: number;
   description: string;
   created_at?: Date;
+  shared_outcome?: string;
+}
+
+export interface SharedOutcomeData {
+  id? : string;
+  users : string[];
+  to_pay : number[];
+  has_paid? : boolean[];
 }
 
 export interface CategoryData {
@@ -321,7 +330,12 @@ export async function addOutcome(
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
       const amountPerPerson = amount / (debtors.length + 1);
-      
+
+      const allUsers = [paid_by, ...debtors];
+      const allAmounts = allUsers.map(() => amountPerPerson);
+      const sharedOutcomeId = await addSharedOutcome(allUsers, allAmounts);
+      await updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id);
+
       for (const debtor of debtors) {
         const success = await addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson);
         if (!success) {
@@ -345,6 +359,17 @@ export async function addOutcome(
     return null;
   }
 };
+
+export async function addSharedOutcome(users: string[], toPay: number[]) {
+  const hasPaid: boolean[] = users.map((_, index) => index === 0);
+  const newSharedOutcome: SharedOutcomeData = { 
+    users: users,
+    to_pay: toPay,
+    has_paid: hasPaid
+  };
+  const data = await addData(SHARED_OUTCOMES_TABLE, newSharedOutcome);
+  return data.id;
+}
 
 export async function removeOutcome(profile: string, id: string) {
   try {
@@ -821,6 +846,66 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
   catch (error) {
     console.error("Unexpected error fetching outcomes from date range and category:", error);
     return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function getTotalToPayInDateRange(profileId: string, startDate: Date, endDate: Date): Promise<{ [key: string]: number }> {
+  try {
+    const { data: outcomes, error: outcomesError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select()
+      .eq('profile', profileId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .not('shared_outcome', 'is', null);
+
+    if (outcomesError) {
+      console.error("Error fetching outcomes:", outcomesError);
+      return {};
+    }
+
+    if (!outcomes || outcomes.length === 0) {
+      return {};
+    }
+
+    const sharedOutcomeIds = outcomes.map(outcome => outcome.shared_outcome);
+    const { data: sharedOutcomes, error: sharedError } = await supabase
+      .from(SHARED_OUTCOMES_TABLE)
+      .select('*')
+      .in('id', sharedOutcomeIds);
+
+    if (sharedError) {
+      console.error("Error fetching shared outcomes:", sharedError);
+      return {};
+    }
+
+    const totalToPay: { [key: string]: number } = {};
+    sharedOutcomes.forEach(sharedOutcome => {
+      sharedOutcome.users.forEach((user: string, index: number) => {
+        if (!totalToPay[user]) {
+          totalToPay[user] = 0;
+        }
+        totalToPay[user] += sharedOutcome.to_pay[index];
+      });
+    });
+
+    return totalToPay;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error in getTotalToPayInDateRange:", error);
+    return {};
+  }
+}
+
+export async function getTotalToPayForUserInDateRange(userEmail: string, profileId: string, startDate: Date, endDate: Date): Promise<number> {
+  try {
+    const allTotalsToPay = await getTotalToPayInDateRange(profileId, startDate, endDate);
+    return allTotalsToPay[userEmail] || 0;
+  } 
+  catch (error) {
+    console.error("Error in getTotalToPayForUserInDateRange:", error);
+    return 0;
   }
 }
 

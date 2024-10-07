@@ -24,18 +24,22 @@ export default function HomeScreen() {
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      if (profileData && typeof profileData === 'string') {
+      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
         setCurrentProfileId(profileData);
-        // const shared = await isProfileShared(currentProfileId || "");
-        // setShared(shared);
-        // if (shared) {
-        // const sharedUsers = await getSharedUsers(currentProfileId || "");
-        //   setSharedUsers(sharedUsers);
-        // }
+        const isShared = await isProfileShared(profileData);
+        setShared(isShared);
+        if (isShared) {
+          const users = await getSharedUsers(profileData);
+          setSharedUsers(users);
+        }
+      } else {
+        console.error('Invalid or empty profile ID received');
+        setShared(false);
+        setSharedUsers(null);
       }
     }
   }, [userEmail, setCurrentProfileId]);
-
+  
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
@@ -59,17 +63,22 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
-            {/* { !shared && ( */}
-            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-             {/* )}  */}
+          {!shared && (
+              <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+            )}  
 
-            {/* Todo: implement shared users balance card*/}
-             {/* { shared && ( */}
-               {/* <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/> */}
-             {/* <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/> */}
-            {/* )}   */}
+            {shared && (
+              <View style={styles.sharedBalanceContainer}>
+                <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
+                <View style={styles.addButtonContainer}>
+                  <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+                </View>
+              </View>
+            )}  
 
-            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            {!shared && (
+              <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            )}
           
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Categorías</ThemedText>
@@ -90,6 +99,14 @@ export default function HomeScreen() {
 
 
 const styles = StyleSheet.create({
+  sharedBalanceContainer: {
+    position: 'relative',
+  },
+  addButtonContainer: {
+    position: 'absolute',
+    top: 235,
+    right: -5,
+  },
   container: {
     flex: 1,
   },

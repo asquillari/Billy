@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
-import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers } from '../api/api';
+import { getTotalToPayInDateRange, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
 import { useUser } from '@/app/contexts/UserContext';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
@@ -15,6 +15,10 @@ interface Expense {
 const generateRandomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 
 const parseDate = (month: number, year: number, init: number): Date => { return new Date(year, month, init); }
+
+const getLastDayOfMonth = (year: number, month: number): number => {
+  return new Date(year, month + 1, 0).getDate();
+};
 
 //if mode is false, then it's category. TODO: optimize this. Should be a better way.
 export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
@@ -51,22 +55,36 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     }
     
     else {
-      const sharedUsers = await getSharedUsers(currentProfileId);
-      if (sharedUsers) {
-        calculatedExpenses = await Promise.all(
-        sharedUsers.map(async (user) => {
-
-          return { label: "test"+ Math.random().toPrecision(3), amount: 10, color: generateRandomColor() } as Expense;
-        //TODO: falta que el back me pase las funciones para que funcione esto. 
-        //const total = await getUserTotal(currentProfileId, user.id || '', month, year);
-        //  return { label: user.name, amount: total, color: generateRandomColor() } as Expense;
-        })
-      );
-      }
+      try {
+        const sharedUsers = await getSharedUsers(currentProfileId);
+        if (sharedUsers && sharedUsers.length > 0) {
+          calculatedExpenses = await Promise.all(
+            sharedUsers.map(async (user) => {
+             
+                const items = await getTotalToPayInDateRange(
+                  currentProfileId,
+                  parseDate(month, year, 1),
+                  parseDate(month, year, getLastDayOfMonth(year, month))
+                );
+                if (items) {
+                  return { label: user, amount: items[user], color: generateRandomColor() } as Expense;
+                }
+                return { label: user, amount: 0, color: generateRandomColor() } as Expense;
+            })
+          );
+          // Filter out any undefined results
+          calculatedExpenses = calculatedExpenses.filter(expense => expense !== undefined);
+        } else {
+          console.log('No shared users found');
+        }
+      } catch (error) {
+  console.error('Error fetching shared users:', error);
     }
-  
-    setExpenses(calculatedExpenses);
-  }, [categoryData, currentProfileId, month, year]);
+  }
+
+  setExpenses(calculatedExpenses);
+}, [categoryData, currentProfileId, month, year]);
+
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
@@ -157,7 +175,7 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
   return (
     <View style={styles.expenseItem}>
       <View style={styles.textContainer}>
-        <Text style={styles.textWrapper}>{label}</Text>
+        <Text style={styles.textWrapper} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
         <Text style={styles.textWrapperAmount}>- ${ (amount ?? 0).toFixed(2) }</Text>
       </View>
       <View style={[styles.rectangle, { backgroundColor: color, width: `${barWidth}%` }]}/>
@@ -200,15 +218,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10, 
+    width: '100%',
   },
   textWrapper: {
     color: "#3c3c3c",
     fontSize: 16,
     fontWeight: "400",
+    flexShrink: 1,
+    marginRight: 5,
   },
   textWrapperAmount: {
     color: "#3c3c3c",
     fontSize: 12,
+    flexShrink: 0,
   },
   rectangle: {
     borderRadius: 25,
