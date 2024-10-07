@@ -28,12 +28,12 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
     setSelectedOutcome(outcome);
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (outcome) handleRemoveOutcome(currentProfileId, outcome.id ?? 0);
+        if (outcome) handleRemoveOutcome(currentProfileId, outcome.id ?? "0");
       }
     }]);
   }, [outcomeData]);
 
-  const handleRemoveOutcome = async (profile: string, id: number) => {
+  const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };
