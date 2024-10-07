@@ -545,7 +545,7 @@ export async function addSharedUsers(profileId: string, emails: string[]) {
   try {
     // Verificar que todos los emails existan en la tabla users
     const { data: existingUsers, error: checkError } = await supabase
-      .from('users')
+      .from(USERS_TABLE)
       .select('email')
       .in('email', emails);
 
