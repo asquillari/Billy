@@ -24,18 +24,22 @@ export default function HomeScreen() {
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      if (profileData && typeof profileData === 'string') {
+      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
         setCurrentProfileId(profileData);
-        // const shared = await isProfileShared(currentProfileId || "");
-        // setShared(shared);
-        // if (shared) {
-        // const sharedUsers = await getSharedUsers(currentProfileId || "");
-        //   setSharedUsers(sharedUsers);
-        // }
+        const isShared = await isProfileShared(profileData);
+        setShared(isShared);
+        if (isShared) {
+          const users = await getSharedUsers(profileData);
+          setSharedUsers(users);
+        }
+      } else {
+        console.error('Invalid or empty profile ID received');
+        setShared(false);
+        setSharedUsers(null);
       }
     }
   }, [userEmail, setCurrentProfileId]);
-
+  
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
@@ -59,15 +63,13 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
-            {/* { !shared && ( */}
+            { !shared && (
             <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-             {/* )}  */}
+              )}  
 
-            {/* Todo: implement shared users balance card*/}
-             {/* { shared && ( */}
-               {/* <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/> */}
-             {/* <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/> */}
-            {/* )}   */}
+             { shared && (
+              <SharedBalanceCard refreshData={getBalanceData} sharedUsers={sharedUsers || []}/> 
+             )}  
 
             <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
           

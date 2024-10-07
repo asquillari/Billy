@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
-import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers } from '../api/api';
+import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers, getSharedOutcomesFromDateRangeAndProfileName } from '../api/api';
 import { useUser } from '@/app/contexts/UserContext';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
@@ -51,22 +51,39 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     }
     
     else {
-      const sharedUsers = await getSharedUsers(currentProfileId);
-      if (sharedUsers) {
-        calculatedExpenses = await Promise.all(
-        sharedUsers.map(async (user) => {
-
-          return { label: "test"+ Math.random().toPrecision(3), amount: 10, color: generateRandomColor() } as Expense;
-        //TODO: falta que el back me pase las funciones para que funcione esto. 
-        //const total = await getUserTotal(currentProfileId, user.id || '', month, year);
-        //  return { label: user.name, amount: total, color: generateRandomColor() } as Expense;
-        })
-      );
-      }
+      try {
+        const sharedUsers = await getSharedUsers(currentProfileId);
+        if (sharedUsers && sharedUsers.length > 0) {
+          calculatedExpenses = await Promise.all(
+            sharedUsers.map(async (user) => {
+             
+                const items = await getSharedOutcomesFromDateRangeAndProfileName(
+                  currentProfileId,
+                  parseDate(month, year, 1),
+                  parseDate(month, year, 30),
+                  user || ''
+                );
+                // if (items) {
+                //   const total = items.reduce((sum, item) => sum + item.amount, 0);
+                //   return { label: user, amount: total, color: generateRandomColor() } as Expense;
+                // }
+              
+                return { label: user, amount: 10, color: generateRandomColor() } as Expense;
+            })
+          );
+          // Filter out any undefined results
+          calculatedExpenses = calculatedExpenses.filter(expense => expense !== undefined);
+        } else {
+          console.log('No shared users found');
+        }
+      } catch (error) {
+  console.error('Error fetching shared users:', error);
     }
-  
-    setExpenses(calculatedExpenses);
-  }, [categoryData, currentProfileId, month, year]);
+  }
+
+  setExpenses(calculatedExpenses);
+}, [categoryData, currentProfileId, month, year]);
+
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
