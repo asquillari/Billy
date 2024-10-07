@@ -1072,81 +1072,38 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
   }
 }
 
-export async function getSharedIncomesFromDateRange(profile: string, start: Date, end: Date) {
-  const startISO = start.toISOString();
-  const endISO = end.toISOString();
+export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
   
   try {
-    const { data, error } = await supabase
-      .from(INCOMES_TABLE)
+    // primero chequeo que el perfil exista y sea compartido
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
       .select('*')
-      .eq('profile', profile)
+      .eq('id', profileId)
+      .eq('name', profileName)
       .eq('is_shared', true)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO);
-    
-    if (error) {
-      console.error("Error fetching shared incomes from date range:", error);
-      return { error: "Failed to fetch shared incomes." };
-    }
-    
-    return data;
-  } 
-  catch (error) {
-    console.error("Unexpected error fetching shared incomes from date range:", error);
-    return { error: "An unexpected error occurred." };
-  }
-}
+      .single();
 
-export async function getSharedOutcomesFromDateRange(profile: string, start: Date, end: Date) {
-  const startISO = start.toISOString();
-  const endISO = end.toISOString();
-  
-  try {
-    const { data, error } = await supabase
-      .from(OUTCOMES_TABLE)
-      .select('*')
-      .eq('profile', profile)
-      .eq('is_shared', true)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO);
-    
-    if (error) {
-      console.error("Error fetching shared outcomes from date range:", error);
-      return { error: "Failed to fetch shared outcomes." };
+    if (profileError || !profile) {
+      throw new Error('Profile not found or not shared');
     }
-    
-    return data;
-  } 
-  catch (error) {
-    console.error("Unexpected error fetching shared outcomes from date range:", error);
-    return { error: "An unexpected error occurred." };
-  }
-}
 
-export async function getSharedOutcomesFromDateRangeAndCategory(profile: string, start: Date, end: Date, category: string) {
-  const startISO = start.toISOString();
-  const endISO = end.toISOString();
-  
-  try {
-    const { data, error } = await supabase
-      .from(OUTCOMES_TABLE)
+    // si el perfil existe y es compartido, obtengo los outcomes
+    const { data: outcomes, error: outcomesError } = await supabase
+      .from('outcomes')
       .select('*')
-      .eq('profile', profile)
-      .eq('is_shared', true)
-      .eq('category', category)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO);
-    
-    if (error) {
-      console.error("Error fetching shared outcomes from date range and category:", error);
-      return { error: "Failed to fetch shared outcomes by category." };
+      .eq('profile_id', profileId)
+      .gte('date', start.toISOString())
+      .lte('date', end.toISOString());
+
+    if (outcomesError) {
+      console.error("Error fetching shared outcomes:", outcomesError);
+      return null;
     }
-    
-    return data;
-  } 
-  catch (error) {
-    console.error("Unexpected error fetching shared outcomes from date range and category:", error);
-    return { error: "An unexpected error occurred." };
+
+    return outcomes;
+  } catch (error) {
+    console.error("Error fetching shared outcomes:", error);
+    return null;
   }
 }
