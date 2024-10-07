@@ -4,6 +4,7 @@ import { createURL } from 'expo-linking';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
+const SHARED_OUTCOMES_TABLE = 'SharedOutcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
@@ -32,6 +33,14 @@ export interface OutcomeData {
   amount: number;
   description: string;
   created_at?: Date;
+  shared_outcome?: string;
+}
+
+export interface SharedOutcomeData {
+  id? : string;
+  users : string[];
+  to_pay : number[];
+  has_paid? : boolean[];
 }
 
 export interface CategoryData {
@@ -320,7 +329,12 @@ export async function addOutcome(
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
       const amountPerPerson = amount / (debtors.length + 1);
-      
+
+      const allUsers = [paid_by, ...debtors];
+      const allAmounts = allUsers.map(() => amountPerPerson);
+      const sharedOutcomeId = await addSharedOutcome(allUsers, allAmounts);
+      await updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id);
+
       for (const debtor of debtors) {
         const success = await addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson);
         if (!success) {
@@ -344,6 +358,17 @@ export async function addOutcome(
     return null;
   }
 };
+
+export async function addSharedOutcome(users: string[], toPay: number[]) {
+  const hasPaid: boolean[] = users.map((_, index) => index === 0);
+  const newSharedOutcome: SharedOutcomeData = { 
+    users: users,
+    to_pay: toPay,
+    has_paid: hasPaid
+  };
+  const data = await addData(SHARED_OUTCOMES_TABLE, newSharedOutcome);
+  return data.id;
+}
 
 export async function removeOutcome(profile: string, id: string) {
   try {
