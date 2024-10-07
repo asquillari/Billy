@@ -12,8 +12,11 @@ interface AddProfileModalProps {
 const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded, email }) => {
   const [profileName, setProfileName] = useState('');
   const [sharedUsers, setSharedUsers] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddProfile = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (profileName.trim()) {
       const newProfile = await addProfile(profileName, email);
       await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
@@ -24,6 +27,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
       setProfileName('');
       setSharedUsers('');
       onProfileAdded();
+      setIsSubmitting(false);
       onClose();
     }
   };

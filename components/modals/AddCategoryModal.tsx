@@ -38,6 +38,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
   const [limit, setLimit] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(gradients[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleNameChange = useCallback((text: string) => {
     setName(text);
@@ -56,14 +57,16 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
   }, [name, sortedCategories]);
 
   const handleAddCategory = useCallback(async () => {
-    if (!validateCategoryName()) return;
+    if (!validateCategoryName() || isSubmitting) return;
+    setIsSubmitting(true);
     await addCategory(currentProfileId, name, JSON.stringify(selectedGradient), parseFloat(limit));
     setName('');
     setLimit('');
     setSelectedGradient(gradients[0]);
     onCategoryAdded();
+    setIsSubmitting(false);
     onClose();
-  }, [validateCategoryName, currentProfileId, name, limit, selectedGradient, onCategoryAdded, onClose]);
+  }, [validateCategoryName, isSubmitting, currentProfileId, name, limit, selectedGradient, onCategoryAdded, onClose]);
 
   const renderGradientItem = ({ item }: { item: any }) => (
     <TouchableOpacity

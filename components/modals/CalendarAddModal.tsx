@@ -32,6 +32,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [recurrence, setRecurrence] = useState('Nunca');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
@@ -65,6 +66,8 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   };
 
   async function handleSubmit(): Promise<void> {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (!selectedCategory && type === 'Outcome') {
       Alert.alert("Error de categoría", "Por favor, selecciona una categoría antes de continuar.", [{ text: "OK" }]);
       return;
@@ -103,6 +106,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     setSelectedCategory('');
     setRecurrence('Nunca');
     onClose();
+    setIsSubmitting(false);
   }
 
   const switchType = (newType: 'Income' | 'Outcome') => {

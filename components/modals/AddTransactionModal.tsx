@@ -28,6 +28,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
   const [selectedSharedUser, setSelectedSharedUser] = useState<string[] | null>(null);
   const [whoPaidIt, setWhoPaidIt] = useState<string[]| null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     if (currentProfileId) {
@@ -62,6 +63,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   }, []);
 
   const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (type === 'Income') {
       await addIncome(currentProfileId, parseFloat(amount), description);
       refreshIncomeData();
@@ -92,8 +95,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     setDescription('');
     setDate(new Date());
     setSelectedCategory('');
+    setIsSubmitting(false);
     onClose();
-  }, [type, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, onClose, shared, whoPaidIt, selectedSharedUser, date]);
+  }, [type, isSubmitting, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, onClose, shared, whoPaidIt, selectedSharedUser, date]);
 
   const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
