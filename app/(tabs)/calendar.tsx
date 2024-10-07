@@ -6,7 +6,7 @@ import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import { CategoryList } from '../../components/CategoryList';
 import CalendarAddModal from '../../components/modals/CalendarAddModal';
-import { getOutcomesFromDateRange, fetchCurrentProfile } from '../../api/api';
+import { getOutcomesFromDateRange, fetchCurrentProfile, getIncomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../contexts/ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
@@ -43,12 +43,13 @@ export default function CalendarScreen() {
 
   const [isTimePeriodModalVisible, setIsTimePeriodModalVisible] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{start: string, end: string} | null>(null);
-  const [selectedTransactions, setSelectedTransactions] = useState<Array<any>>([]);
 
-  const { incomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
+  const { categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
 
-  const currentYear = moment().year();
-  const years = useMemo(() => Array.from({ length: 24 }, (_, i) => currentYear - 20 + i), [currentYear]);
+  const years = useMemo(() => {
+    const currentYear = moment().year();
+    return Array.from({ length: 24 }, (_, i) => currentYear - 20 + i);
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
@@ -74,7 +75,6 @@ export default function CalendarScreen() {
       else setSelectedRange({ ...selectedRange, end: day.dateString });
     }
     setIsTimePeriodModalVisible(true);
-    console.log(selectedRange);
   }, [selectedRange]);
 
   const selectYear = useCallback((year: number) => {
@@ -119,6 +119,7 @@ export default function CalendarScreen() {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
     
+    const incomes = await getIncomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
     const outcomes = await getOutcomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
 
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
@@ -128,24 +129,27 @@ export default function CalendarScreen() {
       else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'Income' : 'Outcome'}-${id}`, color }] };
     };
 
-    incomeData?.forEach(income => {
-      const date = moment(income.created_at).format('YYYY-MM-DD');
-      addDot(date, income.id?.toString() || '', '#4CAF50');
+    // Combine income and outcome data
+    const allTransactions = [
+      ...(Array.isArray(incomes) ? incomes.map(income => ({ ...income, type: 'Income' })) : []),
+      ...(Array.isArray(outcomes) ? outcomes.map(outcome => ({ ...outcome, type: 'Outcome' })) : [])
+    ];
+
+    // Process all transactions in a single loop
+    allTransactions.forEach(transaction => {
+      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+      const color = transaction.type === 'Income' ? '#4CAF50' : '#F44336';
+      addDot(date, transaction.id?.toString() || '', color);
     });
 
-    if (Array.isArray(outcomes)) {
-      outcomes?.forEach((outcome: any) => {
-        const date = moment(outcome.created_at).format('YYYY-MM-DD');
-        addDot(date, outcome.id?.toString() || '', '#F44336');
-      });
-    }
-
     setMarkedDates(marked);
-  }, [currentDate, currentProfileId, incomeData, getOutcomesFromDateRange]);
+  }, [currentDate, currentProfileId, getOutcomesFromDateRange]);
 
   useFocusEffect(
     useCallback(() => {
       const refreshData = async () => {
+        console.log("aaaaaaaaaaaaaa");
+        
         await fetchProfile();
         if (currentProfileId) {
           await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
@@ -153,7 +157,7 @@ export default function CalendarScreen() {
         }
       };
       refreshData();
-    }, [fetchProfile, currentProfileId, getCategoryData, processTransactions])
+    }, [currentProfileId, getCategoryData, processTransactions])
   );
   
   const memoizedCalendar = useMemo(() => (
