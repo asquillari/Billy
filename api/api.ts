@@ -1094,32 +1094,8 @@ export async function getUserDebts(debtor: string): Promise<DebtData[] | null> {
   }
 }
 
-export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
+export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date) {
   try {
-    // Primero, verificamos que el perfil exista
-    const { data: profile, error: profileError } = await supabase
-      .from(PROFILES_TABLE)
-      .select('*')
-      .eq('id', profileId)
-      .single();
-
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      return { error: "Profile not found", details: profileError.message };
-    }
-
-    if (!profile) {
-      return { error: "Profile not found", details: `No profile found with id: ${profileId}` };
-    }
-
-    if (profile.name !== profileName) {
-      return { error: "Profile name mismatch", details: `The provided profile name does not match the profile's actual name` };
-    }
-
-    if (!profile.is_shared) {
-      return { error: "Profile not shared", details: `The profile with id: ${profileId} is not a shared profile` };
-    }
-
     // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
     const { data: outcomes, error: outcomesError } = await supabase
       .from(OUTCOMES_TABLE)
