@@ -148,8 +148,6 @@ export default function CalendarScreen() {
   useFocusEffect(
     useCallback(() => {
       const refreshData = async () => {
-        console.log("aaaaaaaaaaaaaa");
-        
         await fetchProfile();
         if (currentProfileId) {
           await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
@@ -157,7 +155,7 @@ export default function CalendarScreen() {
         }
       };
       refreshData();
-    }, [currentProfileId, getCategoryData, processTransactions])
+    }, [currentProfileId, getCategoryData])
   );
   
   const memoizedCalendar = useMemo(() => (
