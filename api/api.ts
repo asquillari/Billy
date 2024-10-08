@@ -9,6 +9,7 @@ const SHARED_OUTCOMES_TABLE = 'SharedOutcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
+const DEBTS_TABLE = 'Debts';
 
 export interface UserData {
   email: string;
@@ -316,16 +317,7 @@ export async function addOutcome(
       created_at: created_at || new Date()
     };
     
-    const { data: outcomeData, error: outcomeError } = await supabase
-      .from(OUTCOMES_TABLE)
-      .insert(newOutcome)
-      .select()
-      .single();
-
-    if (outcomeError) {
-      console.error("Error añadiendo gasto:", outcomeError);
-      return null;
-    }
+    const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
 
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
@@ -362,11 +354,7 @@ export async function addOutcome(
 
 export async function addSharedOutcome(users: string[], toPay: number[]) {
   const hasPaid: boolean[] = users.map((_, index) => index === 0);
-  const newSharedOutcome: SharedOutcomeData = { 
-    users: users,
-    to_pay: toPay,
-    has_paid: hasPaid
-  };
+  const newSharedOutcome: SharedOutcomeData = { users: users, to_pay: toPay, has_paid: hasPaid };
   const data = await addData(SHARED_OUTCOMES_TABLE, newSharedOutcome);
   return data.id;
 }
@@ -398,6 +386,22 @@ export async function removeOutcome(profile: string, id: string) {
     console.error("Unexpected error removing outcome:", error);
     return null;
   }
+}
+
+async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
+  return await getData(SHARED_OUTCOMES_TABLE, id);
+}
+
+async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOutcomeData) {
+  const paidBy = sharedOutcome.users[0];
+
+  for (let i = 1; i < sharedOutcome.users.length; i++) {
+    const debtor = sharedOutcome.users[i];
+    const amount = sharedOutcome.to_pay[i];    
+    await updateDebt(profile, paidBy, debtor, -amount);
+  }
+
+  await redistributeDebts(profile);
 }
 
 export async function fetchOutcomesByCategory(category: string): Promise<IncomeData[] | null> {
@@ -548,7 +552,6 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
 
 export async function removeProfile(profileId: string, email: string) {
   try {
-
     if(await isProfileShared(profileId) === true){
       await removeSharedProfile(profileId, email);
       return true;
@@ -604,7 +607,9 @@ export async function addSharedUsers(profileId: string, emails: string[]) {
       const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
       if (profileError) console.error(`Error al añadir ${email} al perfil ${profileId}:`, profileError);
     }
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado en addSharedUsers:", error);
   }
 }
@@ -1001,11 +1006,15 @@ export async function processInvitation(invitationId: string, email: string): Pr
     //   .eq('id', invitationId);
 
     return invitation.profile; // Devolvemos el ID del perfil añadido
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado procesando la invitación:", error);
     return null;
   }
 }
+
+
 
 /* Debts */
 
@@ -1072,15 +1081,15 @@ export async function getDebtsFromUser(debtor: string, profileId: string): Promi
 
 export async function removeSharedProfile(profileId: string, email: string) {
   const profile = await getProfile(profileId);
-  if(profile?.owner !== email) {
+  if (profile?.owner !== email) {
     await removeSharedUsers(profileId, [email]);
-  }else{
+  }
+  else {
     await removeSharedUsers(profileId, profile.users ?? []);
-    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+    await removeData(PROFILES_TABLE, profileId);
   }
   return true;
 }
-
 
 async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
@@ -1149,7 +1158,9 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
     }
 
     return true;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error redistributing debts:", error);
     return false;
   }
@@ -1179,8 +1190,15 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
   }
 
   if (existingDebt) {
-    await supabase.from('Debts').update({ amount: amount }).eq('profile', existingDebt.profile).eq('paid_by', paidBy).eq('debtor', debtor);
-  } else {
+    await supabase
+      .from('Debts')
+      .update({ amount: amount })
+      .eq('profile', existingDebt.profile)
+      .eq('paid_by', paidBy)
+      .eq('debtor', debtor);
+  } 
+  
+  else {
     await supabase.from('Debts').insert({
       profile: profileId,
       paid_by: paidBy,
@@ -1230,7 +1248,9 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
         console.error("Error actualizando deuda existente:", updateError);
         return false;
       }
-    } else {
+    } 
+    
+    else {
       const { error: insertError } = await supabase
         .from('Debts')
         .insert({
@@ -1249,45 +1269,10 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
     }
     await redistributeDebts(profileId);
     return true;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado añadiendo deuda:", error);
     return false;
-  }
-}
-
-/* Shared Calendar*/
-
-export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
-  try {
-    // Primero, verificamos que el perfil exista
-    const { data: profile, error: profileError } = await supabase
-      .from(PROFILES_TABLE)
-      .select('*')
-      .eq('id', profileId)
-      .single();
-
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      return { error: "Profile not found", details: profileError.message };
-    }
-
-    // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
-    const { data: outcomes, error: outcomesError } = await supabase
-      .from(OUTCOMES_TABLE)
-      .select('*')
-      .eq('id', profileId)
-      .eq('profile', profileName)
-      .gte('created_at', start.toISOString())
-      .lte('created_at', end.toISOString());
-
-    if (outcomesError) {
-      console.error("Error fetching shared outcomes:", outcomesError);
-      return { error: "Failed to fetch outcomes", details: outcomesError.message };
-    }
-
-    return outcomes;
-  } catch (error) {
-    console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
-    return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }
