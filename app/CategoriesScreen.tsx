@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ThemedText } from '@/components/ThemedText';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { CategoryData } from '@/api/api';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { CategoryData, removeCategory, OutcomeData, fetchOutcomesByCategory } from '@/api/api';
 import { useCategoryData } from '@/hooks/useCategoryData'; 
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +11,16 @@ import { Ionicons } from '@expo/vector-icons';
 const CategoriesScreen = () => {
     const { currentProfileId } = useProfile();
     const { categoryData } = useCategoryData(currentProfileId || "");
+
+    const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
+
+    async function getOutcomeData(category: string) {
+        const data = await fetchOutcomesByCategory(category);
+        setOutcomeData(data as OutcomeData[]);
+    };
 
     const sortedCategories = useMemo(() => {
         if (!categoryData) return [];
@@ -24,7 +34,7 @@ const CategoriesScreen = () => {
     const renderCategory = ({ item }: { item: CategoryData }) => {
         if (item.id === 'add-category') {
             return (
-                <TouchableOpacity style={[styles.categoryItem, styles.addButton]} onPress={handleAddCategory}>
+                <TouchableOpacity style={[styles.categoryItem, styles.addButton]} onPress={() => setModalVisible(true)}>
                     <Ionicons name="add-circle-outline" size={40} color="#FFFFFF" />
                     <Text style={styles.addButtonText}>Agregar Categoría</Text>
                 </TouchableOpacity>
@@ -32,7 +42,7 @@ const CategoriesScreen = () => {
         }
         const gradientColors = item.color ? JSON.parse(item.color) : ['#CECECE', '#CECECE'];        
         return (
-            <TouchableOpacity style={styles.categoryItem} onPress={() => {/* Handle category press */}}>
+            <TouchableOpacity style={styles.categoryItem} onPress={() => handleCategoryPress(item)} onLongPress={() => handleLongPress(item)}>
                 <LinearGradient colors={gradientColors} style={styles.categoryGradient}>
                     <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
                     <ThemedText style={styles.categoryAmount}>${item.spent}</ThemedText>
@@ -41,9 +51,26 @@ const CategoriesScreen = () => {
         );
     };
 
-    const handleAddCategory = () => {
-        // Logic to open the modal or navigate to the add category screen
-    };
+    const handleCategoryPress = useCallback((category: CategoryData) => {
+        setSelectedCategory(category);
+        getOutcomeData(category.id ?? "null").then(() => {
+            setDetailsModalVisible(true);
+        });
+    }, [getOutcomeData]);
+
+    const handleLongPress = useCallback((category: CategoryData) => {
+        if (category.name === "Otros") {
+            Alert.alert("Acción no permitida", "La categoría 'Otros' no puede ser eliminada.");
+            return;
+        }
+        setSelectedCategory(category);
+        Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
+            onPress: async () => {
+                if (category) {
+                    await removeCategory(category.id||"null");
+                }
+            }}]);
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -69,9 +96,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     gradientContainer: {
-        width: '100%', // Ensure it fills the width of the parent
-        height: '100%', // Ensure it fills the height of the parent
-        borderRadius: 12, // Optional: to match the border radius of the category item
+        width: '100%',
+        height: '100%',
+        borderRadius: 12,
     },
     categoryItem: {
         borderRadius: 12,
