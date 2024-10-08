@@ -301,11 +301,11 @@ export async function addOutcome(
   created_at?: Date,
   paid_by?: string,
   debtors?: string[]
-): Promise<OutcomeData[] | null> {
+) {
   try {
     if (category === "" || !(await checkCategoryLimit(category, amount))) {
       console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
-      return null;
+      return -3;
     }
 
     const newOutcome: OutcomeData = { 
