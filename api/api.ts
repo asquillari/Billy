@@ -396,7 +396,7 @@ export async function removeOutcome(profile: string, id: string) {
     }
 
     return deleteResult;
-  } 
+  }
   
   catch (error) {
     console.error("Unexpected error removing outcome:", error);

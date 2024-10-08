@@ -41,6 +41,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
       }
       setTotalToPay(totalToPay);
     } 
+
     catch (error) {
       console.error('Error fetching debts:', error);
     }
@@ -85,14 +86,12 @@ const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value 
 
 {/* Shared balance card component */}
 export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
-
   const [profileName, setProfileName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
   const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
-
 
   const fetchProfileName = useCallback(async () => {
     try {
@@ -146,7 +145,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       setTitle(profileName);
     }
   };
-
 
   return (
     <LinearGradient
