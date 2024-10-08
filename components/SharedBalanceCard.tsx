@@ -56,7 +56,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
 export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amount }) => {
   return (
     <View style={styles.debtEntry}>
-      <Text style={styles.debtText}>{name1} le debe a {name2}</Text>
+      <Text style={styles.debtText}>{name1} le debe(s) a {name2}</Text>
       <View style={styles.debtDetailsContainer}>
         <Image
           source={require('@/assets/images/icons/UserIcon.png')}
