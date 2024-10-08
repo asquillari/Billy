@@ -106,11 +106,13 @@ const styles = StyleSheet.create({
         paddingTop: 10,
     },
     categoryGradient: {
-        flex: 1,
-        alignItems: 'center',
+        width: 180,
+        height: 180,
+        padding: 15,
+        borderRadius: 15,
+        overflow: 'hidden',
         justifyContent: 'center',
-        borderRadius: 12,
-        padding: 10,
+        alignItems: 'center',
     },
     contentContainer: {
         flex: 1,
@@ -134,10 +136,12 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     categoryName: {
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#3B3B3B',
     },
     categoryAmount: {
+        fontSize: 18,
         color: '#3B3B3B',
     },
 });
