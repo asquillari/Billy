@@ -6,7 +6,7 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
 import useProfileData from '@/hooks/useProfileData';
-import { IncomeData, OutcomeData, fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
+import { fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,7 +32,8 @@ export default function HomeScreen() {
           const users = await getSharedUsers(profileData);
           setSharedUsers(users);
         }
-      } else {
+      } 
+      else {
         console.error('Invalid or empty profile ID received');
         setShared(false);
         setSharedUsers(null);
@@ -64,31 +65,31 @@ export default function HomeScreen() {
           <ScrollView style={styles.scrollView}>
             
           {!shared && (
-              <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-            )}  
+            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+          )}  
 
-            {shared && (
-              <View style={styles.sharedBalanceContainer}>
-                <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
-                <View style={styles.addButtonContainer}>
-                  <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
-                </View>
+          {shared && (
+            <View style={styles.sharedBalanceContainer}>
+              <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
+              <View style={styles.addButtonContainer}>
+                <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
               </View>
-            )}  
+            </View>
+          )}  
 
-            {!shared && (
-              <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
-            )}
+          {!shared && (
+            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+          )}
           
-            <View style={styles.sectionContainer}> 
-              <ThemedText style={styles.title}>Categorías</ThemedText>
-              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
-            </View>
+          <View style={styles.sectionContainer}> 
+            <ThemedText style={styles.title}>Categorías</ThemedText>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
+          </View>
 
-            <View style={styles.sectionContainer}> 
-              <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
-            </View>
+          <View style={styles.sectionContainer}> 
+            <ThemedText style={styles.title}>Actividad reciente</ThemedText>
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+          </View>
 
           </ScrollView>
         </View>
