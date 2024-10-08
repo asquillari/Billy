@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
-import FeComponentTransferFunction from 'react-native-svg/lib/typescript/elements/filters/FeComponentTransferFunction';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -316,7 +315,7 @@ export async function addOutcome(
       description, 
       created_at: created_at || new Date()
     };
-    
+
     const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
 
     // Si es un gasto grupal, añadir las deudas correspondientes
@@ -359,6 +358,23 @@ export async function addSharedOutcome(users: string[], toPay: number[]) {
   return data.id;
 }
 
+async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
+  return await getData(SHARED_OUTCOMES_TABLE, id);
+}
+
+// In testing phase
+async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOutcomeData) {
+  const paidBy = sharedOutcome.users[0];
+
+  for (let i = 1; i < sharedOutcome.users.length; i++) {
+    const debtor = sharedOutcome.users[i];
+    const amount = sharedOutcome.to_pay[i];    
+    await updateDebt(profile, paidBy, debtor, -amount);
+  }
+
+  await redistributeDebts(profile);
+}
+
 export async function removeOutcome(profile: string, id: string) {
   try {
     const outcome = await getOutcome(id);
@@ -386,22 +402,6 @@ export async function removeOutcome(profile: string, id: string) {
     console.error("Unexpected error removing outcome:", error);
     return null;
   }
-}
-
-async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
-  return await getData(SHARED_OUTCOMES_TABLE, id);
-}
-
-async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOutcomeData) {
-  const paidBy = sharedOutcome.users[0];
-
-  for (let i = 1; i < sharedOutcome.users.length; i++) {
-    const debtor = sharedOutcome.users[i];
-    const amount = sharedOutcome.to_pay[i];    
-    await updateDebt(profile, paidBy, debtor, -amount);
-  }
-
-  await redistributeDebts(profile);
 }
 
 export async function fetchOutcomesByCategory(category: string): Promise<IncomeData[] | null> {
@@ -552,6 +552,7 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
 
 export async function removeProfile(profileId: string, email: string) {
   try {
+
     if(await isProfileShared(profileId) === true){
       await removeSharedProfile(profileId, email);
       return true;
@@ -1028,6 +1029,7 @@ export async function getDebtsBeetweenUsers(user1: string, user2: string) {
       .eq('has_paid', false);
       
   }
+  
   catch (error) {
     console.error("Unexpected error fetching debts between users:", error);
     return null;
@@ -1047,6 +1049,7 @@ export async function getDebtsToUser(debtor: string, profileId: string): Promise
       console.error("Error fetching debts to user:", error);
       return null;
     }
+
     return data;
   } 
   
@@ -1084,12 +1087,14 @@ export async function removeSharedProfile(profileId: string, email: string) {
   if (profile?.owner !== email) {
     await removeSharedUsers(profileId, [email]);
   }
+  
   else {
     await removeSharedUsers(profileId, profile.users ?? []);
     await removeData(PROFILES_TABLE, profileId);
   }
   return true;
 }
+
 
 async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
