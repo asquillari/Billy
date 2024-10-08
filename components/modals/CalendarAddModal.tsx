@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, TextInput, Modal, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -9,7 +9,7 @@ import { styles } from '../estilos/calendarStyles';
 interface CobroPagoPopUpProps {
   isVisible: boolean;
   onClose: () => void;
-  initialType: 'income' | 'outcome';
+  initialType: 'Income' | 'Outcome';
   refreshIncomeData: () => void;
   refreshOutcomeData: () => void;
   refreshCategoryData: () => void;
@@ -18,12 +18,12 @@ interface CobroPagoPopUpProps {
 }
 
 const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
-  const [type, setType] = useState<'Income' | 'Outcome'>(initialType === 'income' ? 'Income' : 'Outcome');
+  const [type, setType] = useState<'Income' | 'Outcome'>(initialType);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
-  const [bubbleAnimation] = useState(new Animated.Value(initialType === 'outcome' ? 0 : 1));
+  const [bubbleAnimation] = useState(new Animated.Value(initialType === 'Outcome' ? 0 : 1));
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [dateType, setDateType] = useState('Fecha Exacta');
@@ -32,21 +32,20 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [recurrence, setRecurrence] = useState('Nunca');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isVisible) {
-      fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
-    }
-  }, [isVisible]);
+    if (isVisible) fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
+  }, [isVisible, currentProfileId]);
 
   useEffect(() => {
     // Actualizar la posición del bubble cuando cambia initialType
     Animated.timing(bubbleAnimation, {
-      toValue: initialType === 'income' ? 0 : 1,
+      toValue: initialType === 'Income' ? 0 : 1,
       duration: 0, // Sin animación para el cambio inicial
       useNativeDriver: false,
     }).start();
-    setType(initialType === 'income' ? 'Income' : 'Outcome');
+    setType(initialType === 'Income' ? 'Income' : 'Outcome');
   }, [initialType]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -65,6 +64,8 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   };
 
   async function handleSubmit(): Promise<void> {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (!selectedCategory && type === 'Outcome') {
       Alert.alert("Error de categoría", "Por favor, selecciona una categoría antes de continuar.", [{ text: "OK" }]);
       return;
@@ -102,23 +103,43 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     setEndDate(new Date());
     setSelectedCategory('');
     setRecurrence('Nunca');
+    setIsSubmitting(false);
     onClose();
   }
 
-  const switchType = (newType: 'Income' | 'Outcome') => {
+  const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
     Animated.timing(bubbleAnimation, {
-      toValue: newType === 'Income' ? 0 : 1,
+      toValue: newType === 'Outcome' ? 1 : 0,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  };
-
-  const bubbleInterpolation = bubbleAnimation.interpolate({ inputRange: [0, 1], outputRange: ['2%', '48%'] });
+  }, [bubbleAnimation]);
+  
+  const bubbleInterpolation = bubbleAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['2%', '48%'],
+  });
 
   const getTextColor = (buttonType: 'Income' | 'Outcome') => {
     return type === buttonType ? '#000000' : '#FFFFFF';
   };
+
+  const renderTypeSelector = useMemo(() => (
+    <View style={styles.typeSelector}>
+      <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
+        <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
+      </View>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
+        <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
+      </TouchableOpacity>
+    </View>
+  ), [bubbleInterpolation, switchType, getTextColor]);
 
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
@@ -129,19 +150,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
           </TouchableOpacity>
           
           <View style={styles.contentContainer}>
-            <View style={styles.typeSelector}>
-              <View style={[styles.bubbleBackground, { backgroundColor: '#B39CD4' }]}>
-                <Animated.View style={[styles.bubble, { left: bubbleInterpolation }]}/>
-              </View>
-              
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Income')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Income') }]}>Ingreso</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.typeButton} onPress={() => switchType('Outcome')}>
-                <Text style={[styles.typeButtonText, { color: getTextColor('Outcome') }]}>Gasto</Text>
-              </TouchableOpacity>
-            </View>
+            {renderTypeSelector}
 
             <TextInput
               style={styles.input}
@@ -162,18 +171,18 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
 
             {type === 'Outcome' && (
               <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedCategory}
-                onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                <Picker.Item label="Selecciona una categoría" value="" />
-                {categories.map((category) => (
-                  <Picker.Item key={category.id} label={category.name} value={category.id} />
-                ))}
-              </Picker>
-            </View>
+                <Picker
+                  selectedValue={selectedCategory}
+                  onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                  >
+                  <Picker.Item label="Selecciona una categoría" value=""/>
+                  {categories.map((category) => (
+                    <Picker.Item key={category.id} label={category.name} value={category.id} />
+                  ))}
+                </Picker>
+              </View>
             )}
 
             <View style={styles.pickerContainer}>

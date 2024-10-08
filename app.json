@@ -11,7 +11,6 @@
       "image": "./assets/images/Billy/logo2.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
-      
     },
     "ios": {
       "supportsTablet": true
@@ -29,7 +28,8 @@
       "favicon": "./assets/images/Billy/icon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
@@ -6,39 +6,55 @@ import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
 import useProfileData from '@/hooks/useProfileData';
-import { IncomeData, OutcomeData, fetchCurrentProfile } from '../../api/api';
+import { IncomeData, OutcomeData, fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { SharedBalanceCard } from '@/components/SharedBalanceCard';
 
 export default function HomeScreen() {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
-  const {incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData} = useProfileData(currentProfileId || "");
-  
+  const { incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData } = useProfileData(currentProfileId || "");
+  const [shared, setShared] = useState<boolean | null>(null);
+  const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
+
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
       const profileData = await fetchCurrentProfile(userEmail);
-      if (profileData && typeof profileData === 'string') {
+      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
         setCurrentProfileId(profileData);
+        const isShared = await isProfileShared(profileData);
+        setShared(isShared);
+        if (isShared) {
+          const users = await getSharedUsers(profileData);
+          setSharedUsers(users);
+        }
+      } else {
+        console.error('Invalid or empty profile ID received');
+        setShared(false);
+        setSharedUsers(null);
       }
     }
   }, [userEmail, setCurrentProfileId]);
-
+  
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-      getCategoryData();
-      getIncomeData();
-      getOutcomeData();
-    }, [fetchProfile])
+      const fetchData = async () => {
+        await fetchProfile();
+        await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+      };
+      fetchData();
+    }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData])
   );
   
-  const totalIncome = useMemo(() => incomeData?.reduce((sum: number, item: IncomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [incomeData]);
-
-  const totalExpenses = useMemo(() => outcomeData?.reduce((sum: number, item: OutcomeData) => sum + parseFloat(item.amount.toString()), 0) ?? 0, [outcomeData]);
+  const { totalIncome, totalExpenses } = useMemo(() => {
+    const income = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+    const expenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+    return { totalIncome: income, totalExpenses: expenses };
+  }, [incomeData, outcomeData]);
 
   return (
     <View style={styles.container}>
@@ -47,9 +63,22 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <ScrollView style={styles.scrollView}>
             
-            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-            
-            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+          {!shared && (
+              <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
+            )}  
+
+            {shared && (
+              <View style={styles.sharedBalanceContainer}>
+                <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
+                <View style={styles.addButtonContainer}>
+                  <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+                </View>
+              </View>
+            )}  
+
+            {!shared && (
+              <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            )}
           
             <View style={styles.sectionContainer}> 
               <ThemedText style={styles.title}>Categorías</ThemedText>
@@ -70,6 +99,14 @@ export default function HomeScreen() {
 
 
 const styles = StyleSheet.create({
+  sharedBalanceContainer: {
+    position: 'relative',
+  },
+  addButtonContainer: {
+    position: 'absolute',
+    top: 235,
+    right: -5,
+  },
   container: {
     flex: 1,
   },

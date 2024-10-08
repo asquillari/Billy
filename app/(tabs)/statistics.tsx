@@ -1,26 +1,60 @@
-import React, { useState } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
 import { Dimensions } from "react-native";
+import { useProfile } from "../contexts/ProfileContext";
+import { useUser } from "../contexts/UserContext";
+import { fetchCurrentProfile, isProfileShared } from "@/api/api";
+import { useFocusEffect } from "@react-navigation/native";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-const Stats = React.memo(({ selectedMonth, selectedYear }: { selectedMonth: number; selectedYear: number }) => (
-  <ScrollView>
-    <View style={styles.card}>
-      <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-      <StatsComponent month={selectedMonth} year={selectedYear}/>
-    </View>
-  </ScrollView>
-));
+const Stats = React.memo(({ selectedMonth, selectedYear, mode }: { selectedMonth: number; selectedYear: number, mode: boolean | null }) => {
+  // Use useMemo to create a memoized key that changes when any prop changes
+  const memoKey = useMemo(() => `${selectedMonth}-${selectedYear}-${mode}`, [selectedMonth, selectedYear, mode]);
+
+  return (
+    <ScrollView>
+      <View style={styles.card}>
+        <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
+        <StatsComponent key={memoKey} month={selectedMonth} year={selectedYear} mode={mode}/>
+      </View>
+    </ScrollView>
+  );
+});
 
 const App = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedButton, setSelectedButton] = useState<'month' | 'year'>('month');
+  const [mode, setMode] = useState<'category' | 'person'>('category');
+
+  {/* Aca tengo que checkear si el usuario tiene un perfil compartido, pero estaria repitiendo codigo
+  con statsComponent, ver si lo puedo optimizar. */}
+  const { userEmail } = useUser();
+  const { currentProfileId, setCurrentProfileId } = useProfile();
+  const [shared, setShared] = useState<boolean | null>(null);
+
+  const fetchProfile = useCallback(async () => {
+    if (userEmail) {
+      const profileData = await fetchCurrentProfile(userEmail);
+      if (profileData && typeof profileData === 'string') {
+        setCurrentProfileId(profileData);
+      }
+      if (currentProfileId) {
+        isProfileShared(currentProfileId).then(setShared);
+      }
+    }
+  }, [userEmail, setCurrentProfileId, currentProfileId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   const toggleSelector = (type: 'month' | 'year') => () => {
     setSelectedButton(type);
@@ -29,6 +63,10 @@ const App = () => {
   const changeDate = (type: 'month' | 'year', increment: number) => () => {
     if (type === 'month') setSelectedMonth((prev) => (prev + increment + 12) % 12);
     else setSelectedYear((prev) => prev + increment);
+  };
+
+  const toggleMode = () => {
+    setMode(prevMode => prevMode === 'category' ? 'person' : 'category');
   };
 
   const renderSelector = (type: 'month' | 'year') => (
@@ -56,9 +94,17 @@ const App = () => {
             </Text>
           </TouchableOpacity>
         ))}
+
+        {shared && (
+        <TouchableOpacity onPress={toggleMode} style={styles.circularButton}>
+          <Text style={styles.circularButtonText}>
+          {mode === 'category' ? 'C' : 'P'}
+          </Text>
+        </TouchableOpacity>
+        )}
       </View>
-      {renderSelector(selectedButton)}
-      <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} />
+      {renderSelector(selectedButton)} 
+      <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} mode={mode === 'category' ? false : true} />
     </LinearGradient>
   );
 };
@@ -115,6 +161,25 @@ const styles = StyleSheet.create({
   },
   gradientContainer: {
     flex: 1,
+  },
+  circularButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#87CEFA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  circularButtonText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
 });
 

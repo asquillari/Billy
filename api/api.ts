@@ -1,8 +1,11 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createURL } from 'expo-linking';
+import FeComponentTransferFunction from 'react-native-svg/lib/typescript/elements/filters/FeComponentTransferFunction';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
+const SHARED_OUTCOMES_TABLE = 'SharedOutcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
@@ -31,6 +34,14 @@ export interface OutcomeData {
   amount: number;
   description: string;
   created_at?: Date;
+  shared_outcome?: string;
+}
+
+export interface SharedOutcomeData {
+  id? : string;
+  users : string[];
+  to_pay : number[];
+  has_paid? : boolean[];
 }
 
 export interface CategoryData {
@@ -49,7 +60,23 @@ export interface ProfileData {
   balance?: number;
   created_at?: Date;
   owner: string;
+  users?: string[];
   is_shared?: boolean;
+}
+
+export interface DebtData {
+  id?: string;
+  outcome: string;
+  paid_by: string;
+  debtor: string;
+  has_paid: boolean;
+  amount: number;
+}
+
+export interface InvitationData {
+  id?: string;
+  profile: string;
+  created_at?: Date;
 }
 
 /* General data */
@@ -200,8 +227,13 @@ export async function getIncome(id: string): Promise<IncomeData | null> {
 
 export async function addIncome(profile: string, amount: number, description: string, created_at?: Date): Promise<IncomeData[] | null> {
   try {
-    const newIncome: IncomeData = { profile: profile, amount: amount, description: description, created_at: created_at };
-
+    const newIncome: IncomeData = { 
+      profile: profile, 
+      amount: amount, 
+      description: description, 
+      created_at: created_at, 
+    };
+    
     const [{ data: insertData, error: insertError }] = await Promise.all([
       supabase.from(INCOMES_TABLE).insert(newIncome).select(),
       updateBalance(profile, amount)
@@ -261,34 +293,83 @@ export async function getOutcome(id: string): Promise<OutcomeData | null> {
   return await getData(OUTCOMES_TABLE, id);
 }
 
-export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date): Promise<OutcomeData[] | null> {
+export async function addOutcome(
+  profile: string, 
+  category: string, 
+  amount: number, 
+  description: string, 
+  created_at?: Date,
+  paid_by?: string,
+  debtors?: string[]
+): Promise<OutcomeData[] | null> {
   try {
     if (category === "" || !(await checkCategoryLimit(category, amount))) {
-      console.log("Couldn't add due to category limit or missing category");
+      console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
       return null;
     }
 
-    const newOutcome: OutcomeData = { profile: profile, amount: amount, category: category, description: description, created_at: created_at };
+    const newOutcome: OutcomeData = { 
+      profile, 
+      amount, 
+      category, 
+      description, 
+      created_at: created_at || new Date()
+    };
+    
+    const { data: outcomeData, error: outcomeError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .insert(newOutcome)
+      .select()
+      .single();
 
-    const [{ data: insertData, error: insertError }] = await Promise.all([
-      supabase.from(OUTCOMES_TABLE).insert(newOutcome).select(),
+    if (outcomeError) {
+      console.error("Error añadiendo gasto:", outcomeError);
+      return null;
+    }
+
+    // Si es un gasto grupal, añadir las deudas correspondientes
+    if (paid_by && debtors && debtors.length > 0) {
+      const amountPerPerson = amount / (debtors.length + 1);
+
+      const allUsers = [paid_by, ...debtors];
+      const allAmounts = allUsers.map(() => amountPerPerson);
+      const sharedOutcomeId = await addSharedOutcome(allUsers, allAmounts);
+      await updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id);
+
+      for (const debtor of debtors) {
+        const success = await addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson);
+        if (!success) {
+          console.error("Error añadiendo deuda para", debtor);
+          await removeOutcome(profile, outcomeData.id);
+          return null;
+        }
+      }
+    }
+
+    await Promise.all([
       updateBalance(profile, -amount),
       updateCategorySpent(category, amount)
     ]);
 
-    if (insertError) {
-      console.error("Error adding outcome:", insertError);
-      return null;
-    }
-
-    return insertData;
+    return [outcomeData];
   } 
 
   catch (error) {
-    console.error("Unexpected error adding outcome:", error);
+    console.error("Error inesperado añadiendo gasto:", error);
     return null;
   }
 };
+
+export async function addSharedOutcome(users: string[], toPay: number[]) {
+  const hasPaid: boolean[] = users.map((_, index) => index === 0);
+  const newSharedOutcome: SharedOutcomeData = { 
+    users: users,
+    to_pay: toPay,
+    has_paid: hasPaid
+  };
+  const data = await addData(SHARED_OUTCOMES_TABLE, newSharedOutcome);
+  return data.id;
+}
 
 export async function removeOutcome(profile: string, id: string) {
   try {
@@ -351,6 +432,13 @@ export async function fetchCategories(profile: string): Promise<CategoryData[] |
 export async function getCategory(category: string): Promise<CategoryData | null> {
   return await getData(CATEGORIES_TABLE, category);
 };
+
+export async function getCategoryIdByName(profile: string, categoryName: string): Promise<string | null> {
+  const categories = await fetchData(CATEGORIES_TABLE, 'profile', profile);
+  if (!categories) return null;
+  const category = categories.find(cat => cat.name === categoryName);
+  return category ? category.id : null;
+}
 
 export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
   const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
@@ -427,15 +515,24 @@ export async function getProfile(profileId: string): Promise<ProfileData | null>
   return await getData(PROFILES_TABLE, profileId);
 }
 
+export async function getProfileName(profileId: string): Promise<string | null> {
+  return await getValueFromData(PROFILES_TABLE, 'name', 'id', profileId);
+}
+
+export async function updateProfileName(profileId: string, newName: string) {
+  return await updateData(PROFILES_TABLE, 'name', newName, 'id', profileId);
+}
+
 export async function addProfile(name: string, user: string): Promise<ProfileData | null> {
   try {
     const newProfile: ProfileData = { name, owner: user };
     const profile = await addData(PROFILES_TABLE, newProfile);
 
-    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
+    const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
+    const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profile.id, new_user: user });
 
-    if (error) {
-      console.error("Failed to append new profile to user's my_profiles:", error);
+    if (userError || profileError) {
+      console.error("Failed to append new profile to user's my_profiles:", userError && profileError);
       await removeData(PROFILES_TABLE, profile.id);
       return null;
     }
@@ -449,8 +546,14 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
   }
 }
 
-export async function removeProfile(profileId: string) {
+export async function removeProfile(profileId: string, email: string) {
   try {
+
+    if(await isProfileShared(profileId) === true){
+      await removeSharedProfile(profileId, email);
+      return true;
+    }
+
     const removedProfile = await removeData(PROFILES_TABLE, profileId);
 
     if (removedProfile) {
@@ -459,7 +562,6 @@ export async function removeProfile(profileId: string) {
     }
 
     return removedProfile;
-
   } 
   
   catch (error) {
@@ -469,11 +571,63 @@ export async function removeProfile(profileId: string) {
 }
 
 export async function addSharedUsers(profileId: string, emails: string[]) {
-  updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
-  for (const email of emails) {
-    const { error } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
-    if (error) console.error(`Failed to share profile with ${email}:`, error);
+  try {
+    // Verificar que todos los emails existan en la tabla users
+    const { data: existingUsers, error: checkError } = await supabase
+      .from(USERS_TABLE)
+      .select('email')
+      .in('email', emails);
+
+    if (checkError) {
+      console.error("Error al verificar usuarios existentes:", checkError);
+      return;
+    }
+
+    const existingEmails = existingUsers.map(user => user.email);
+    const invalidEmails = emails.filter(email => !existingEmails.includes(email));
+
+    if (invalidEmails.length > 0) {
+      console.error("Los siguientes emails no existen en la tabla users:", invalidEmails);
+      return;
+    }
+
+    // Actualizar el perfil como compartido
+    if (await isProfileShared(profileId) === false) {
+      await updateData(PROFILES_TABLE, 'is_shared', true, 'id', profileId);
+    }
+
+    // Compartir el perfil con los usuarios verificados
+    for (const email of existingEmails) {
+      const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: email, new_profile_id: profileId });
+      if (userError) console.error(`Error al compartir el perfil con ${email}:`, userError);
+
+      const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
+      if (profileError) console.error(`Error al añadir ${email} al perfil ${profileId}:`, profileError);
+    }
+  } catch (error) {
+    console.error("Error inesperado en addSharedUsers:", error);
   }
+}
+
+export async function removeSharedUsers(profileId: string, emails: string[]) {
+  for (const email of emails) {
+    const { error } = await supabase.rpc('remove_user_and_profile', { 
+      profile_id: profileId, 
+      user_email: email 
+    });
+    
+    if (error) {
+      console.error(`Failed to remove ${email} from profile ${profileId}:`, error);
+    }
+  }
+}
+
+export async function getSharedUsers(profileId: string): Promise<string[] | null> {
+  return await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
+}
+
+export async function isProfileShared(profileId: string): Promise<boolean | null> {
+  return await getValueFromData(PROFILES_TABLE, 'is_shared', 'id', profileId);
 }
 
 
@@ -620,6 +774,32 @@ export async function fetchCurrentProfile(user: string) {
 
 /* Stats */
 
+export async function getIncomesFromDateRange(profile: string, start: Date, end: Date) {
+  const startISO = start.toISOString();
+  const endISO = end.toISOString();
+  
+  try {
+    const { data, error } = await supabase
+      .from(INCOMES_TABLE)
+      .select()
+      .eq('profile', profile)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+    
+    if (error) {
+      console.error("Error fetching incomes from date range:", error);
+      return { error: "Failed to fetch incomes." };
+    }
+    
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching incomes from date range:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
 export async function getOutcomesFromDateRange(profile: string, start: Date, end: Date) {
   const startISO = start.toISOString();
   const endISO = end.toISOString();
@@ -670,5 +850,425 @@ export async function getOutcomesFromDateRangeAndCategory(profile: string, start
   catch (error) {
     console.error("Unexpected error fetching outcomes from date range and category:", error);
     return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function getTotalToPayInDateRange(profileId: string, startDate: Date, endDate: Date): Promise<{ [key: string]: number }> {
+  try {
+    const { data: outcomes, error: outcomesError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select()
+      .eq('profile', profileId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .not('shared_outcome', 'is', null);
+
+    if (outcomesError) {
+      console.error("Error fetching outcomes:", outcomesError);
+      return {};
+    }
+
+    if (!outcomes || outcomes.length === 0) {
+      return {};
+    }
+
+    const sharedOutcomeIds = outcomes.map(outcome => outcome.shared_outcome);
+    const { data: sharedOutcomes, error: sharedError } = await supabase
+      .from(SHARED_OUTCOMES_TABLE)
+      .select('*')
+      .in('id', sharedOutcomeIds);
+
+    if (sharedError) {
+      console.error("Error fetching shared outcomes:", sharedError);
+      return {};
+    }
+
+    const totalToPay: { [key: string]: number } = {};
+    sharedOutcomes.forEach(sharedOutcome => {
+      sharedOutcome.users.forEach((user: string, index: number) => {
+        if (!totalToPay[user]) {
+          totalToPay[user] = 0;
+        }
+        totalToPay[user] += sharedOutcome.to_pay[index];
+      });
+    });
+
+    return totalToPay;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error in getTotalToPayInDateRange:", error);
+    return {};
+  }
+}
+
+export async function getTotalToPayForUserInDateRange(userEmail: string, profileId: string, startDate: Date, endDate: Date): Promise<number> {
+  try {
+    const allTotalsToPay = await getTotalToPayInDateRange(profileId, startDate, endDate);
+    return allTotalsToPay[userEmail] || 0;
+  } 
+  catch (error) {
+    console.error("Error in getTotalToPayForUserInDateRange:", error);
+    return 0;
+  }
+}
+
+
+
+/* Shared Profiles */
+
+export async function generateInvitationLink(profile: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('invitationLink')
+      .insert({ profile: profile })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error generating invitation link:", error);
+      return null;
+    }
+
+    // Uses the configured base URL
+    return createURL(`/(tabs)/profiles?invitationId=${data.id}`);
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error generating invitation link:", error);
+    return null;
+  }
+}
+
+export async function processInvitation(invitationId: string, email: string): Promise<string | null> {
+  try {
+    // Obtener la invitación
+    const { data: invitation, error: invitationError } = await supabase
+      .from('invitationLink')
+      .select('profile')
+      .eq('id', invitationId)
+      .single();
+
+    if (invitationError || !invitation) {
+      console.error("Error obteniendo la invitación:", invitationError);
+      return null;
+    }
+
+    // Verificar si el usuario ya tiene este perfil
+    const { data: existingProfile, error: profileError } = await supabase
+      .from('Users')
+      .select('my_profiles')
+      .eq('email', email)
+      .single();
+
+    if (profileError) {
+      console.error("Error obteniendo perfiles existentes:", profileError);
+      return null;
+    }
+
+    if (existingProfile && existingProfile.my_profiles.includes(invitation.profile)) {
+      console.error("El perfil ya existe para este usuario");
+      return invitation.profile; // Devolvemos el ID del perfil aunque ya exista
+    }
+
+    // Añadir el usuario al perfil compartido
+    await addSharedUsers(invitation.profile, [email]);
+
+    // Delete the invitation after using it
+    // Delete the invitation from the database after using it
+    // await supabase
+    //   .from('invitationLink')
+    //   .delete()
+    //   .eq('id', invitationId);
+
+    return invitation.profile; // Devolvemos el ID del perfil añadido
+  } catch (error) {
+    console.error("Error inesperado procesando la invitación:", error);
+    return null;
+  }
+}
+
+/* Debts */
+
+export async function getDebtsBeetweenUsers(user1: string, user2: string) {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', user1)
+      .eq('debtor', user2)
+      .eq('has_paid', false);
+      
+  }
+  catch (error) {
+    console.error("Unexpected error fetching debts between users:", error);
+    return null;
+  }
+}
+
+export async function getDebtsToUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('paid_by', debtor)
+      .eq('profile', profileId)
+      .eq('has_paid', false);
+    
+    if (error) {
+      console.error("Error fetching debts to user:", error);
+      return null;
+    }
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts to user:", error);
+    return null;
+  }
+}
+
+export async function getDebtsFromUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('debtor', debtor)
+      .eq('profile', profileId)
+      .eq('has_paid', false);
+
+    if (error) {
+      console.error("Error fetching debts from user:", error);
+      return null;
+    }
+
+    return data;
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error fetching debts from user:", error);
+    return null;
+  }
+}
+
+export async function removeSharedProfile(profileId: string, email: string) {
+  const profile = await getProfile(profileId);
+  if(profile?.owner !== email) {
+    await removeSharedUsers(profileId, [email]);
+  }else{
+    await removeSharedUsers(profileId, profile.users ?? []);
+    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+  }
+  return true;
+}
+
+
+async function redistributeDebts(profileId: string): Promise<boolean> {
+  try {
+    // Obtener todas las deudas del perfil
+    const { data: debts, error: debtsError } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('profile', profileId)
+      .eq('has_paid', false);
+
+    if (debtsError) {
+      console.error("Error fetching debts:", debtsError);
+      return false;
+    }
+
+    // Crear un mapa de deudas netas
+    const netDebts = new Map<string, Map<string, number>>();
+
+    // Calcular deudas netas
+    for (const debt of debts) {
+      if (!netDebts.has(debt.paid_by)) {
+        netDebts.set(debt.paid_by, new Map<string, number>());
+      }
+      if (!netDebts.has(debt.debtor)) {
+        netDebts.set(debt.debtor, new Map<string, number>());
+      }
+
+      const paidByDebts = netDebts.get(debt.paid_by)!;
+      paidByDebts.set(debt.debtor, (paidByDebts.get(debt.debtor) || 0) + debt.amount);
+    }
+
+    // Redistribuir deudas
+    let cambios = true;
+    while (cambios) {
+      cambios = false;
+      for (const [acreedor, deudores] of netDebts) {
+        for (const [deudor, cantidad] of deudores) {
+          const deudasDeudor = netDebts.get(deudor);
+          if (deudasDeudor) {
+            for (const [tercero, cantidadTercero] of deudasDeudor) {
+              if (tercero !== acreedor) {
+                const cantidadTransferir = Math.min(cantidad, cantidadTercero);
+                if (cantidadTransferir > 0) {
+                  deudores.set(deudor, cantidad - cantidadTransferir);
+                  if (deudores.get(deudor) === 0) deudores.delete(deudor);
+                  deudasDeudor.set(tercero, cantidadTercero - cantidadTransferir);
+                  if (deudasDeudor.get(tercero) === 0) deudasDeudor.delete(tercero);
+                  deudores.set(tercero, (deudores.get(tercero) || 0) + cantidadTransferir);
+                  cambios = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Aplicar las deudas redistribuidas
+    await removeAllDebts(profileId);
+    for (const [acreedor, deudores] of netDebts) {
+      for (const [deudor, cantidad] of deudores) {
+        if (cantidad > 0) {
+          await updateDebt(profileId, acreedor, deudor, cantidad);
+        }
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error redistributing debts:", error);
+    return false;
+  }
+}
+
+async function removeAllDebts(profileId: string): Promise<void> {
+  await supabase
+    .from('Debts')
+    .delete()
+    .eq('profile', profileId)
+    .eq('has_paid', false);
+}
+
+async function updateDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<void> {
+  const { data: existingDebt, error: debtError } = await supabase
+    .from('Debts')
+    .select('*')
+    .eq('profile', profileId)
+    .eq('paid_by', paidBy)
+    .eq('debtor', debtor)
+    .eq('has_paid', false)
+    .single();
+
+  if (debtError && debtError.code !== 'PGRST116') {
+    console.error("Error checking existing debt:", debtError);
+    return;
+  }
+
+  if (existingDebt) {
+    await supabase.from('Debts').update({ amount: amount }).eq('profile', existingDebt.profile).eq('paid_by', paidBy).eq('debtor', debtor);
+  } else {
+    await supabase.from('Debts').insert({
+      profile: profileId,
+      paid_by: paidBy,
+      debtor: debtor,
+      amount: amount,
+      has_paid: false
+    });
+  }
+}
+
+async function removeDebt(profileId: string, paidBy: string, debtor: string): Promise<void> {
+  await supabase
+    .from('Debts')
+    .delete()
+    .eq('profile', profileId)
+    .eq('paid_by', paidBy)
+    .eq('debtor', debtor)
+    .eq('has_paid', false);
+}
+
+export async function addDebt(outcomeId: string, profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
+  try {
+    const { data: existingDebt, error: existingDebtError } = await supabase
+      .from('Debts')
+      .select('*')
+      .eq('profile', profileId)
+      .eq('paid_by', paidBy)
+      .eq('debtor', debtor)
+      .eq('has_paid', false)
+      .single();
+
+    if (existingDebtError && existingDebtError.code !== 'PGRST116') {
+      console.error("Error comprobando deuda existente:", existingDebtError);
+      return false;
+    }
+
+    if (existingDebt) {
+      const newAmount = existingDebt.amount + amount;
+      const { error: updateError } = await supabase
+        .from('Debts')
+        .update({ amount: newAmount })
+        .eq('profile', profileId)
+        .eq('paid_by', paidBy)
+        .eq('debtor', debtor);
+
+      if (updateError) {
+        console.error("Error actualizando deuda existente:", updateError);
+        return false;
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from('Debts')
+        .insert({
+          profile: profileId,
+          paid_by: paidBy,
+          debtor: debtor,
+          amount: amount,
+          has_paid: false
+        });
+
+      if (insertError) {
+        console.error("Error insertando nueva deuda:", insertError);
+        removeOutcome(profileId, outcomeId);
+        return false;
+      }
+    }
+    await redistributeDebts(profileId);
+    return true;
+  } catch (error) {
+    console.error("Error inesperado añadiendo deuda:", error);
+    return false;
+  }
+}
+
+/* Shared Calendar*/
+
+export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
+  try {
+    // Primero, verificamos que el perfil exista
+    const { data: profile, error: profileError } = await supabase
+      .from(PROFILES_TABLE)
+      .select('*')
+      .eq('id', profileId)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return { error: "Profile not found", details: profileError.message };
+    }
+
+    // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
+    const { data: outcomes, error: outcomesError } = await supabase
+      .from(OUTCOMES_TABLE)
+      .select('*')
+      .eq('id', profileId)
+      .eq('profile', profileName)
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString());
+
+    if (outcomesError) {
+      console.error("Error fetching shared outcomes:", outcomesError);
+      return { error: "Failed to fetch outcomes", details: outcomesError.message };
+    }
+
+    return outcomes;
+  } catch (error) {
+    console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
+    return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
   }
 }

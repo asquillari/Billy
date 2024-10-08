@@ -1,13 +1,9 @@
-import { Tabs } from 'expo-router';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
-
-const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
 
@@ -32,12 +28,17 @@ const TabNavigator = () => {
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
           backgroundColor: '#ffffff',
-          borderTopWidth: 0,
+          borderTopWidth: 2,
+          borderTopColor: '#e0e0e0',
           elevation: 0,
-          height: 60,
+          height: Platform.OS === 'android' ? 60 : 80,
+          paddingBottom: Platform.OS === 'android' ? 5 : 20,
         },
         tabBarLabelStyle: {
           fontSize: 12,
+        },
+        tabBarSafeAreaInsets: {
+          bottom: Platform.OS === 'android' ? 10 : 20,
         },
       })}
     >

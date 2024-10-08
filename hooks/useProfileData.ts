@@ -7,40 +7,34 @@ export function useProfileData(profileId: string) {
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   
-  const getIncomeData = useCallback(async () => {
+  const fetchData = useCallback(async (fetchFunction: (id: string) => Promise<any>, setStateFunction: React.Dispatch<React.SetStateAction<any>>) => {
     if (profileId) {
-      const data = await fetchIncomes(profileId);
-        setIncomeData(data);
-      }
-    }, [profileId]);
-  
-  const getOutcomeData = useCallback(async () => {
-    if (profileId) {
-      const data = await fetchOutcomes(profileId);
-      setOutcomeData(data);
+      const data = await fetchFunction(profileId);
+      setStateFunction(data);
     }
   }, [profileId]);
-  
-  const getCategoryData = useCallback(async () => {
-    if (profileId) {
-      const data = await fetchCategories(profileId);
-      setCategoryData(data);
-      }
-    }, [profileId]);
-  
-  const getBalanceData = useCallback(async () => {
-    if (profileId) {
-      const data = await fetchBalance(profileId);
-      setBalance(data);
-      }
-    }, [profileId]);
+
+  const getIncomeData = useCallback(() => fetchData(fetchIncomes, setIncomeData), [fetchData]);
+  const getOutcomeData = useCallback(() => fetchData(fetchOutcomes, setOutcomeData), [fetchData]);
+  const getCategoryData = useCallback(() => fetchData(fetchCategories, setCategoryData), [fetchData]);
+  const getBalanceData = useCallback(() => fetchData(fetchBalance, setBalance), [fetchData]);
   
   const refreshAllData = useCallback(() => {
-    getIncomeData();
-    getOutcomeData();
-    getCategoryData();
-    getBalanceData();
-  }, [getIncomeData, getOutcomeData, getCategoryData, getBalanceData]);
+    if (!profileId) {
+      setIncomeData(null);
+      setOutcomeData(null);
+      setCategoryData(null);
+      setBalance(null);
+      return;
+    }
+    Promise.all([ fetchIncomes(profileId), fetchOutcomes(profileId), fetchCategories(profileId), fetchBalance(profileId) ])
+    .then(([incomes, outcomes, categories, newBalance]) => {
+      setIncomeData(incomes);
+      setOutcomeData(outcomes);
+      setCategoryData(categories);
+      setBalance(newBalance);
+    });
+  }, [profileId]);
   
   useEffect(() => {
     refreshAllData();

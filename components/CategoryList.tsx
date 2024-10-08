@@ -21,15 +21,6 @@ const parseGradient = (color: string): string[] => {
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
-    const getDefaultOtrosCategory = useCallback((): CategoryData => ({
-        id: 'otros-default',
-        profile: currentProfileId,
-        name: 'Otros',
-        color: JSON.stringify(['#AAAAAA', '#AAAAAA']), 
-        spent: 0,
-        limit: 0,
-    }), [currentProfileId]);
-
     const [modalVisible, setModalVisible] = useState(false);
 
     // For details
@@ -40,16 +31,16 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     // Get categories' outcomes
     async function getOutcomeData(profile: string, category: string) {
         const data = await fetchOutcomesByCategory(category);
-        setOutcomeData(data);
+        setOutcomeData(data as OutcomeData[]);
         refreshAllData();
     };
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
-        if (!categoryData) return [getDefaultOtrosCategory()];
-        const otrosCategory = categoryData.find(cat => cat.name === "Otros") || getDefaultOtrosCategory();
-        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").reverse();
-        return [...otherCategories, otrosCategory];
+        if (!categoryData) return [];
+        const othersCategory = categoryData.find(cat => cat.name === "Otros");
+        const otherCategories = categoryData.filter(cat => cat.name !== "Otros").sort((a, b) => parseFloat(String(b.spent ?? '0')) - parseFloat(String(a.spent ?? '0')));
+        return [...otherCategories, othersCategory];
     }, [categoryData]);
 
     // See category details
@@ -69,7 +60,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         Alert.alert("Eliminar categoría", "¿Está seguro de que quiere eliminar la categoría?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
             onPress: async () => {
                 if (category) {
-                    await removeCategory(category.id);
+                    await removeCategory(category.id||"null");
                     refreshCategoryData();
                 }
             }}]);
@@ -94,7 +85,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     return (
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {sortedCategories.map(renderCategory)}
+            {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
 
             {/* Add button */}
             {showAddButton && ( // Condicional para mostrar el botón de agregar
@@ -128,7 +119,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
 const styles = StyleSheet.create({
     categoriesContainer: {
-        alignSelf: 'center',
         flexWrap: 'nowrap',
         marginBottom: 16,
     },

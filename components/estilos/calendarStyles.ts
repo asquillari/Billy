@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   picker: {
-    height: 50,
     width: '100%',
   },
   pickerContainer: {

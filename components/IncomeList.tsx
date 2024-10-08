@@ -28,12 +28,12 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
     setSelectedIncome(income);
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (income) handleRemoveIncome(currentProfileId, income.id ?? 0)
+        if (income) handleRemoveIncome(currentProfileId, income.id ?? "0")
       }
     }]);
   }, [incomeData]);
 
-  const handleRemoveIncome = async (profile: string, id: number) => {
+  const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
     refreshData();  // Actualiza los datos después de eliminar
   };

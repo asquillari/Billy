@@ -16,8 +16,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
 
   const refreshTransactions = useCallback(async () => {
-    const incomes = await fetchIncomes(currentProfileId || "");
-    const outcomes = await fetchOutcomes(currentProfileId || "");
+    if (!currentProfileId) return;
+    const [incomes, outcomes] = await Promise.all([ fetchIncomes(currentProfileId), fetchOutcomes(currentProfileId) ]);
     setIncomeData(incomes);
     setOutcomeData(outcomes);
   }, []);

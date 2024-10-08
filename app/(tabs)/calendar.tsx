@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView, Alert } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { Ionicons } from '@expo/vector-icons';
 import { CategoryList } from '../../components/CategoryList';
 import CalendarAddModal from '../../components/modals/CalendarAddModal';
-import { getOutcomesFromDateRange, fetchCurrentProfile } from '../../api/api';
+import { getOutcomesFromDateRange, fetchCurrentProfile, getIncomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { useProfile } from '../contexts/ProfileContext';
 import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
 import { useUser } from '@/app/contexts/UserContext';
+import TimePeriodModal from "@/components/modals/TimePeriodModal";
 
 const customArrowLeft = () => {
   return (
@@ -38,12 +39,20 @@ export default function CalendarScreen() {
   const [key, setKey] = useState(0);
   const [viewMode, setViewMode] = useState('month');
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState<'income' | 'outcome'>('outcome');
+  const [modalType, setModalType] = useState<'Income' | 'Outcome'>('Outcome');
 
-  const { incomeData, categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
+  const [isTimePeriodModalVisible, setIsTimePeriodModalVisible] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<{start: string, end: string} | null>(null);
 
-  const currentYear = moment().year();
-  const years = useMemo(() => Array.from({ length: 24 }, (_, i) => currentYear - 20 + i), [currentYear]);
+  const [selectionStart, setSelectionStart] = useState<string | null>(null);
+  const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const { categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
+
+  const years = useMemo(() => {
+    const currentYear = moment().year();
+    return Array.from({ length: 24 }, (_, i) => currentYear - 20 + i);
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
@@ -57,6 +66,35 @@ export default function CalendarScreen() {
   const onYearPress = () => {
     setViewMode('year');
   };
+
+  const onDayPress = useCallback((day: any) => {
+    if (selectionStart) {
+      const start = moment(selectionStart);
+      const end = moment(day.dateString);
+      if (end.isBefore(start)) setSelectedRange({ start: day.dateString, end: selectionStart });
+      else setSelectedRange({ start: selectionStart, end: day.dateString });
+      setSelectionStart(null);
+      setIsTimePeriodModalVisible(true);
+    } 
+    else {
+      setSelectedRange({ start: day.dateString, end: day.dateString });
+      setIsTimePeriodModalVisible(true);
+    }
+  }, [selectionStart]);
+
+  const onDayLongPress = useCallback((day: any) => {
+    setSelectionStart(day.dateString);
+    Alert.alert('Fecha de inicio', `${day.dateString} seleccionada. Ahora seleccione una fecha final.`);
+  }, []);
+
+  const handleDayPressIn = useCallback((day: any) => {
+    const timeout = setTimeout(() => { onDayLongPress(day); }, 500);
+    setLongPressTimeout(timeout);
+  }, [onDayLongPress]);
+
+  const handleDayPressOut = useCallback(() => {
+    if (longPressTimeout) clearTimeout(longPressTimeout);
+  }, [longPressTimeout]);
 
   const selectYear = useCallback((year: number) => {
     const newDate = moment(currentDate).year(year).format('YYYY-MM-DD');
@@ -89,7 +127,7 @@ export default function CalendarScreen() {
     />
   ), [years, selectYear]);
 
-  const openModal = useCallback((type: 'income' | 'outcome') => {
+  const openModal = useCallback((type: 'Income' | 'Outcome') => {
     setModalType(type);
     setModalVisible(true);
   }, []);
@@ -100,29 +138,31 @@ export default function CalendarScreen() {
     const startOfMonth = moment(currentDate).startOf('month').toDate();
     const endOfMonth = moment(currentDate).endOf('month').toDate();
     
+    const incomes = await getIncomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
     const outcomes = await getOutcomesFromDateRange(currentProfileId, startOfMonth, endOfMonth);
 
     const marked: { [key: string]: { dots: { key: string; color: string }[] } } = {};
 
     const addDot = (date: string, id: string, color: string) => {
-      if (marked[date]) marked[date].dots.push({ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }); 
-      else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'income' : 'outcome'}-${id}`, color }] };
+      if (marked[date]) marked[date].dots.push({ key: `${color === '#4CAF50' ? 'Income' : 'Outcome'}-${id}`, color }); 
+      else marked[date] = { dots: [{ key: `${color === '#4CAF50' ? 'Income' : 'Outcome'}-${id}`, color }] };
     };
 
-    incomeData?.forEach(income => {
-      const date = moment(income.created_at).format('YYYY-MM-DD');
-      addDot(date, income.id?.toString() || '', '#4CAF50');
+    // Combine income and outcome data
+    const allTransactions = [
+      ...(Array.isArray(incomes) ? incomes.map(income => ({ ...income, type: 'Income' })) : []),
+      ...(Array.isArray(outcomes) ? outcomes.map(outcome => ({ ...outcome, type: 'Outcome' })) : [])
+    ];
+
+    // Process all transactions in a single loop
+    allTransactions.forEach(transaction => {
+      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+      const color = transaction.type === 'Income' ? '#4CAF50' : '#F44336';
+      addDot(date, transaction.id?.toString() || '', color);
     });
 
-    if (Array.isArray(outcomes)) {
-      outcomes?.forEach((outcome: any) => {
-        const date = moment(outcome.created_at).format('YYYY-MM-DD');
-        addDot(date, outcome.id?.toString() || '', '#F44336');
-      });
-    }
-
     setMarkedDates(marked);
-  }, [currentDate, currentProfileId, incomeData, getOutcomesFromDateRange]);
+  }, [currentDate, currentProfileId, getOutcomesFromDateRange]);
 
   useFocusEffect(
     useCallback(() => {
@@ -134,7 +174,7 @@ export default function CalendarScreen() {
         }
       };
       refreshData();
-    }, [fetchProfile, currentProfileId, getCategoryData, processTransactions])
+    }, [currentProfileId, getCategoryData])
   );
   
   const memoizedCalendar = useMemo(() => (
@@ -147,8 +187,12 @@ export default function CalendarScreen() {
       onMonthChange={(month: { dateString: string }) => { setCurrentDate(month.dateString); }}
       renderHeader={renderCustomHeader}
       theme={{ 'stylesheet.calendar.header': { monthText: { ...styles.monthText, color: '#735BF2' } } }}
+      onDayPress={onDayPress}
+      onDayLongPress={onDayLongPress}
+      dayPressAndHold={handleDayPressIn}
+      dayPressOut={handleDayPressOut}
     />
-  ), [key, currentDate, markedDates, renderCustomHeader]);
+  ), [key, currentDate, markedDates, renderCustomHeader, onDayPress]);
 
   return (
     <View style={styles.container}>
@@ -159,11 +203,11 @@ export default function CalendarScreen() {
               {viewMode === 'month' ? memoizedCalendar : renderYearPicker()}
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('income')}>
+              <TouchableOpacity style={styles.buttonCobro} onPress={() => openModal('Income')}>
                 <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
                 <Text style={styles.buttonTextCobro}>Agregar cobro</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('outcome')}>
+              <TouchableOpacity style={styles.buttonPago} onPress={() => openModal('Outcome')}>
                 <Ionicons name="remove-circle-outline" size={24} color="#370185" />
                 <Text style={styles.buttonTextPago}>Agregar pago</Text>
               </TouchableOpacity>
@@ -182,6 +226,16 @@ export default function CalendarScreen() {
             refreshTransactions={processTransactions}
             currentProfileId={currentProfileId || ""}
           />
+          {selectedRange && (
+            <TimePeriodModal
+              isVisible={isTimePeriodModalVisible}
+              onClose={() => setIsTimePeriodModalVisible(false)}
+              startDate={new Date(selectedRange.start)}
+              endDate={new Date(selectedRange.end)}
+              refreshData={refreshAllData}
+                currentProfileId={currentProfileId || ""}
+              />
+          )}
       </LinearGradient>
     </View>
   );

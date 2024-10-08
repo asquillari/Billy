@@ -23,48 +23,51 @@ export default function Start() {
 
   return (
     <View style={styles.container}>
-        <Image style={styles.logo} source={require('../../assets/images/Billy/logo1.png')}/>
-        <ThemedText style={styles.title}>Manejar tu plata nunca fue tan fácil</ThemedText>
-        <ThemedText style={styles.subtitle}>Llevá el control de tus ingresos y gastos de manera simple y rápida.</ThemedText>
-        <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('login' as never)}>
-            <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('signup' as never)}>
-            <ThemedText style={styles.secondaryButtonText}>Registrarme</ThemedText>
-        </TouchableOpacity>
+        <Image style={styles.logo} source={require('../../assets/images/Billy/billy-start.png')}/>
+        <View style={styles.whiteContainer}>
+          <ThemedText style={styles.title}>Manejar tu plata nunca fue tan fácil</ThemedText>
+          <ThemedText style={styles.subtitle}>Llevá el control de tus ingresos y gastos de manera simple y rápida.</ThemedText>
+          <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('login' as never)}>
+              <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('signup' as never)}>
+              <ThemedText style={styles.secondaryButtonText}>Registrarme</ThemedText>
+          </TouchableOpacity>
+        </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#4B00B8',
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
   },
   logo: {
-    width: 100,
-    height: 40,
-    marginBottom: 20,
-  },
-  illustration: {
     width: '100%',
-    height: 200,
+    height: '60%',
     resizeMode: 'contain',
     marginBottom: 20,
   },
+  whiteContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
   title: {
+    paddingTop: 5,
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: 'white',
+    color: 'black',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -90,10 +93,10 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'white',
+    borderColor: 'black',
   },
   secondaryButtonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
   },

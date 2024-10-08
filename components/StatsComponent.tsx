@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
-import { getOutcomesFromDateRangeAndCategory, fetchCategories, CategoryData, fetchCurrentProfile } from '../api/api';
+import { getTotalToPayInDateRange, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
 import { useUser } from '@/app/contexts/UserContext';
 import { useProfile } from '@/app/contexts/ProfileContext';
 
@@ -16,7 +16,12 @@ const generateRandomColor = () => `#${Math.floor(Math.random() * 16777215).toStr
 
 const parseDate = (month: number, year: number, init: number): Date => { return new Date(year, month, init); }
 
-export const StatsComponent = React.memo(({ month, year }: { month: number; year: number }) => {
+const getLastDayOfMonth = (year: number, month: number): number => {
+  return new Date(year, month + 1, 0).getDate();
+};
+
+//if mode is false, then it's category. TODO: optimize this. Should be a better way.
+export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
   const { userEmail } = useUser();
   const { currentProfileId, setCurrentProfileId } = useProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
@@ -31,10 +36,13 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
   const calculateExpenses = useCallback(async () => {
     if (!categoryData || !currentProfileId) return;
 
+    let calculatedExpenses: Expense[] = [];
+
+    if (mode === false) { 
     const idColorMap = new Map<string, string>();
     const colorsRegistered = new Set<string>();
 
-    const calculatedExpenses = await Promise.all(
+    calculatedExpenses = await Promise.all(
       categoryData.map(async (category) => {
         let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
         idColorMap.set(category.id || "", color);
@@ -42,9 +50,41 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
         return { label: category.name, amount: total, color } as Expense;
       })
     );
-  
-    setExpenses(calculatedExpenses);
-  }, [categoryData, currentProfileId, month, year]);
+    
+    calculatedExpenses.sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
+    }
+    
+    else {
+      try {
+        const sharedUsers = await getSharedUsers(currentProfileId);
+        if (sharedUsers && sharedUsers.length > 0) {
+          calculatedExpenses = await Promise.all(
+            sharedUsers.map(async (user) => {
+             
+                const items = await getTotalToPayInDateRange(
+                  currentProfileId,
+                  parseDate(month, year, 1),
+                  parseDate(month, year, getLastDayOfMonth(year, month))
+                );
+                if (items) {
+                  return { label: user, amount: items[user], color: generateRandomColor() } as Expense;
+                }
+                return { label: user, amount: 0, color: generateRandomColor() } as Expense;
+            })
+          );
+          // Filter out any undefined results
+          calculatedExpenses = calculatedExpenses.filter(expense => expense !== undefined);
+        } else {
+          console.log('No shared users found');
+        }
+      } catch (error) {
+  console.error('Error fetching shared users:', error);
+    }
+  }
+
+  setExpenses(calculatedExpenses);
+}, [categoryData, currentProfileId, month, year]);
+
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
@@ -59,7 +99,7 @@ export const StatsComponent = React.memo(({ month, year }: { month: number; year
     useCallback(() => {
       fetchProfile();
       getCategories();
-    }, [fetchProfile, fetchCategories])
+    }, [fetchProfile, fetchCategories, currentProfileId])
   );
 
   useEffect(() => {
@@ -135,7 +175,7 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
   return (
     <View style={styles.expenseItem}>
       <View style={styles.textContainer}>
-        <Text style={styles.textWrapper}>{label}</Text>
+        <Text style={styles.textWrapper} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
         <Text style={styles.textWrapperAmount}>- ${ (amount ?? 0).toFixed(2) }</Text>
       </View>
       <View style={[styles.rectangle, { backgroundColor: color, width: `${barWidth}%` }]}/>
@@ -178,15 +218,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10, 
+    width: '100%',
   },
   textWrapper: {
     color: "#3c3c3c",
     fontSize: 16,
     fontWeight: "400",
+    flexShrink: 1,
+    marginRight: 5,
   },
   textWrapperAmount: {
     color: "#3c3c3c",
     fontSize: 12,
+    flexShrink: 0,
   },
   rectangle: {
     borderRadius: 25,
