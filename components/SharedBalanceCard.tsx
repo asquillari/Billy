@@ -60,15 +60,9 @@ export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amo
     <View style={styles.debtEntry}>
       <Text style={styles.debtText}>{name1} le debe(s) a {name2}</Text>
       <View style={styles.debtDetailsContainer}>
-        <Image
-          source={require('@/assets/images/icons/UserIcon.png')}
-          style={styles.avatar}
-        />
+        <Image source={require('@/assets/images/icons/UserIcon.png')} style={styles.avatar} />
         <Text style={styles.userAmount}>$ {amount.toFixed(2)}</Text>
-        <Image
-          source={require('@/assets/images/icons/UserIcon.png')}
-          style={styles.avatar}
-        />
+        <Image source={require('@/assets/images/icons/UserIcon.png')} style={styles.avatar} />
       </View>
     </View>
   );
@@ -147,12 +141,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   };
 
   return (
-    <LinearGradient
-    colors={['#e8e0ff', '#d6c5fc']} 
-    start={[0, 0]} 
-      end={[1, 1]}
-      style={styles.card}
-    >
+    <LinearGradient colors={['#e8e0ff', '#d6c5fc']} start={[0, 0]} end={[1, 1]} style={styles.card}>
       <View style={styles.titleContainer}>
         <TouchableOpacity onPress={handleEditPress} style={styles.editButton}>
           <Ionicons name="pencil" size={20} color="#666" />
@@ -243,7 +232,6 @@ const styles = StyleSheet.create({
   expenseItem: {
     flex: 1,
     paddingHorizontal: 8,
-
   },
   expenseLabel: {
     fontSize: 14,
@@ -266,7 +254,6 @@ const styles = StyleSheet.create({
   userDebtSection: {
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
   },
   debtEntry: {
     marginBottom: 16,
@@ -277,7 +264,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
     textAlign: 'center',
-
   },
   debtDetailsContainer: {
     flexDirection: 'row',
@@ -300,7 +286,7 @@ const styles = StyleSheet.create({
   viewAll: {
     textAlign: 'center',
     color: '#6200ee',
-    marginTop: 16,
     fontSize: 16,
+    marginTop: -16,
   },
 });
