@@ -8,11 +8,11 @@ import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 
 interface ProfileListProps {
-    profileData: ProfileData[] | null;
-    refreshData: () => void;
-    onAddProfile: () => void;
-    email: string;
-    currentProfileId: string | null;
+  profileData: ProfileData[] | null;
+  refreshData: () => void;
+  onAddProfile: () => void;
+  email: string;
+  currentProfileId: string | null;
 }
 
 export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email, currentProfileId }) => {
@@ -71,22 +71,15 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       );
     }
     return (
-      <TouchableOpacity 
-        style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} 
-        onPress={() => handleProfilePress(item)} 
-        onLongPress={() => handleLongPress(item)}
-      >
+      <TouchableOpacity style={[styles.profileItem, isCurrentProfile && styles.currentProfile]} onPress={() => handleProfilePress(item)} onLongPress={() => handleLongPress(item)}>
       <View style={styles.profileContent}>
         <Ionicons name={isSharedProfile ? "globe-outline" : "person-circle-outline"} size={40} color="#4B00B8"/>
         <Text style={styles.profileName}>{item.name}</Text>
         <Text style={styles.balanceText}>${item.balance?.toFixed(2)}</Text>
       </View>
       {isSharedProfile && (
-        <TouchableOpacity 
-          style={styles.shareButton} 
-          onPress={() => handleSharePress(item.id ?? "null")}
-        >
-          <Ionicons name="share-outline" size={24} color="#4B00B8" />
+        <TouchableOpacity style={styles.shareButton} onPress={() => handleSharePress(item.id ?? "null")}>
+          <Ionicons name="share-outline" size={24} color="#4B00B8"/>
         </TouchableOpacity>
       )}
       </TouchableOpacity>

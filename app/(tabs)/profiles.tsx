@@ -36,7 +36,8 @@ export default function Profiles() {
                     // Limpiar los parámetros de la ruta después de procesar la invitación
                     navigation.setParams({ invitationId: undefined } as any);
                 }
-            } catch (error) {
+            } 
+            catch (error) {
                 console.error("Error procesando la invitación:", error);
                 Alert.alert("Error", "No se pudo procesar la invitación.");
             }

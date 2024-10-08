@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, SafeAreaView, Alert } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Alert } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
@@ -233,7 +233,7 @@ export default function CalendarScreen() {
               startDate={new Date(selectedRange.start)}
               endDate={new Date(selectedRange.end)}
               refreshData={refreshAllData}
-                currentProfileId={currentProfileId || ""}
+              currentProfileId={currentProfileId || ""}
               />
           )}
       </LinearGradient>

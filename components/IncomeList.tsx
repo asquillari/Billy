@@ -35,21 +35,21 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
-    refreshData();  // Actualiza los datos después de eliminar
+    refreshData();
   };
 
   const renderItem = useCallback(({ item }: { item: IncomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
-        <View style={styles.card}>
-            <View style={styles.iconContainer}>
-                <FontAwesome name="dollar" size={24} color="green"/>
-            </View>
-            <View style={styles.textContainer}>
-                <ThemedText style={styles.description}>{item.description}</ThemedText>
-                <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
-            </View>
-            <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
+      <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <FontAwesome name="dollar" size={24} color="green"/>
         </View>
+        <View style={styles.textContainer}>
+          <ThemedText style={styles.description}>{item.description}</ThemedText>
+          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
+        </View>
+        <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
+      </View>
     </TouchableOpacity>
   ), [handleLongPress]);
 
@@ -58,10 +58,10 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
   return (
     <View style={styles.container}>
       <FlatList
-          data={sortedIncomeData}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          showsVerticalScrollIndicator={false}
+        data={sortedIncomeData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );

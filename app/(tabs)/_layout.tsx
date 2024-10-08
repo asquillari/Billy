@@ -13,15 +13,10 @@ const TabNavigator = () => {
         headerShown: false,
         tabBarIcon: ({ color, focused, size }) => {
           let iconName: IconName | undefined;
-          if (route.name === 'index') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'statistics') {
-            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
-          } else if (route.name === 'calendar') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'profiles') {
-            iconName = focused ? 'people' : 'people-outline';
-          }
+          if (route.name === 'index') iconName = focused ? 'home' : 'home-outline';
+          else if (route.name === 'statistics') iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+          else if (route.name === 'calendar') iconName = focused ? 'calendar' : 'calendar-outline'; 
+          else if (route.name === 'profiles') iconName = focused ? 'people' : 'people-outline';
           return <Ionicons name={iconName} size={size} color={color}/>;
         },
         tabBarActiveTintColor: '#4B00B8',

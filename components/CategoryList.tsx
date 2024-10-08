@@ -88,7 +88,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
             {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
 
             {/* Add button */}
-            {showAddButton && ( // Condicional para mostrar el botón de agregar
+            {showAddButton && (
                 <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
                     <Text style={styles.addCategoryButtonText}>+</Text>
                 </TouchableOpacity>

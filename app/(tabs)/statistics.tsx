@@ -98,7 +98,7 @@ const App = () => {
         {shared && (
         <TouchableOpacity onPress={toggleMode} style={styles.circularButton}>
           <Text style={styles.circularButtonText}>
-          {mode === 'category' ? 'C' : 'P'}
+            {mode === 'category' ? 'C' : 'P'}
           </Text>
         </TouchableOpacity>
         )}
