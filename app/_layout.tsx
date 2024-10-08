@@ -16,8 +16,9 @@ export default function RootLayout() {
         <TransactionProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }}/>
+              <Stack.Screen name="(auth)" options={{ headerShown: false }}/>
+              <Stack.Screen name="CategoriesScreen" options={{ headerShown: false }}/>
             </Stack>
           </ThemeProvider>
         </TransactionProvider>

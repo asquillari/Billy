@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert, View } from 'react-native';
 import { CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import AddCategoryModal from './modals/AddCategoryModal';
 import CategoryDetailsModal from './modals/CategoryDetailsModal';
+import { useNavigation } from '@react-navigation/native';
 
 interface CategoryListProps {
     categoryData: CategoryData[] | null;
@@ -21,6 +22,8 @@ const parseGradient = (color: string): string[] => {
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
+    const navigation = useNavigation();
+
     const [modalVisible, setModalVisible] = useState(false);
 
     // For details
@@ -29,7 +32,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
     
     // Get categories' outcomes
-    async function getOutcomeData(profile: string, category: string) {
+    async function getOutcomeData(category: string) {
         const data = await fetchOutcomesByCategory(category);
         setOutcomeData(data as OutcomeData[]);
         refreshAllData();
@@ -46,7 +49,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     // See category details
     const handleCategoryPress = useCallback((category: CategoryData) => {
         setSelectedCategory(category);
-        getOutcomeData(currentProfileId, category.id ?? "null").then(() => {
+        getOutcomeData(category.id ?? "null").then(() => {
             setDetailsModalVisible(true);
         });
     }, [getOutcomeData]);
@@ -84,25 +87,33 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     }, [getCategoryColor, handleCategoryPress, handleLongPress]);
 
     return (
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
-
-            {/* Add button */}
-            {showAddButton && (
-                <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
-                    <Text style={styles.addCategoryButtonText}>+</Text>
+        <View>
+            <View style={styles.rowContainer}>
+                <Text style={styles.categoriesTitle}>Categorías</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('CategoriesScreen' as never)}>
+                    <Text style={styles.viewMoreText}>Ver más</Text>
                 </TouchableOpacity>
-            )}
-
+            </View>
+    
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
+                {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
+    
+                {showAddButton && (
+                    <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
+                        <Text style={styles.addCategoryButtonText}>+</Text>
+                    </TouchableOpacity>
+                )}
+            </ScrollView>
+    
             <CategoryDetailsModal
                 isVisible={detailsModalVisible}
                 onClose={() => setDetailsModalVisible(false)}
                 selectedCategory={selectedCategory}
                 outcomeData={outcomeData}
-                refreshData={() => getOutcomeData(currentProfileId, selectedCategory?.id ?? "null")}
+                refreshData={() => getOutcomeData(selectedCategory?.id ?? "null")}
                 currentProfileId={currentProfileId}
             />
-
+    
             <AddCategoryModal
                 isVisible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -113,11 +124,25 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                 currentProfileId={currentProfileId}
                 sortedCategories={sortedCategories}
             />
-        </ScrollView>       
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    rowContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    categoriesTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    viewMoreText: {
+        color: '#4B00B8',
+        textDecorationLine: 'underline',
+    },
     categoriesContainer: {
         flexWrap: 'nowrap',
         marginBottom: 16,
@@ -152,5 +177,15 @@ const styles = StyleSheet.create({
     addCategoryButtonText: {
         fontSize: 24,
         color: '#370185',
+    },
+    viewMoreButton: {
+        marginLeft: 16,
+        padding: 10,
+        backgroundColor: '#4B00B8',
+        borderRadius: 5,
+    },
+    viewMoreButtonText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
     },
 });
