@@ -40,7 +40,8 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
         setTotalDebtsFromUser(debtsFromUser.reduce((total, debt) => total + debt.amount, 0));
       }
       setTotalToPay(totalToPay);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error fetching debts:', error);
     }
   }, [profileEmail, currentProfileId]);
@@ -98,13 +99,14 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       setIsLoading(true);
       const name = await getProfileName(currentProfileId);
       setProfileName(name || '');
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error fetching profile name:', error);
-    } finally {
+    } 
+    finally {
       setIsLoading(false);
     }
   }, [currentProfileId]);
-
 
   useEffect(() => {
     fetchProfileName();
@@ -138,7 +140,8 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
     try {
       await updateProfileName(currentProfileId, title);
       setProfileName(title);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error updating profile name:', error);
       setTitle(profileName);
     }
@@ -172,7 +175,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
         <ExpenseItem label="Te deben:" value={totalDebtsToUser} />
         <ExpenseItem label="Tu deuda:" value={totalDebtsFromUser} />
       </View>
-
 
       <View style={styles.userDebtSection}>
         {debtsToUser.length > 0 && (

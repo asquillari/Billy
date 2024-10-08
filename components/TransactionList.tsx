@@ -18,7 +18,6 @@ interface TransactionListProps {
 
 export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true }) => {
   
-  // For deleting
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
   const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {

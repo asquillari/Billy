@@ -60,31 +60,30 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
         if (sharedUsers && sharedUsers.length > 0) {
           calculatedExpenses = await Promise.all(
             sharedUsers.map(async (user) => {
-             
-                const items = await getTotalToPayInDateRange(
-                  currentProfileId,
-                  parseDate(month, year, 1),
-                  parseDate(month, year, getLastDayOfMonth(year, month))
-                );
-                if (items) {
-                  return { label: user, amount: items[user], color: generateRandomColor() } as Expense;
-                }
-                return { label: user, amount: 0, color: generateRandomColor() } as Expense;
+              const items = await getTotalToPayInDateRange(
+                currentProfileId,
+                parseDate(month, year, 1),
+                parseDate(month, year, getLastDayOfMonth(year, month))
+              );
+              if (items) {
+                return { label: user, amount: items[user], color: generateRandomColor() } as Expense;
+              }
+              return { label: user, amount: 0, color: generateRandomColor() } as Expense;
             })
           );
           // Filter out any undefined results
           calculatedExpenses = calculatedExpenses.filter(expense => expense !== undefined);
-        } else {
+        } 
+        else {
           console.log('No shared users found');
         }
-      } catch (error) {
-  console.error('Error fetching shared users:', error);
-    }
+      } 
+      catch (error) {
+        console.error('Error fetching shared users:', error);
+      }
   }
-
   setExpenses(calculatedExpenses);
 }, [categoryData, currentProfileId, month, year]);
-
 
   const fetchProfile = useCallback(async () => {
     if (userEmail) {
