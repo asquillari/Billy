@@ -6,6 +6,7 @@ import { useCategoryData } from '@/hooks/useCategoryData';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/app/contexts/ProfileContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const CategoriesScreen = () => {
     const { currentProfileId } = useProfile();
@@ -18,21 +19,20 @@ const CategoriesScreen = () => {
         return [...otherCategories, othersCategory];
     }, [categoryData]);
 
-    const categoriesWithAddButton = [...sortedCategories, { id: 'add-category', name: '+ Agregar Categoría', spent: null, color: null }];
+    const categoriesWithAddButton = [...sortedCategories, { id: 'add-category', name: '+', spent: null, color: null }];
 
     const renderCategory = ({ item }: { item: CategoryData }) => {
         if (item.id === 'add-category') {
             return (
-                <TouchableOpacity style={styles.addCategory} onPress={() => {/* Handle add category action */}}>
-                    <LinearGradient colors={['#CECECE', '#CECECE']} style={styles.categoryGradient}>
-                        <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
-                    </LinearGradient>
+                <TouchableOpacity style={[styles.categoryItem, styles.addButton]} onPress={handleAddCategory}>
+                    <Ionicons name="add-circle-outline" size={40} color="#FFFFFF" />
+                    <Text style={styles.addButtonText}>Agregar Categoría</Text>
                 </TouchableOpacity>
             );
         }
         const gradientColors = item.color ? JSON.parse(item.color) : ['#CECECE', '#CECECE'];        
         return (
-            <TouchableOpacity style={styles.category} onPress={() => {/* Handle category press */}}>
+            <TouchableOpacity style={styles.categoryItem} onPress={() => {/* Handle category press */}}>
                 <LinearGradient colors={gradientColors} style={styles.categoryGradient}>
                     <ThemedText style={styles.categoryName}>{item.name}</ThemedText>
                     <ThemedText style={styles.categoryAmount}>${item.spent}</ThemedText>
@@ -69,7 +69,24 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     gradientContainer: {
-        flex: 1,
+        width: '100%', // Ensure it fills the width of the parent
+        height: '100%', // Ensure it fills the height of the parent
+        borderRadius: 12, // Optional: to match the border radius of the category item
+    },
+    categoryItem: {
+        borderRadius: 12,
+        marginBottom: 5,
+        width: '48%',
+        aspectRatio: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 1,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
     },
     category: {
         width: '48%',
@@ -78,25 +95,22 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         overflow: 'hidden',
     },
-    addCategory: {
-        width: '48%',
-        margin: 8,
-        borderRadius: 15,
-        overflow: 'hidden',
-        backgroundColor: '#4B00B8', // Background color for the add button
+    addButton: {
+        backgroundColor: '#4B00B8',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 80, // Set a height for the add button
     },
     columnWrapper: {
         justifyContent: 'space-between',
         paddingHorizontal: 10,
-        paddingTop: 10,    
+        paddingTop: 10,
     },
     categoryGradient: {
         flex: 1,
-        justifyContent: 'space-between',
-        padding: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 12,
+        padding: 10,
     },
     contentContainer: {
         flex: 1,
@@ -106,29 +120,18 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginHorizontal: '2.5%',
     },
-    addButton: {
-        backgroundColor: '#4B00B8',
-        borderRadius: 5,
-        padding: 10,
-        margin: 16,
-        alignItems: 'center',
-    },
     addButtonText: {
         color: '#FFFFFF',
+        fontSize: 20,
         fontWeight: 'bold',
-        fontSize: 18,
+        textAlign: 'center',
+        marginTop: 8,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 16,
         alignSelf: 'center',
         marginTop: 10,
-    },
-    categoryItem: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
     },
     categoryName: {
         fontWeight: 'bold',
