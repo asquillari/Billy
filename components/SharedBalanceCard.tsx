@@ -177,15 +177,15 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       </View>
 
       <View style={styles.userDebtSection}>
-        {debtsToUser.length > 0 && (
-          <DebtEntryComponent name1="Tú" name2={debtsToUser[0].debtor} amount={debtsToUser[0].amount} />
+        {debtsFromUser.length > 0 && (
+          <DebtEntryComponent name1="Tú" name2={debtsFromUser[0].debtor} amount={debtsFromUser[0].amount} />
         )}
 
-        {isExpanded && debtsToUser.slice(1).map((debt, index) => (
+        {isExpanded && debtsFromUser.slice(1).map((debt, index) => (
           <DebtEntryComponent key={debt.id || index} name1="Tú" name2={debt.debtor} amount={debt.amount} />
         ))}
 
-        {isExpanded && debtsFromUser.map((debt, index) => (
+        {isExpanded && debtsToUser.map((debt, index) => (
           <DebtEntryComponent key={debt.id || index} name1={debt.paid_by} name2={debt.debtor} amount={debt.amount} />
         ))}
       </View>
