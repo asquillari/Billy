@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { addProfile, addSharedUsers, addCategory } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface AddProfileModalProps {
   isVisible: boolean;
@@ -21,7 +22,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
     setIsSubmitting(true);
     if (profileName.trim()) {
       const newProfile = await addProfile(profileName, user?.email ?? "");
-      await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
+      await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']), "shape");
       if (sharedUsers.trim()) {
         const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];
         await addSharedUsers(newProfile?.id ?? "", emails);
