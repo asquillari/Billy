@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
-import { getTotalToPayInDateRange, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
+import { getTotalToPayInDateRange, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 
 interface Expense {

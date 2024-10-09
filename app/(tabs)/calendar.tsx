@@ -29,7 +29,7 @@ const customArrowRight = () => {
 };
 
 export default function CalendarScreen() {
-  const { user, currentProfileId, setCurrentProfileId, categoryData, refreshCategoryData, refreshIncomeData, refreshOutcomeData, refreshAllData } = useAppContext();
+  const { user, currentProfileId, setCurrentProfileId, refreshCategoryData, refreshIncomeData, refreshOutcomeData } = useAppContext();
 
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));

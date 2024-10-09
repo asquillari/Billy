@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AddTransactionModal from './modals/AddTransactionModal';
-import { useAppContext } from '@/hooks/useAppContext';
 
 const AddButton = () => {
-  const { currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
-
   const [modalVisible, setModalVisible] = useState(false);
 
   return (

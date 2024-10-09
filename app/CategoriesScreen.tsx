@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/hooks/useAppContext';
 
 const CategoriesScreen = () => {
-    const { categoryData, currentProfileId } = useAppContext();
+    const { categoryData } = useAppContext();
 
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
     const [modalVisible, setModalVisible] = useState(false);

@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAppContext } from '@/hooks/useAppContext';
 
 export const BalanceCard = () => {
-    const { incomeData, outcomeData, balance, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId } = useAppContext();
+    const { incomeData, outcomeData, balance } = useAppContext();
 
     const colorScheme = useColorScheme();
 
