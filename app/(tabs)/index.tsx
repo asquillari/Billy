@@ -94,7 +94,7 @@ export default function HomeScreen() {
           )}
           
           <View style={styles.sectionContainer}> 
-            <CategoryList showHeader={true}/>
+            <CategoryList showHeader={true} layout='row'/>
           </View>
 
           <View style={styles.sectionContainer}> 

@@ -208,7 +208,7 @@ export default function CalendarScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.categoryListContainer}>
-              <CategoryList showAddButton={false}/>
+              <CategoryList layout="row" showAddButton={false} showHeader={false}/>
             </View>
           </View>
           <CalendarAddModal

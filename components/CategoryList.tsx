@@ -11,6 +11,7 @@ import { useAppContext } from '@/hooks/useAppContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface CategoryListProps {
+    layout: 'row' | 'grid';
     showAddButton?: boolean;
     showHeader?: boolean;
 }
@@ -20,7 +21,7 @@ const parseGradient = (color: string): string[] => {
     catch { return ['#48ECE2', '#62D29C']; }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true, showHeader }) => {    
+export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButton = true, showHeader = true }) => {    
     const navigation = useNavigation();
 
     const { outcomeData, refreshOutcomeData, categoryData, refreshCategoryData } = useAppContext();
@@ -79,21 +80,39 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
     const renderCategory = useCallback((category: CategoryData, index: number) => {
         const gradientColors = getCategoryColor(category);
         return (
-            <TouchableOpacity key={category.id || index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)}>
-                <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}}>
-                    <Icon name={category.icon || 'cash-multiple'} size={60} color="rgba(255,255,255,0.2)" style={styles.backgroundIcon} />
-                    <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
-                    <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
+            <TouchableOpacity 
+                key={category.id || index} 
+                onPress={() => handleCategoryPress(category)} 
+                onLongPress={() => handleLongPress(category)}
+                style={layout === 'grid' ? styles.gridItem : styles.rowItem}
+            >
+                <LinearGradient 
+                    colors={gradientColors} 
+                    style={layout === 'grid' ? styles.gridCategory : styles.rowCategory} 
+                    start={{x: 0, y: 0}} 
+                    end={{x: 0, y: 1}}
+                >
+                    <Icon 
+                        name={category.icon || 'cash-multiple'} 
+                        size={layout === 'grid' ? 60 : 40} 
+                        color="rgba(255,255,255,0.2)" 
+                        style={styles.backgroundIcon} 
+                    />
+                    <ThemedText style={layout === 'grid' ? styles.gridCategoryName : styles.rowCategoryName}>
+                        {category.name}
+                    </ThemedText>
+                    <ThemedText style={layout === 'grid' ? styles.gridCategoryAmount : styles.rowCategoryAmount}>
+                        ${category.spent}
+                    </ThemedText>
                 </LinearGradient>
             </TouchableOpacity>
         );
-    }, [getCategoryColor, handleCategoryPress, handleLongPress]);
-
+    }, [getCategoryColor, handleCategoryPress, handleLongPress, layout]);
 
     return (
         <View>
             {showHeader && (
-                <View style={styles.rowContainer}>
+                <View style={styles.headerContainer}>
                     <Text style={styles.categoriesTitle}>Categorías</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('CategoriesScreen' as never)}>
                         <Text style={styles.viewMoreText}>Ver más</Text>
@@ -101,11 +120,22 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
                 </View>
             )}
     
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
+            <ScrollView 
+                horizontal={layout === 'row'}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={layout === 'grid' ? styles.gridContainer : styles.rowContainer}
+            >
                 {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
     
                 {showAddButton && (
-                    <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
+                    <TouchableOpacity 
+                        style={[
+                            styles.addCategoryButton, 
+                            layout === 'grid' ? styles.gridAddButton : styles.rowAddButton
+                        ]} 
+                        onPress={() => setModalVisible(true)}
+                    >
                         <Text style={styles.addCategoryButtonText}>+</Text>
                     </TouchableOpacity>
                 )}
@@ -133,8 +163,65 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
 const styles = StyleSheet.create({
     rowContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
+        marginBottom: 16,
+    },
+    gridContainer: {
+        marginTop: 10,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    rowItem: {
+        marginRight: 16,
+    },
+    gridItem: {
+        width: '48%',
+        marginBottom: 16,
+    },
+    rowCategory: {
+        width: 150,
+        height: 80,
+        padding: 15,
+        borderRadius: 15,
+        justifyContent: 'space-between',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    gridCategory: {
+        aspectRatio: 1,
+        padding: 15,
+        borderRadius: 15,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    rowCategoryName: {
+        color: '#3B3B3B',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    gridCategoryName: {
+        color: '#3B3B3B',
+        fontWeight: 'bold',
+        fontSize: 24,
+        marginTop: 5,
+    },
+    rowCategoryAmount: {
+        color: '#3B3B3B',
+        fontSize: 13,
+    },
+    gridCategoryAmount: {
+        color: '#3B3B3B',
+        fontSize: 20,
+        marginTop: 5,
+    },
+    rowAddButton: {
+        width: 40,
+        height: 80,
+    },
+    gridAddButton: {
+        width: '48%',
+        aspectRatio: 1,
     },
     categoriesTitle: {
         fontSize: 18,
@@ -146,34 +233,10 @@ const styles = StyleSheet.create({
         textDecorationLine: 'underline',
         marginBottom: 5,
     },
-    categoriesContainer: {
-        flexWrap: 'nowrap',
-        marginBottom: 16,
-    },
-    category: {
-        width: 150,
-        height: 80,
-        padding: 15,
-        borderRadius: 15,
-        marginRight: 16,
-        justifyContent: 'space-between',
-        position: 'relative',
-        overflow: 'hidden',
-    },
     backgroundIcon: {
         position: 'absolute',
         right: -10,
         bottom: -10,
-    },
-    addCategoryText: {
-        fontSize: 24,
-    },
-    categoryName: {
-        color: '#3B3B3B',
-        fontWeight: 'bold',
-    },
-    categoryAmount: {
-        color: '#3B3B3B',
     },
     addCategoryButton: {
         width: 40,
@@ -185,5 +248,12 @@ const styles = StyleSheet.create({
     addCategoryButtonText: {
         fontSize: 24,
         color: '#370185',
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        marginBottom: 10,
     },
 });
