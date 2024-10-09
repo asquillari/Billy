@@ -42,7 +42,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       refreshBalanceData(),
       refreshProfileData()
     ]);
-  }, [currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData]);
+  }, [currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData, refreshProfileData]);
 
   useEffect(() => {
     refreshAllData();
