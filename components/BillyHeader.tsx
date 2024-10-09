@@ -1,22 +1,24 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, Alert, View, Image, TouchableOpacity, Text } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import { logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface BillyHeaderProps {
   title?: string;
   subtitle?: string;
+  icon?: string;
 }
 
-export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle }) => {
+export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
   const navigation = useNavigation();
   
-  const handleLogout = useCallback(async () => {
+  const handleLogout = async () => {
     const result = await logOut();
     if (result.error) Alert.alert('Logout Error', result.error);
     navigation.navigate('start' as never);
-  }, [navigation]);
+  };
 
   return (
     <View style={styles.headerContainer}>
@@ -27,12 +29,15 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
         </TouchableOpacity>
       </View>
       
-      {(title || subtitle) && (
+      <View style={styles.textIconContainer}>
         <View style={styles.tituloContainer}>
           {title && <Text style={styles.tituloTexto}>{title}</Text>}
           {subtitle && <Text style={styles.subtituloTexto}>{subtitle}</Text>}
         </View>
-      )}
+        {icon && (
+          <Icon name={icon} size={40} color="#FFFFFF" style={styles.icon} />
+        )}
+      </View>
     </View>
   );
 });
@@ -89,6 +94,14 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingTop: STATUSBAR_HEIGHT,
+  },
+  icon: {
+    marginRight: 15,
+  },
+  textIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
 

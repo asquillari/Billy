@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import { OutcomeList } from '@/components/OutcomeList';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RoutePropType } from '@/types/navigation';
 import { useRoute } from '@react-navigation/native';
 
@@ -18,7 +17,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
     return (
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-                <BillyHeader title={category.name} subtitle={`Gastos de ${category.name}`}/>
+                <BillyHeader title={category.name} icon={category.icon}/>
                 <View style={styles.contentContainer}>
                     <OutcomeList category={category.id} showDateSeparators={true}/>
                 </View>
