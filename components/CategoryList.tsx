@@ -14,6 +14,7 @@ interface CategoryListProps {
     refreshAllData: () => void;
     currentProfileId: string;
     showAddButton?: boolean;
+    showHeader?: boolean;
 }
 
 const parseGradient = (color: string): string[] => {
@@ -21,7 +22,7 @@ const parseGradient = (color: string): string[] => {
     catch { return ['#48ECE2', '#62D29C']; }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
+export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true, showHeader }) => {    
     const navigation = useNavigation();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -88,12 +89,14 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
 
     return (
         <View>
-            <View style={styles.rowContainer}>
-                <Text style={styles.categoriesTitle}>Categorías</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('CategoriesScreen' as never)}>
-                    <Text style={styles.viewMoreText}>Ver más</Text>
-                </TouchableOpacity>
-            </View>
+            {showHeader && (
+                <View style={styles.rowContainer}>
+                    <Text style={styles.categoriesTitle}>Categorías</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('CategoriesScreen' as never)}>
+                        <Text style={styles.viewMoreText}>Ver más</Text>
+                    </TouchableOpacity>
+                    </View>
+            )}
     
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
                 {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}

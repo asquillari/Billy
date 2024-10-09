@@ -82,7 +82,7 @@ export default function HomeScreen() {
           )}
           
           <View style={styles.sectionContainer}> 
-            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
+            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""} showHeader={true}/>
           </View>
 
           <View style={styles.sectionContainer}> 
