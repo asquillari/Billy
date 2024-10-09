@@ -15,9 +15,10 @@ interface TransactionListProps {
   refreshCategoryData?: () => void;
   currentProfileId: string;
   scrollEnabled?: boolean;
+  showHeader?: boolean;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true }) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true, showHeader}) => {
   const navigation = useNavigation();
   
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
@@ -77,12 +78,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
 
   return (
     <View>
-      <View style={styles.rowContainer}>
-        <Text style={styles.transactionsTitle}>Actividad reciente</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('TransactionScreen' as never)}>
-          <Text style={styles.viewMoreText}>Ver más</Text>
-        </TouchableOpacity>
-      </View>
+      {showHeader && (
+        <View style={styles.rowContainer}>
+          <Text style={styles.transactionsTitle}>Actividad reciente</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('TransactionsScreen' as never)}>
+            <Text style={styles.viewMoreText}>Ver más</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
     </View>
   );

@@ -86,7 +86,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.sectionContainer}> 
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
+            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false} showHeader={true}/>
           </View>
 
           </ScrollView>

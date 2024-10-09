@@ -19,6 +19,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }}/>
               <Stack.Screen name="(auth)" options={{ headerShown: false }}/>
               <Stack.Screen name="CategoriesScreen" options={{ headerShown: false }}/>
+              <Stack.Screen name="TransactionsScreen" options={{ headerShown: false }}/>
             </Stack>
           </ThemeProvider>
         </TransactionProvider>
