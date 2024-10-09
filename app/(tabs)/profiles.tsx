@@ -9,16 +9,10 @@ import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/nativ
 import { useAppContext } from '@/hooks/useAppContext';
 
 export default function Profiles() {
-    const { user, currentProfileId, setCurrentProfileId, refreshBalanceData } = useAppContext();
-    const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
+    const { user, setCurrentProfileId, refreshBalanceData, profileData, refreshProfileData } = useAppContext();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const route = useRoute();
     const navigation = useNavigation();
-    
-    const getProfileData = useCallback(async () => {
-        const data = await fetchProfiles(user?.email || "");
-        setProfileData(data);
-    }, [user?.email]);
 
     const processInvitationLink = useCallback(async () => {
         const params = route.params as { invitationId?: string } | undefined;
@@ -26,7 +20,7 @@ export default function Profiles() {
             try {
                 const profileId = await processInvitation(params.invitationId, user?.email || "");
                 if (profileId) {
-                    await getProfileData();
+                    await refreshProfileData();
                     setCurrentProfileId(profileId);
                     Alert.alert("Perfil añadido", "Se ha añadido el perfil compartido a tu lista de perfiles.");
                     // Limpiar los parámetros de la ruta después de procesar la invitación
@@ -38,13 +32,11 @@ export default function Profiles() {
                 Alert.alert("Error", "No se pudo procesar la invitación.");
             }
         }
-    }, [route.params, user?.email, getProfileData, setCurrentProfileId, navigation]);
+    }, [route.params, user?.email, refreshProfileData, setCurrentProfileId, navigation]);
 
     const clearInvitationParams = useCallback(() => {
         const invitationId = (route.params as { invitationId?: string })?.invitationId;
-        if (invitationId) {
-            navigation.setParams({ invitationId: undefined } as any);
-        }
+        if (invitationId) navigation.setParams({ invitationId: undefined } as any);
     }, [navigation]);
 
     useEffect(() => {
@@ -55,8 +47,8 @@ export default function Profiles() {
     useFocusEffect(
         useCallback(() => {
             refreshBalanceData();
-            getProfileData();
-        }, [refreshBalanceData, getProfileData])
+            refreshProfileData();
+        }, [refreshBalanceData, refreshProfileData])
     );
 
     const handleAddProfile = useCallback(() => {
@@ -68,13 +60,13 @@ export default function Profiles() {
     }, []);
 
     const handleProfileAdded = useCallback(() => {
-        getProfileData();
+        refreshProfileData();
         handleCloseModal();
-    }, [getProfileData, handleCloseModal]);
+    }, [refreshProfileData, handleCloseModal]);
 
     const memoizedProfileList = useMemo(() => (
         <ProfileList onAddProfile={handleAddProfile}/>
-    ), [profileData, getProfileData, handleAddProfile]);
+    ), [profileData, refreshProfileData, handleAddProfile]);
 
     return(
         <View style={styles.container}>

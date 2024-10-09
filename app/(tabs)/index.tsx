@@ -4,7 +4,7 @@ import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
-import { fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
+import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile, fetchProfiles } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,12 +14,7 @@ import { useAppContext } from '@/hooks/useAppContext';
 export default function HomeScreen() {
   const { 
     user, 
-    currentProfileId, 
     setCurrentProfileId, 
-    incomeData, 
-    outcomeData, 
-    balance, 
-    refreshBalanceData, 
     refreshAllData 
   } = useAppContext();
 
@@ -28,19 +23,30 @@ export default function HomeScreen() {
 
   const fetchProfile = useCallback(async () => {
     if (user?.email) {
-      const profileData = await fetchCurrentProfile(user.email);
-      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
-        setCurrentProfileId(profileData);
-        const isShared = await isProfileShared(profileData);
-        setShared(isShared);
-        if (isShared) {
-          const users = await getSharedUsers(profileData);
-          setSharedUsers(users);
+      let currentProfile = await fetchCurrentProfile(user.email);
+      // Si, por algún error, no hay perfil actual, se selecciona el primero de la lista
+      if (!currentProfile || typeof currentProfile !== 'string' || currentProfile.trim() === '') {
+        const profiles = await fetchProfiles(user.email);
+        if (profiles && profiles.length > 0) {
+          currentProfile = profiles[0].id;
+          await changeCurrentProfile(user.email, currentProfile);
+        } 
+        else {
+          console.error('No profiles found for the user');
+          setShared(false);
+          setSharedUsers(null);
+          return;
         }
+      }
+  
+      setCurrentProfileId(currentProfile);
+      const isShared = await isProfileShared(currentProfile);
+      setShared(isShared);
+      if (isShared) {
+        const users = await getSharedUsers(currentProfile);
+        setSharedUsers(users);
       } 
       else {
-        console.error('Invalid or empty profile ID received');
-        setShared(false);
         setSharedUsers(null);
       }
     }
