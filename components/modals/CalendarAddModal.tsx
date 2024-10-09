@@ -5,19 +5,19 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addIncome, addOutcome, fetchCategories, CategoryData } from '../../api/api';
 import { styles } from '../estilos/calendarStyles';
+import { useAppContext } from '@/hooks/useAppContext';
+
 
 interface CobroPagoPopUpProps {
   isVisible: boolean;
   onClose: () => void;
   initialType: 'Income' | 'Outcome';
-  refreshIncomeData: () => void;
-  refreshOutcomeData: () => void;
-  refreshCategoryData: () => void;
   refreshTransactions: () => void;
-  currentProfileId: string;
 }
 
-const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshTransactions, currentProfileId }: CobroPagoPopUpProps) => {
+const CalendarAddModal = ({ isVisible, onClose, initialType, refreshTransactions }: CobroPagoPopUpProps) => {
+  const { refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId } = useAppContext();
+
   const [type, setType] = useState<'Income' | 'Outcome'>(initialType);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
@@ -35,7 +35,7 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isVisible) fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
+    if (isVisible) fetchCategories(currentProfileId || "").then(categories => setCategories(categories || []));
   }, [isVisible, currentProfileId]);
 
   useEffect(() => {
@@ -85,12 +85,12 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshIncomeData, 
     }
 
     if (type === 'Income') {
-      await addIncome(currentProfileId, amountNumber, description);
+      await addIncome(currentProfileId || "", amountNumber, description);
       refreshIncomeData();
     } 
     
     else {
-      await addOutcome(currentProfileId, selectedCategory, amountNumber, description);
+      await addOutcome(currentProfileId || "", selectedCategory, amountNumber, description);
       refreshOutcomeData();
     }
 

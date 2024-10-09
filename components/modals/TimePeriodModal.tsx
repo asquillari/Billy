@@ -3,17 +3,17 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { TransactionList } from '../TransactionList';
 import { getOutcomesFromDateRange, getIncomesFromDateRange, IncomeData, OutcomeData } from '@/api/api';
 import moment from 'moment';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface TimePeriodModalProps {
     isVisible: boolean;
     onClose: () => void;
     startDate: Date;
     endDate: Date;
-    refreshData: () => void;
-    currentProfileId: string;
 }
 
-const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, startDate, endDate, refreshData, currentProfileId }) => {
+const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, startDate, endDate }) => {
+    const { currentProfileId } = useAppContext();
     const [transactions, setTransactions] = useState<{ incomes: IncomeData[], outcomes: OutcomeData[] }>({ incomes: [], outcomes: [] });
 
     const dateRange = useMemo(() => ({
@@ -23,8 +23,8 @@ const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, s
 
     const fetchTransactions = useCallback(async () => {
         const [incomes, outcomes] = await Promise.all([
-            getIncomesFromDateRange(currentProfileId, startDate, endDate),
-            getOutcomesFromDateRange(currentProfileId, startDate, endDate)
+            getIncomesFromDateRange(currentProfileId??"", startDate, endDate),
+            getOutcomesFromDateRange(currentProfileId??"", startDate, endDate)
         ]);
         setTransactions({ incomes: incomes as IncomeData[], outcomes: outcomes as OutcomeData[] });
     }, [currentProfileId, startDate, endDate]);
@@ -49,13 +49,7 @@ const TimePeriodModal: React.FC<TimePeriodModalProps> = ({ isVisible, onClose, s
                     <Text style={styles.detailsModalTitle}>
                         {formattedDateRange.start} - {formattedDateRange.end}
                     </Text>
-                    <TransactionList 
-                        incomeData={transactions.incomes} 
-                        outcomeData={transactions.outcomes} 
-                        refreshIncomeData={fetchTransactions}
-                        refreshOutcomeData={fetchTransactions}
-                        currentProfileId={currentProfileId}
-                    />
+                    <TransactionList timeRange='custom' customStartDate={startDate} customEndDate={endDate}/>
                     <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>

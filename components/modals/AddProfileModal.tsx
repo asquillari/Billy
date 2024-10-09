@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { addProfile, addSharedUsers, addCategory } from '@/api/api';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface AddProfileModalProps {
   isVisible: boolean;
   onClose: () => void;
   onProfileAdded: () => void;
-  email: string;
 }
 
-const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded, email }) => {
+const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded }) => {
+  const { currentProfileId } = useAppContext();
+
   const [profileName, setProfileName] = useState('');
   const [sharedUsers, setSharedUsers] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,7 +20,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (profileName.trim()) {
-      const newProfile = await addProfile(profileName, email);
+      const newProfile = await addProfile(profileName, currentProfileId??"");
       await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
       if (sharedUsers.trim()) {
         const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];

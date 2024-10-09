@@ -3,18 +3,18 @@ import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useUser } from '../contexts/UserContext';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function Start() {
   const navigation = useNavigation();
-  const { setUserEmail } = useUser();
+  const { setUser } = useAppContext();
 
   // Do this in splash screen, eventually
   useEffect(() => {
     const checkSession = async () => {
       const session = await AsyncStorage.getItem('userSession');
       if (session) { 
-        setUserEmail(JSON.parse(session).user.email);
+        setUser(JSON.parse(session).user.email);
         navigation.navigate('(tabs)' as never);
       }
     };

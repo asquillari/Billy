@@ -3,8 +3,7 @@ import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { useFocusEffect } from '@react-navigation/native';
 import { getTotalToPayInDateRange, fetchCategories, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
-import { useUser } from '@/app/contexts/UserContext';
-import { useProfile } from '@/app/contexts/ProfileContext';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface Expense {
   label: string;
@@ -22,16 +21,8 @@ const getLastDayOfMonth = (year: number, month: number): number => {
 
 //if mode is false, then it's category. TODO: optimize this. Should be a better way.
 export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
-  const [categoryData, setCategoryData] = useState<CategoryData[] | null>(null);
+  const { user, currentProfileId, setCurrentProfileId, categoryData, refreshCategoryData } = useAppContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-
-  const getCategories = useCallback(async () => {
-    if (!currentProfileId) return;
-    const categories = await fetchCategories(currentProfileId);
-    setCategoryData(categories);
-  }, [currentProfileId]);
 
   const calculateExpenses = useCallback(async () => {
     if (!categoryData || !currentProfileId) return;
@@ -39,19 +30,19 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     let calculatedExpenses: Expense[] = [];
 
     if (mode === false) { 
-    const idColorMap = new Map<string, string>();
-    const colorsRegistered = new Set<string>();
+      const idColorMap = new Map<string, string>();
+      const colorsRegistered = new Set<string>();
 
-    calculatedExpenses = await Promise.all(
-      categoryData.map(async (category) => {
-        let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
-        idColorMap.set(category.id || "", color);
-        const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
-        return { label: category.name, amount: total, color } as Expense;
-      })
-    );
-    
-    calculatedExpenses.sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
+      calculatedExpenses = await Promise.all(
+        categoryData.map(async (category) => {
+          let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
+          idColorMap.set(category.id || "", color);
+          const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
+          return { label: category.name, amount: total, color } as Expense;
+        })
+      );
+      
+      calculatedExpenses.sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
     }
     
     else {
@@ -81,24 +72,24 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
       catch (error) {
         console.error('Error fetching shared users:', error);
       }
-  }
-  setExpenses(calculatedExpenses);
-}, [categoryData, currentProfileId, month, year]);
+    }
+    setExpenses(calculatedExpenses);
+  }, [categoryData, currentProfileId, month, year]);
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
+    if (user?.email) {
+      const profileData = await fetchCurrentProfile(user.email);
       if (profileData && typeof profileData === 'string') {
         setCurrentProfileId(profileData);
       }
     }
-  }, [userEmail, setCurrentProfileId]);
+  }, [user?.email, setCurrentProfileId]);
 
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
-      getCategories();
-    }, [fetchProfile, fetchCategories, currentProfileId])
+      refreshCategoryData();
+    }, [fetchProfile, refreshCategoryData, currentProfileId])
   );
 
   useEffect(() => {

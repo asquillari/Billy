@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName } from '@/api/api';
-
-interface BalanceCardProps {
-  currentProfileId: string;
-  outcomes: number;
-  refreshData: () => void;
-  profileEmail: string;
-}
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface DebtEntryProps {
   name1: string;
@@ -79,18 +73,25 @@ const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value 
 );
 
 {/* Shared balance card component */}
-export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
+export const SharedBalanceCard  = () => {
+  const { outcomeData, currentProfileId, user, refreshBalanceData } = useAppContext();
+
   const [profileName, setProfileName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
-  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
+  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(user?.email ?? "", currentProfileId??"");
+
+  const { totalOutcome } = useMemo(() => {
+    const outcome = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+    return { totalOutcome: outcome };
+}, [outcomeData]);
 
   const fetchProfileName = useCallback(async () => {
     try {
       setIsLoading(true);
-      const name = await getProfileName(currentProfileId);
+      const name = await getProfileName(currentProfileId??"");
       setProfileName(name || '');
     } 
     catch (error) {
@@ -112,9 +113,9 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   }, [profileName, isLoading]);
 
   useEffect(() => {
-    refreshData();
+    refreshBalanceData();
     refreshDebts();
-  }, [refreshData, refreshDebts]);
+  }, [refreshBalanceData, refreshDebts]);
 
   const handleEditPress = () => {
     setIsEditing(true);
@@ -131,7 +132,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   const handleTitleSubmit = async () => {
     setIsEditing(false);
     try {
-      await updateProfileName(currentProfileId, title);
+      await updateProfileName(currentProfileId??"", title);
       setProfileName(title);
     } 
     catch (error) {
@@ -154,7 +155,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       </View>
 
       <View style={styles.expensesContainer}>
-        <ExpenseItem label="Gastos totales:" value={outcomes} />
+        <ExpenseItem label="Gastos totales:" value={totalOutcome} />
         <ExpenseItem label="Mis Gastos:" value={totalToPay} />
       </View>
 

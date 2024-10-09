@@ -8,11 +8,9 @@ import { CategoryList } from '../../components/CategoryList';
 import CalendarAddModal from '../../components/modals/CalendarAddModal';
 import { getOutcomesFromDateRange, fetchCurrentProfile, getIncomesFromDateRange } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
-import { useProfile } from '../contexts/ProfileContext';
-import useProfileData from '@/hooks/useProfileData';
 import BillyHeader from "@/components/BillyHeader";
-import { useUser } from '@/app/contexts/UserContext';
 import TimePeriodModal from "@/components/modals/TimePeriodModal";
+import { useAppContext } from '@/hooks/useAppContext';
 
 const customArrowLeft = () => {
   return (
@@ -31,8 +29,7 @@ const customArrowRight = () => {
 };
 
 export default function CalendarScreen() {
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
+  const { user, currentProfileId, setCurrentProfileId, categoryData, refreshCategoryData, refreshIncomeData, refreshOutcomeData, refreshAllData } = useAppContext();
 
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -47,21 +44,19 @@ export default function CalendarScreen() {
   const [selectionStart, setSelectionStart] = useState<string | null>(null);
   const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const { categoryData, getIncomeData, getOutcomeData, getCategoryData, refreshAllData } = useProfileData(currentProfileId || "");
-
   const years = useMemo(() => {
     const currentYear = moment().year();
     return Array.from({ length: 24 }, (_, i) => currentYear - 20 + i);
   }, []);
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
+    if (user?.email) {
+      const profileData = await fetchCurrentProfile(user.email);
       if (profileData && typeof profileData === 'string') {
         setCurrentProfileId(profileData);
       }
     }
-  }, [userEmail, setCurrentProfileId]);
+  }, [user?.email, setCurrentProfileId]);
 
   const onYearPress = () => {
     setViewMode('year');
@@ -169,12 +164,12 @@ export default function CalendarScreen() {
       const refreshData = async () => {
         await fetchProfile();
         if (currentProfileId) {
-          await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+          await Promise.all([ refreshCategoryData(), refreshIncomeData(), refreshOutcomeData() ]);
           processTransactions();
         }
       };
       refreshData();
-    }, [currentProfileId, getCategoryData])
+    }, [currentProfileId, refreshCategoryData, refreshIncomeData, refreshOutcomeData])
   );
   
   const memoizedCalendar = useMemo(() => (
@@ -213,18 +208,14 @@ export default function CalendarScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.categoryListContainer}>
-              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId || ""} showAddButton={false}/>
+              <CategoryList showAddButton={false}/>
             </View>
           </View>
           <CalendarAddModal
             isVisible={modalVisible}
             onClose={() => setModalVisible(false)}
             initialType={modalType}
-            refreshIncomeData={getIncomeData}
-            refreshOutcomeData={getOutcomeData}
-            refreshCategoryData={getCategoryData}
             refreshTransactions={processTransactions}
-            currentProfileId={currentProfileId || ""}
           />
           {selectedRange && (
             <TimePeriodModal
@@ -232,9 +223,7 @@ export default function CalendarScreen() {
               onClose={() => setIsTimePeriodModalVisible(false)}
               startDate={new Date(selectedRange.start)}
               endDate={new Date(selectedRange.end)}
-              refreshData={refreshAllData}
-              currentProfileId={currentProfileId || ""}
-              />
+            />
           )}
       </LinearGradient>
     </View>

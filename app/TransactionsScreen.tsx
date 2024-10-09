@@ -3,29 +3,34 @@ import { View, StyleSheet } from 'react-native';
 import { TransactionList } from '@/components/TransactionList';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useProfile } from './contexts/ProfileContext';
-import useProfileData from '@/hooks/useProfileData';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchCurrentProfile } from '@/api/api';
-import { useUser } from './contexts/UserContext';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function TransactionsScreen() {
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
-  const { incomeData, outcomeData, getIncomeData, getOutcomeData, getCategoryData } = useProfileData(currentProfileId || "");
+    const { 
+        user, 
+        currentProfileId, 
+        setCurrentProfileId, 
+        incomeData, 
+        outcomeData, 
+        refreshIncomeData, 
+        refreshOutcomeData, 
+        refreshCategoryData 
+      } = useAppContext();
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
+    if (user?.email) {
+      const profileData = await fetchCurrentProfile(user.email);
       if (profileData && typeof profileData === 'string' && profileData.trim() !== '') setCurrentProfileId(profileData);
       else console.error('Invalid or empty profile ID received');
     }
-  }, [userEmail, setCurrentProfileId]);
+  }, [user?.email, setCurrentProfileId]);
 
   const fetchData = useCallback(async () => {
     await fetchProfile();
-    await Promise.all([getCategoryData(), getIncomeData(), getOutcomeData()]);
-  }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData]);
+    await Promise.all([refreshCategoryData(), refreshIncomeData(), refreshOutcomeData()]);
+  }, [fetchProfile, refreshCategoryData, refreshIncomeData, refreshOutcomeData]);
 
   useFocusEffect(useCallback(() => {
     fetchData();
@@ -33,17 +38,11 @@ export default function TransactionsScreen() {
 
   const memoizedTransactionList = useMemo(() => (
     <TransactionList
-      incomeData={incomeData}
-      outcomeData={outcomeData}
-      refreshIncomeData={getIncomeData}
-      refreshOutcomeData={getOutcomeData}
-      refreshCategoryData={getCategoryData}
-      currentProfileId={currentProfileId || ""}
       scrollEnabled={true}
       showHeader={false}
       timeRange='all'
     />
-  ), [incomeData, outcomeData, getIncomeData, getOutcomeData, getCategoryData, currentProfileId]);
+  ), [incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId]);
 
   return (
     <View style={styles.container}>

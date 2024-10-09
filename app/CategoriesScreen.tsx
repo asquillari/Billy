@@ -2,15 +2,13 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { CategoryData, removeCategory, OutcomeData, fetchOutcomesByCategory } from '@/api/api';
-import { useCategoryData } from '@/hooks/useCategoryData'; 
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useProfile } from '@/app/contexts/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppContext } from '@/hooks/useAppContext';
 
 const CategoriesScreen = () => {
-    const { currentProfileId } = useProfile();
-    const { categoryData } = useCategoryData(currentProfileId || "");
+    const { categoryData, currentProfileId } = useAppContext();
 
     const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
     const [modalVisible, setModalVisible] = useState(false);

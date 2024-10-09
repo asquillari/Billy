@@ -1,29 +1,34 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
-import useProfileData from '@/hooks/useProfileData';
 import { fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUser } from '../contexts/UserContext';
-import { useProfile } from '../contexts/ProfileContext';
 import { SharedBalanceCard } from '@/components/SharedBalanceCard';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function HomeScreen() {
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
-  const { incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData } = useProfileData(currentProfileId || "");
+  const { 
+    user, 
+    currentProfileId, 
+    setCurrentProfileId, 
+    incomeData, 
+    outcomeData, 
+    balance, 
+    refreshBalanceData, 
+    refreshAllData 
+  } = useAppContext();
+
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
+    if (user?.email) {
+      const profileData = await fetchCurrentProfile(user.email);
       if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
         setCurrentProfileId(profileData);
         const isShared = await isProfileShared(profileData);
@@ -39,23 +44,21 @@ export default function HomeScreen() {
         setSharedUsers(null);
       }
     }
-  }, [userEmail, setCurrentProfileId]);
+  }, [user?.email, setCurrentProfileId]);
   
   useFocusEffect(
     useCallback(() => {
+      let isMounted = true;
       const fetchData = async () => {
-        await fetchProfile();
-        await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+        if (isMounted) {
+          await fetchProfile();
+          if (isMounted) await refreshAllData();
+        }
       };
       fetchData();
-    }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData])
+      return () => { isMounted = false; };
+    }, [fetchProfile, refreshAllData])
   );
-  
-  const { totalIncome, totalExpenses } = useMemo(() => {
-    const income = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
-    const expenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
-    return { totalIncome: income, totalExpenses: expenses };
-  }, [incomeData, outcomeData]);
 
   return (
     <View style={styles.container}>
@@ -65,28 +68,28 @@ export default function HomeScreen() {
           <ScrollView style={styles.scrollView}>
             
           {!shared && (
-            <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-          )}  
+            <BalanceCard/>
+          )}
 
           {shared && (
             <View style={styles.sharedBalanceContainer}>
-              <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
+              <SharedBalanceCard/> 
               <View style={styles.addButtonContainer}>
-                <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+                <AddButton/>
               </View>
             </View>
           )}  
 
           {!shared && (
-            <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
+            <AddButton/>
           )}
           
           <View style={styles.sectionContainer}> 
-            <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""} showHeader={true}/>
+            <CategoryList showHeader={true}/>
           </View>
 
           <View style={styles.sectionContainer}> 
-            <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false} showHeader={true} timeRange='week'/>
+            <TransactionList scrollEnabled={false} showHeader={true} timeRange='month'/>
           </View>
 
           </ScrollView>

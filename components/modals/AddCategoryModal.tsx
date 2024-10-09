@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { addCategory } from '@/api/api';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface AddCategoryModalProps {
   isVisible: boolean;
   onClose: () => void;
   onCategoryAdded: () => void;
-  currentProfileId: string;
   sortedCategories: any[];
 }
 
@@ -33,7 +33,9 @@ const gradients = [
   ['#72EDF2', '#5151E5']
 ];
 
-const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, currentProfileId, sortedCategories }) => {
+const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, sortedCategories }) => {
+  const { currentProfileId } = useAppContext();
+
   const [name, setName] = useState('');
   const [limit, setLimit] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -59,7 +61,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
   const handleAddCategory = useCallback(async () => {
     if (!validateCategoryName() || isSubmitting) return;
     setIsSubmitting(true);
-    await addCategory(currentProfileId, name, JSON.stringify(selectedGradient), parseFloat(limit));
+    await addCategory(currentProfileId??"", name, JSON.stringify(selectedGradient), parseFloat(limit));
     setName('');
     setLimit('');
     setSelectedGradient(gradients[0]);

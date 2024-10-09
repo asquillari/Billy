@@ -4,10 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
 import { Dimensions } from "react-native";
-import { useProfile } from "../contexts/ProfileContext";
-import { useUser } from "../contexts/UserContext";
 import { fetchCurrentProfile, isProfileShared } from "@/api/api";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAppContext } from "@/hooks/useAppContext";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -34,13 +33,12 @@ const App = () => {
 
   {/* Aca tengo que checkear si el usuario tiene un perfil compartido, pero estaria repitiendo codigo
   con statsComponent, ver si lo puedo optimizar. */}
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
+  const { user, currentProfileId, setCurrentProfileId } = useAppContext();
   const [shared, setShared] = useState<boolean | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
+    if (user?.email) {
+      const profileData = await fetchCurrentProfile(user.email);
       if (profileData && typeof profileData === 'string') {
         setCurrentProfileId(profileData);
       }
@@ -48,7 +46,7 @@ const App = () => {
         isProfileShared(currentProfileId).then(setShared);
       }
     }
-  }, [userEmail, setCurrentProfileId, currentProfileId]);
+  }, [user?.email, setCurrentProfileId, currentProfileId]);
 
   useFocusEffect(
     useCallback(() => {

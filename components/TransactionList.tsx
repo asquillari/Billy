@@ -7,22 +7,19 @@ import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
 import 'moment/locale/es';
 import { useNavigation } from '@react-navigation/native';
+import { useAppContext } from '@/hooks/useAppContext';
 
 moment.locale('es');
 
 interface TransactionListProps {
-  incomeData: IncomeData[] | null;
-  outcomeData: OutcomeData[] | null;
-  refreshIncomeData: () => void;
-  refreshOutcomeData: () => void;
-  refreshCategoryData?: () => void;
-  currentProfileId: string;
   scrollEnabled?: boolean;
   showHeader?: boolean;
-  timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
+  timeRange: 'all' | 'day' | 'week' | 'month' | 'year' | 'custom';
+  customStartDate?: Date;
+  customEndDate?: Date;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true, showHeader, timeRange}) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled = true, showHeader, timeRange, customStartDate, customEndDate}) => {
   const navigation = useNavigation();
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
@@ -30,6 +27,15 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
+
+  const { 
+    incomeData, 
+    outcomeData, 
+    currentProfileId, 
+    refreshIncomeData, 
+    refreshOutcomeData, 
+    refreshCategoryData 
+  } = useAppContext();
   
   // Agrupo los ingresos y egresos
   const groupedTransactions = useMemo(() => {
@@ -54,6 +60,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
           return transactionDate.isSameOrAfter(now.clone().startOf('month'));
         case 'year':
           return transactionDate.isSameOrAfter(now.clone().startOf('year'));
+        case 'custom':
+          case 'custom':
+            if (customStartDate && customEndDate) {
+              const start = moment(customStartDate).utc().startOf('day');
+              const end = moment(customEndDate).utc().endOf('day');
+              return transactionDate.isBetween(start, end, 'day', '[]');
+            }
+            return true;
         default:
           return true;
       }
@@ -68,14 +82,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
     }, {} as Record<string, (IncomeData | OutcomeData)[]>);
 
     return Object.entries(grouped).map(([date, transactions]) => ({ date, data: transactions }));
-  }, [incomeData, outcomeData, sortTransactions, timeRange]);
+  }, [incomeData, outcomeData, sortTransactions, timeRange, customStartDate, customEndDate]);
 
   const handleLongPress = useCallback((transaction: IncomeData | OutcomeData) => {
     setSelectedTransaction(transaction);
     Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId, transaction.id ?? "");
-        else handleRemoveOutcome(currentProfileId, transaction.id ?? "");
+        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId ?? "", transaction.id ?? "");
+        else handleRemoveOutcome(currentProfileId ?? "", transaction.id ?? "");
       }
     }]);
   }, [refreshIncomeData, refreshOutcomeData, refreshCategoryData]);
@@ -128,7 +142,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
         renderItem={({ item }) => (
           <>
             {renderDateHeader({ date: item.date })}
-            {item.data.map((transaction) => renderTransactionItem({ item: transaction }))}
+            {item.data.map((transaction) => (
+              <React.Fragment key={transaction.id}>
+                {renderTransactionItem({ item: transaction })}
+              </React.Fragment>
+            ))}
           </>
         )}
         keyExtractor={(item) => item.date}

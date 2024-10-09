@@ -6,32 +6,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface ProfileListProps {
-  profileData: ProfileData[] | null;
-  refreshData: () => void;
   onAddProfile: () => void;
-  email: string;
-  currentProfileId: string | null;
 }
 
-export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshData, onAddProfile, email, currentProfileId }) => {
+export const ProfileList: React.FC<ProfileListProps> = ({ onAddProfile }) => {
+  const { profileData, currentProfileId, refreshProfileData, user } = useAppContext();
+
   const navigation = useNavigation();
   const [localCurrentProfileId, setLocalCurrentProfileId] = useState<string | null>(currentProfileId);
-
+  
   const handleProfilePress = useCallback((profile: ProfileData) => {
     const newProfileId = profile.id ?? "null";
-    changeCurrentProfile(email, newProfileId).then(() => {
+    changeCurrentProfile(user?.email ?? "", newProfileId).then(() => {
       setLocalCurrentProfileId(newProfileId);
-      refreshData();
+      refreshProfileData();
       navigation.navigate('index' as never);
     });
-  }, [email, refreshData, navigation]);
+  }, [user?.email, refreshProfileData, navigation]);
 
   const handleRemoveProfile = useCallback(async (id: string) => {
-    await removeProfile(id, email);
-    refreshData();
-  }, [refreshData]);
+    await removeProfile(id, user?.email ?? "");
+    refreshProfileData();
+  }, [user?.email, refreshProfileData]);
   
   const handleLongPress = useCallback((profile: ProfileData) => {
     Alert.alert("Eliminar perfil", "¿Está seguro de que quiere eliminar el perfil?", [{
@@ -42,10 +41,10 @@ export const ProfileList: React.FC<ProfileListProps> = ({ profileData, refreshDa
       style: "destructive",
       onPress: async () => {
         if (profile) handleRemoveProfile(profile.id ?? "null");
-        refreshData();
+        refreshProfileData();
       }
     }]);
-  }, [refreshData, handleRemoveProfile]);
+  }, [user?.email, refreshProfileData, handleRemoveProfile]);
 
   const handleSharePress = useCallback(async (profileId: string) => {
     try {

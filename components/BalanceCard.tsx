@@ -3,25 +3,24 @@ import { useMemo } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAppContext } from '@/hooks/useAppContext';
 
-interface BalanceCardProps {
-    balance: number | null;
-    incomes: number | null;
-    outcomes: number | null;
-    refreshData: () => void;
-}
-
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, incomes, outcomes, refreshData }) => {
-
-    refreshData();
+export const BalanceCard = () => {
+    const { incomeData, outcomeData, balance, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId } = useAppContext();
 
     const colorScheme = useColorScheme();
 
     const textColor = useMemo(() => colorScheme === 'dark' ? '#3B3B3B' : '#3B3B3B', [colorScheme]);
 
+    const { totalIncome, totalOutcome } = useMemo(() => {
+        const income = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+        const outcome = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+        return { totalIncome: income, totalOutcome: outcome };
+    }, [incomeData, outcomeData]);
+
     const formattedBalance = useMemo(() => balance !== null ? balance.toFixed(2) : '0.00', [balance]);
-    const formattedIncomes = useMemo(() => incomes?.toFixed(2) ?? '0.00', [incomes]);
-    const formattedOutcomes = useMemo(() => outcomes?.toFixed(2) ?? '0.00', [outcomes]);
+    const formattedIncomes = useMemo(() => totalIncome?.toFixed(2) ?? '0.00', [incomeData]);
+    const formattedOutcomes = useMemo(() => totalOutcome?.toFixed(2) ?? '0.00', [outcomeData]);
 
     return (
         <View style={styles.box}>

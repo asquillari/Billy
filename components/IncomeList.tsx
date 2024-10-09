@@ -5,14 +5,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData } from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
+import { useAppContext } from '@/hooks/useAppContext';
 
-interface IncomeListProps {
-  incomeData: IncomeData[] | null;
-  refreshData: () => void;
-  currentProfileId: string;
-}
-
-export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData, currentProfileId }) => {
+export const IncomeList = () => {
+  const { incomeData, currentProfileId, refreshIncomeData } = useAppContext();
 
   // For deleting
   const [selectedIncome, setSelectedIncome] = useState<IncomeData | null>(null);
@@ -28,14 +24,14 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
     setSelectedIncome(income);
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (income) handleRemoveIncome(currentProfileId, income.id ?? "0")
+        if (income) handleRemoveIncome(currentProfileId??"", income.id ?? "0")
       }
     }]);
   }, [incomeData]);
 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
-    refreshData();
+    refreshIncomeData();
   };
 
   const renderItem = useCallback(({ item }: { item: IncomeData }) => (

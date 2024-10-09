@@ -3,13 +3,13 @@ import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'rea
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { signUp, addProfile, changeCurrentProfile } from '@/api/api';
-import { useUser } from '../contexts/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function Signup() {
   const navigation = useNavigation();
-  const { setUserEmail } = useUser();
+  const { setUser } = useAppContext();
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,7 +38,7 @@ export default function Signup() {
       
       else {
         await AsyncStorage.setItem('userSession', JSON.stringify(session));
-        setUserEmail(email);
+        setUser({ email });
         const newProfile = await addProfile('Default', email);
         await changeCurrentProfile(email, newProfile?.id ?? "");
         navigation.navigate('(tabs)' as never);

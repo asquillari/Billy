@@ -5,15 +5,11 @@ import { ThemedText } from '@/components/ThemedText';
 import { removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
+import { useAppContext } from '@/hooks/useAppContext';
 
-interface OutcomeListProps {
-  outcomeData: OutcomeData[] | null;
-  refreshData: () => void;
-  currentProfileId: string;
-}
+export const OutcomeList = () => {
+  const { outcomeData, currentProfileId, refreshOutcomeData } = useAppContext();
 
-export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshData, currentProfileId }) => {
-  
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
 
@@ -28,14 +24,14 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ outcomeData, refreshDa
     setSelectedOutcome(outcome);
     Alert.alert("Eliminar gasto", "¿Está seguro de que quiere eliminar el gasto?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (outcome) handleRemoveOutcome(currentProfileId, outcome.id ?? "0");
+        if (outcome) handleRemoveOutcome(currentProfileId??"", outcome.id ?? "0");
       }
     }]);
   }, [outcomeData]);
 
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
-    refreshData();
+    refreshOutcomeData();
   };
 
   const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
