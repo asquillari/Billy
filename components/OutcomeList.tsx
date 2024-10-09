@@ -7,17 +7,26 @@ import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
 import { useAppContext } from '@/hooks/useAppContext';
 
-export const OutcomeList = () => {
+interface OutcomeListProps {
+  category?: string;
+}
+
+export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
   const { outcomeData, currentProfileId, refreshOutcomeData } = useAppContext();
 
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
 
+  const filteredOutcomeData = useMemo(() => {
+    return outcomeData?.filter(outcome => outcome.category === category) || [];
+  }, [outcomeData, category]);
+
   const sortedOutcomeData = useMemo(() => {
-    return outcomeData?.slice().sort((a, b) => 
+    const dataToSort = category ? filteredOutcomeData : outcomeData;
+    return dataToSort?.slice().sort((a, b) => 
       new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime()
     ) ?? [];
-  }, [outcomeData]);
+  }, [outcomeData, filteredOutcomeData, category]);
 
   // Remove category
   const handleLongPress = useCallback((outcome: OutcomeData) => {

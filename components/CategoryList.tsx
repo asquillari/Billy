@@ -22,20 +22,20 @@ const parseGradient = (color: string): string[] => {
 export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true, showHeader }) => {    
     const navigation = useNavigation();
 
-    const { categoryData, refreshCategoryData } = useAppContext();
+    const { outcomeData, categoryData, refreshCategoryData } = useAppContext();
 
     const [modalVisible, setModalVisible] = useState(false);
 
     // For details
-    const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
+    const [filteredOutcomeData, setFilteredOutcomeData] = useState<OutcomeData[]>([]);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
     
     // Get categories' outcomes
-    const getOutcomeData = useCallback(async (category: string) => {
-        const data = await fetchOutcomesByCategory(category);
-        setOutcomeData(data as OutcomeData[]);
-    }, []);
+    const getOutcomeData = useCallback((categoryId: string) => {
+        const filtered = outcomeData?.filter(outcome => outcome.category === categoryId) || [];
+        setFilteredOutcomeData(filtered);
+      }, [outcomeData]);  
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
@@ -48,7 +48,8 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
     // See category details
     const handleCategoryPress = useCallback((category: CategoryData) => {
         setSelectedCategory(category);
-        getOutcomeData(category.id ?? "null").then(() => { setDetailsModalVisible(true); });
+        getOutcomeData(category.id ?? "null");
+        setDetailsModalVisible(true);
     }, [getOutcomeData]);
 
     const handleLongPress = useCallback((category: CategoryData) => {

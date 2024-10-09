@@ -1,8 +1,7 @@
 import React, { useCallback } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { OutcomeList } from '../OutcomeList';
-import { CategoryData, OutcomeData } from '@/api/api';
-import { useAppContext } from '@/hooks/useAppContext';
+import { CategoryData } from '@/api/api';
 
 interface CategoryDetailsModalProps {
     isVisible: boolean;
@@ -10,7 +9,6 @@ interface CategoryDetailsModalProps {
     selectedCategory: CategoryData | null;
 }
 const CategoryDetailsModal: React.FC<CategoryDetailsModalProps> = ({ isVisible, onClose, selectedCategory }) => {
-    const { outcomeData, currentProfileId } = useAppContext();
     
     const handleClose = useCallback(() => {
         onClose();
@@ -25,7 +23,7 @@ const CategoryDetailsModal: React.FC<CategoryDetailsModalProps> = ({ isVisible, 
                     <Text style={styles.detailsModalTitle}>
                         {selectedCategory.name} (${selectedCategory.spent?.toFixed(2) || 0})
                     </Text>
-                    <OutcomeList/>
+                    <OutcomeList category={selectedCategory.id}/>
                     <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>
