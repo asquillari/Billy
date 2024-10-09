@@ -4,6 +4,7 @@ import { Platform, StatusBar } from 'react-native';
 import { logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface BillyHeaderProps {
   title?: string;
@@ -12,6 +13,8 @@ interface BillyHeaderProps {
 }
 
 export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
+  const { profileData, currentProfileId } = useAppContext();
+
   const navigation = useNavigation();
   
   const handleLogout = async () => {
@@ -20,10 +23,16 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
     navigation.navigate('start' as never);
   };
 
+  const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
+  const profileName = currentProfile ? currentProfile.name : 'Profile';
+
   return (
     <View style={styles.headerContainer}>
       <View style={styles.barraSuperior}>
         <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
+        <View style={styles.profileContainer}>
+          <Text style={styles.profileName}>{profileName}</Text>
+        </View>
         <TouchableOpacity onPress={handleLogout}>
           <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario} />
         </TouchableOpacity>
@@ -102,6 +111,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  profileContainer: {
+    justifyContent: 'center',
+  },
+  profileName: {
+    color: '#4B00B8',
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginRight: 40,
   },
 });
 
