@@ -10,7 +10,7 @@ interface AddProfileModalProps {
 }
 
 const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded }) => {
-  const { currentProfileId } = useAppContext();
+  const { currentProfileId, user } = useAppContext();
 
   const [profileName, setProfileName] = useState('');
   const [sharedUsers, setSharedUsers] = useState('');
@@ -20,7 +20,7 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (profileName.trim()) {
-      const newProfile = await addProfile(profileName, currentProfileId??"");
+      const newProfile = await addProfile(profileName, user?.email ?? "");
       await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
       if (sharedUsers.trim()) {
         const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];
