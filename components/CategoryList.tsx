@@ -22,7 +22,7 @@ const parseGradient = (color: string): string[] => {
 export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true, showHeader }) => {    
     const navigation = useNavigation();
 
-    const { categoryData, refreshCategoryData, refreshAllData } = useAppContext();
+    const { categoryData, refreshCategoryData } = useAppContext();
 
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -35,8 +35,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
     const getOutcomeData = useCallback(async (category: string) => {
         const data = await fetchOutcomesByCategory(category);
         setOutcomeData(data as OutcomeData[]);
-        refreshAllData();
-    }, [refreshAllData]);
+    }, []);
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
