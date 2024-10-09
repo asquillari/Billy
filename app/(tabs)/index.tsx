@@ -68,19 +68,20 @@ export default function HomeScreen() {
       return () => { isMounted = false; };
     }, [fetchProfile, refreshAllData])
   );
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <BillyHeader/>
         <View style={styles.contentContainer}>
-          <ScrollView style={styles.scrollView}>
+          <ScrollView>
             
           {!shared && (
             <BalanceCard/>
           )}
 
           {shared && (
-            <View style={styles.sharedBalanceContainer}>
+            <View>
               <SharedBalanceCard/> 
               <View style={styles.addButtonContainer}>
                 <AddButton/>
@@ -108,9 +109,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  sharedBalanceContainer: {
-    position: 'relative',
-  },
   addButtonContainer: {
     position: 'absolute',
     top: 235,
@@ -130,17 +128,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: '2.5%',
   },
-  scrollView: {
-    flex: 1,
-  },
   sectionContainer: {
     paddingHorizontal: 15,
     marginBottom: 20,
-  },
-  title: {
-    marginBottom: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3B3B3B',
   },
 });
