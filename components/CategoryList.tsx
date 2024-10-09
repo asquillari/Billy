@@ -178,12 +178,6 @@ const styles = StyleSheet.create({
         fontSize: 24,
         color: '#370185',
     },
-    viewMoreButton: {
-        marginLeft: 16,
-        padding: 10,
-        backgroundColor: '#4B00B8',
-        borderRadius: 5,
-    },
     viewMoreButtonText: {
         color: '#FFFFFF',
         fontWeight: 'bold',

@@ -86,7 +86,6 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.sectionContainer}> 
-            <ThemedText style={styles.title}>Actividad reciente</ThemedText>
             <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
           </View>
 

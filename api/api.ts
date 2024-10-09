@@ -1095,7 +1095,6 @@ export async function removeSharedProfile(profileId: string, email: string) {
   return true;
 }
 
-
 async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
     // Obtener todas las deudas del perfil

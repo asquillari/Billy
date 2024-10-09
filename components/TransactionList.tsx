@@ -1,10 +1,11 @@
 import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData, removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
+import { useNavigation } from '@react-navigation/native';
 
 interface TransactionListProps {
   incomeData: IncomeData[] | null;
@@ -17,6 +18,7 @@ interface TransactionListProps {
 }
 
 export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true }) => {
+  const navigation = useNavigation();
   
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
@@ -74,7 +76,15 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
   const keyExtractor = useCallback((item: IncomeData | OutcomeData) => `${(item as any).type}-${item.id}`, []);
 
   return (
-    <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
+    <View>
+      <View style={styles.rowContainer}>
+        <Text style={styles.transactionsTitle}>Actividad reciente</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('TransactionScreen' as never)}>
+          <Text style={styles.viewMoreText}>Ver más</Text>
+        </TouchableOpacity>
+      </View>
+      <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
+    </View>
   );
 };
 
@@ -125,5 +135,19 @@ const styles = StyleSheet.create({
   },
   outcomeAmount: {
     color: '#F44336',
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  transactionsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  viewMoreText: {
+    color: '#4B00B8',
+    textDecorationLine: 'underline',
   },
 });
