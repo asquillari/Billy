@@ -75,9 +75,8 @@ const CategoriesScreen = () => {
     return (
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-                <BillyHeader/>
+            <BillyHeader title="Categorías" subtitle="Tus gastos divididos según su tipo" />
                 <View style={styles.contentContainer}>
-                    <Text style={styles.title}>Categorías</Text>
                     <FlatList
                         data={categoriesWithAddButton.filter((category): category is CategoryData => category !== undefined)}
                         renderItem={renderCategory}

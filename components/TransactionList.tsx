@@ -5,7 +5,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData, removeOutcome, OutcomeData} from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
+import 'moment/locale/es';
 import { useNavigation } from '@react-navigation/native';
+
+moment.locale('es');
 
 interface TransactionListProps {
   incomeData: IncomeData[] | null;
@@ -16,25 +19,56 @@ interface TransactionListProps {
   currentProfileId: string;
   scrollEnabled?: boolean;
   showHeader?: boolean;
+  timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true, showHeader}) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, scrollEnabled = true, showHeader, timeRange}) => {
   const navigation = useNavigation();
-  
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
+  // Ordeno por fecha de creación
   const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
   
-  const combinedTransactions = useMemo(() => {
+  // Agrupo los ingresos y egresos
+  const groupedTransactions = useMemo(() => {
     if (!incomeData || !outcomeData) return [];
     const combined = [
       ...incomeData.map(income => ({ ...income, type: 'income' as const })),
       ...outcomeData.map(outcome => ({ ...outcome, type: 'outcome' as const }))
     ];
-    return sortTransactions(combined);
-  }, [incomeData, outcomeData, sortTransactions]);
+    const sorted = sortTransactions(combined);
+    
+    // Y los filtro por el rango pedido
+    const filteredTransactions = sorted.filter(transaction => {
+      const transactionDate = moment(transaction.created_at);
+      const now = moment();
+      
+      switch (timeRange) {
+        case 'day':
+          return transactionDate.isSameOrAfter(now.clone().startOf('day'));
+        case 'week':
+          return transactionDate.isSameOrAfter(now.clone().startOf('week'));
+        case 'month':
+          return transactionDate.isSameOrAfter(now.clone().startOf('month'));
+        case 'year':
+          return transactionDate.isSameOrAfter(now.clone().startOf('year'));
+        default:
+          return true;
+      }
+    });
+
+    // Extrae las fechas de cada transacción y las agrupa
+    const grouped = filteredTransactions.reduce((acc, transaction) => {
+      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(transaction);
+      return acc;
+    }, {} as Record<string, (IncomeData | OutcomeData)[]>);
+
+    return Object.entries(grouped).map(([date, transactions]) => ({ date, data: transactions }));
+  }, [incomeData, outcomeData, sortTransactions, timeRange]);
 
   const handleLongPress = useCallback((transaction: IncomeData | OutcomeData) => {
     setSelectedTransaction(transaction);
@@ -48,16 +82,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
-    refreshIncomeData();  // Actualiza los datos después de eliminar
+    refreshIncomeData();
   };
 
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
-    refreshOutcomeData();   // Actualiza los datos después de eliminar
+    refreshOutcomeData();
     refreshCategoryData?.();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
   };
 
-  const renderTransactionItem = useCallback(({ item }: { item: (IncomeData | OutcomeData) }) => (
+  const renderTransactionItem = useCallback(({ item }: { item: IncomeData | OutcomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
@@ -65,7 +99,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>
-          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
         </View>
         <ThemedText style={[styles.amount, (item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
           {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
@@ -74,7 +107,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
     </TouchableOpacity>
   ), [handleLongPress]);
 
-  const keyExtractor = useCallback((item: IncomeData | OutcomeData) => `${(item as any).type}-${item.id}`, []);
+  const renderDateHeader = useCallback(({ date }: { date: string }) => (
+    <View style={styles.dateHeader}>
+      <ThemedText style={styles.dateText}>{moment(date).format('DD [de] MMMM[,] YYYY')}</ThemedText>
+    </View>
+  ), []);
 
   return (
     <View>
@@ -86,7 +123,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ incomeData, ou
           </TouchableOpacity>
         </View>
       )}
-      <FlatList data={combinedTransactions} renderItem={renderTransactionItem} keyExtractor={keyExtractor} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}/>
+      <FlatList
+        data={groupedTransactions}
+        renderItem={({ item }) => (
+          <>
+            {renderDateHeader({ date: item.date })}
+            {item.data.map((transaction) => renderTransactionItem({ item: transaction }))}
+          </>
+        )}
+        keyExtractor={(item) => item.date}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={scrollEnabled}
+      />
     </View>
   );
 };
@@ -115,6 +163,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dateHeader: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  dateText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#666',
   },
   textContainer: {
     flex: 1,

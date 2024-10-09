@@ -46,6 +46,7 @@ export default function TransactionsScreen() {
             currentProfileId={currentProfileId || ""}
             scrollEnabled={true}
             showHeader={false}
+            timeRange='all'
           />
         </View>
       </LinearGradient>
