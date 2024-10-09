@@ -5,10 +5,10 @@ import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import AddCategoryModal from './modals/AddCategoryModal';
-import CategoryDetailsModal from './modals/CategoryDetailsModal';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '@/hooks/useAppContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { NavigationProp } from '@/types/navigation';
 
 interface CategoryListProps {
     layout: 'row' | 'grid';
@@ -22,8 +22,8 @@ const parseGradient = (color: string): string[] => {
 };
 
 export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButton = true, showHeader = true }) => {    
-    const navigation = useNavigation();
-
+    const navigation = useNavigation<NavigationProp<'Home'>>();
+    
     const { outcomeData, refreshOutcomeData, categoryData, refreshCategoryData } = useAppContext();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -47,12 +47,9 @@ export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButto
         return [...otherCategories, othersCategory];
     }, [categoryData]);
 
-    // See category details
     const handleCategoryPress = useCallback((category: CategoryData) => {
-        setSelectedCategory(category);
-        getOutcomeData(category.id ?? "null");
-        setDetailsModalVisible(true);
-    }, [getOutcomeData]);
+        navigation.navigate('CategoryDetailsScreen', { category } as never);
+    }, [navigation]);
 
     const handleLongPress = useCallback((category: CategoryData) => {
         if (category.name === "Otros") {
@@ -140,12 +137,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButto
                     </TouchableOpacity>
                 )}
             </ScrollView>
-    
-            <CategoryDetailsModal
-                isVisible={detailsModalVisible}
-                onClose={() => setDetailsModalVisible(false)}
-                selectedCategory={selectedCategory}
-            />
     
             <AddCategoryModal
                 isVisible={modalVisible}
