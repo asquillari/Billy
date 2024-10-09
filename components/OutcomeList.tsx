@@ -9,10 +9,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface OutcomeListProps {
   category?: string;
+  showDateSeparators?: boolean;
 }
 
-export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
-  const { outcomeData, categoryData, currentProfileId, refreshOutcomeData } = useAppContext();
+export const OutcomeList: React.FC<OutcomeListProps> = ({ category, showDateSeparators = false }) => {
+  const { outcomeData, categoryData, currentProfileId, refreshOutcomeData, refreshCategoryData, refreshBalanceData } = useAppContext();
 
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
@@ -28,6 +29,22 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
     ) ?? [];
   }, [outcomeData, filteredOutcomeData, category]);
 
+  const groupedOutcomeData = useMemo(() => {
+    if (!showDateSeparators) return null;
+
+    const grouped = sortedOutcomeData.reduce((acc, outcome) => {
+      const date = moment(outcome.created_at).startOf('day').format('YYYY-MM-DD');
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(outcome);
+      return acc;
+    }, {} as Record<string, OutcomeData[]>);
+
+    return Object.entries(grouped).map(([date, outcomes]) => ({
+      date,
+      data: outcomes,
+    }));
+  }, [sortedOutcomeData, showDateSeparators]);
+
   // Remove category
   const handleLongPress = useCallback((outcome: OutcomeData) => {
     setSelectedOutcome(outcome);
@@ -41,6 +58,8 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();
+    refreshCategoryData();
+    refreshBalanceData();
   };
 
   const getCategoryIcon = useCallback((categoryID: string) => {
@@ -48,27 +67,40 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
     return category?.icon || 'cash-multiple';
   }, [categoryData]);
 
-  const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
-    <TouchableOpacity onLongPress={() => handleLongPress(item)}>
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-          <Icon name={getCategoryIcon(item.category)} size={24} color="red"/>
+  const renderItem = useCallback(({ item }: { item: OutcomeData | { date: string } }) => {
+    if ('date' in item) {
+      return (
+        <View style={styles.dateHeader}>
+          <ThemedText style={styles.dateHeaderText}>{moment(item.date).format('DD MMMM YYYY')}</ThemedText>
         </View>
-        <View style={styles.textContainer}>
-          <ThemedText style={styles.description}>{item.description}</ThemedText>
-          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
-        </View>
-        <ThemedText style={styles.amount}>- ${item.amount.toFixed(2)}</ThemedText>
-      </View>
-    </TouchableOpacity>
-  ), [handleLongPress]);
+      );
+    }
 
-  const keyExtractor = useCallback((item: OutcomeData) => item.id?.toString() || '', []);
+    return (
+      <TouchableOpacity onLongPress={() => handleLongPress(item)}>
+        <View style={styles.card}>
+          <View style={styles.iconContainer}>
+            <Icon name={getCategoryIcon(item.category)} size={24} color="red"/>
+          </View>
+          <View style={styles.textContainer}>
+            <ThemedText style={styles.description}>{item.description}</ThemedText>
+            <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('HH:mm')}</ThemedText>
+          </View>
+          <ThemedText style={styles.amount}>- ${item.amount.toFixed(2)}</ThemedText>
+        </View>
+      </TouchableOpacity>
+    );
+  }, [handleLongPress, getCategoryIcon]);
+
+  const keyExtractor = useCallback((item: OutcomeData | { date: string }) => {
+    if ('date' in item) return item.date;
+    return item.id?.toString() || '';
+  }, []);
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={sortedOutcomeData}
+        data={showDateSeparators ? groupedOutcomeData?.flatMap(group => [{ date: group.date }, ...group.data]) : sortedOutcomeData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
@@ -111,10 +143,20 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: '#888',
+    marginTop: 2,
   },
   amount: {
     fontSize: 16,
     fontWeight: 'bold',
     color: 'red',
+  },
+  dateHeader: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  dateHeaderText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#666',
   },
 });

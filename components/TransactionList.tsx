@@ -14,18 +14,25 @@ moment.locale('es');
 interface TransactionListProps {
   scrollEnabled?: boolean;
   showHeader?: boolean;
+  showDateSeparators?: boolean;
   timeRange: 'all' | 'day' | 'week' | 'month' | 'year' | 'custom';
   customStartDate?: Date;
   customEndDate?: Date;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled = true, showHeader, timeRange, customStartDate, customEndDate}) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ 
+  scrollEnabled = true, 
+  showHeader, 
+  showDateSeparators = true, 
+  timeRange, 
+  customStartDate, 
+  customEndDate
+}) => {
   const { incomeData, outcomeData, categoryData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData } = useAppContext();
   
   const navigation = useNavigation();
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
-  // Ordeno por fecha de creación
   const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
@@ -35,7 +42,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     return category?.icon || 'cash-multiple';
   }, [categoryData]);
 
-  // Agrupo los ingresos y egresos
   const groupedTransactions = useMemo(() => {
     if (!incomeData || !outcomeData) return [];
     const combined = [
@@ -44,7 +50,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     ];
     const sorted = sortTransactions(combined);
     
-    // Y los filtro por el rango pedido
     const filteredTransactions = sorted.filter(transaction => {
       const transactionDate = moment(transaction.created_at);
       const now = moment();
@@ -58,19 +63,21 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
         case 'year':
           return transactionDate.isSameOrAfter(now.clone().startOf('year'));
         case 'custom':
-          case 'custom':
-            if (customStartDate && customEndDate) {
-              const start = moment(customStartDate).utc().startOf('day');
-              const end = moment(customEndDate).utc().endOf('day');
-              return transactionDate.isBetween(start, end, 'day', '[]');
-            }
-            return true;
+          if (customStartDate && customEndDate) {
+            const start = moment(customStartDate).utc().startOf('day');
+            const end = moment(customEndDate).utc().endOf('day');
+            return transactionDate.isBetween(start, end, 'day', '[]');
+          }
+          return true;
         default:
           return true;
       }
     });
 
-    // Extrae las fechas de cada transacción y las agrupa
+    if (!showDateSeparators) {
+      return filteredTransactions;
+    }
+
     const grouped = filteredTransactions.reduce((acc, transaction) => {
       const date = moment(transaction.created_at).format('YYYY-MM-DD');
       if (!acc[date]) acc[date] = [];
@@ -79,17 +86,20 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     }, {} as Record<string, (IncomeData | OutcomeData)[]>);
 
     return Object.entries(grouped).map(([date, transactions]) => ({ date, data: transactions }));
-  }, [incomeData, outcomeData, sortTransactions, timeRange, customStartDate, customEndDate]);
+  }, [incomeData, outcomeData, sortTransactions, timeRange, customStartDate, customEndDate, showDateSeparators]);
 
   const handleLongPress = useCallback((transaction: IncomeData | OutcomeData) => {
     setSelectedTransaction(transaction);
-    Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
-      onPress: async () => {
-        if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId ?? "", transaction.id ?? "");
-        else handleRemoveOutcome(currentProfileId ?? "", transaction.id ?? "");
+    Alert.alert("Eliminar transacción", "¿Está seguro de que quiere eliminar la transacción?", [
+      {text: "Cancelar", style: "cancel"}, 
+      {text: "Eliminar", style: "destructive",
+        onPress: async () => {
+          if ((transaction as any).type === "income") handleRemoveIncome(currentProfileId ?? "", transaction.id ?? "");
+          else handleRemoveOutcome(currentProfileId ?? "", transaction.id ?? "");
+        }
       }
-    }]);
-  }, [refreshIncomeData, refreshOutcomeData, refreshCategoryData]);
+    ]);
+  }, [currentProfileId]);
 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
@@ -100,7 +110,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();
-    refreshCategoryData?.();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas
+    refreshCategoryData?.();
     refreshBalanceData(); 
   };
 
@@ -116,19 +126,38 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>
+          <ThemedText style={styles.time}>
+            {showDateSeparators ? moment(item.created_at).format('HH:mm') : moment(item.created_at).format('DD/MM/YYYY[,] HH:mm')}
+          </ThemedText>
         </View>
         <ThemedText style={[(item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
           {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
         </ThemedText>
       </View>
     </TouchableOpacity>
-  ), [handleLongPress, getCategoryIcon]);
+  ), [handleLongPress, getCategoryIcon, showDateSeparators]);
 
   const renderDateHeader = useCallback(({ date }: { date: string }) => (
     <View style={styles.dateHeader}>
       <ThemedText style={styles.dateText}>{moment(date).format('DD [de] MMMM[,] YYYY')}</ThemedText>
     </View>
   ), []);
+
+  const renderItem = useCallback(({ item }: { item: IncomeData | OutcomeData | { date: string, data: (IncomeData | OutcomeData)[] } }) => {
+    if ('date' in item) {
+      return (
+        <>
+          {renderDateHeader({ date: item.date })}
+          {item.data.map((transaction) => (
+            <React.Fragment key={transaction.id}>
+              {renderTransactionItem({ item: transaction })}
+            </React.Fragment>
+          ))}
+        </>
+      );
+    }
+    return renderTransactionItem({ item });
+  }, [renderDateHeader, renderTransactionItem]);
 
   return (
     <View>
@@ -142,17 +171,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
       )}
       <FlatList
         data={groupedTransactions}
-        renderItem={({ item }) => (
-          <>
-            {renderDateHeader({ date: item.date })}
-            {item.data.map((transaction) => (
-              <React.Fragment key={transaction.id}>
-                {renderTransactionItem({ item: transaction })}
-              </React.Fragment>
-            ))}
-          </>
-        )}
-        keyExtractor={(item) => item.date}
+        renderItem={renderItem}
+        keyExtractor={(item) => 'date' in item ? item.date : item.id?.toString() || ''}
         showsVerticalScrollIndicator={false}
         scrollEnabled={scrollEnabled}
       />
@@ -202,6 +222,11 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  time: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
   date: {
     fontSize: 12,
     color: '#888',
@@ -223,6 +248,7 @@ const styles = StyleSheet.create({
   transactionsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
   viewMoreText: {
     color: '#4B00B8',

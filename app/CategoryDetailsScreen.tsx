@@ -38,7 +38,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
                         <Icon name={category.icon || 'cash-multiple'} size={60} color="#4B00B8" />
                         <Text style={styles.spentAmount}>${category.spent?.toFixed(2) || 0}</Text>
                     </View>
-                    <OutcomeList category={category.id} />
+                    <OutcomeList category={category.id} showDateSeparators={true}/>
                 </View>
             </LinearGradient>
         </View>

@@ -98,7 +98,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.sectionContainer}> 
-            <TransactionList scrollEnabled={false} showHeader={true} timeRange='month'/>
+            <TransactionList scrollEnabled={false} showHeader={true} showDateSeparators={false} timeRange='month'/>
           </View>
 
           </ScrollView>
