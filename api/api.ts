@@ -1503,3 +1503,22 @@ export async function calculateDebts(billId: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function getBillDebts(billId: string) {
+  try {
+    const { data: debts, error } = await supabase
+      .from('BillDebts')
+      .select('*')
+      .eq('bill', billId);
+
+    if (error) {
+      console.error("Error al obtener las deudas de la factura:", error);
+      return null;
+    }
+
+    return debts;
+  } catch (error) {
+    console.error("Error inesperado al obtener las deudas de la factura:", error);
+    return null;
+  }
+}
