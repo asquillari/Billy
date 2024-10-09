@@ -223,11 +223,9 @@ const styles = StyleSheet.create({
   transactionsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   viewMoreText: {
     color: '#4B00B8',
     textDecorationLine: 'underline',
-    marginBottom: 5,
   },
 });

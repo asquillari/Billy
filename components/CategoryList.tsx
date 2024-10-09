@@ -163,7 +163,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButto
 const styles = StyleSheet.create({
     rowContainer: {
         flexDirection: 'row',
-        marginBottom: 16,
     },
     gridContainer: {
         marginTop: 10,
@@ -226,12 +225,10 @@ const styles = StyleSheet.create({
     categoriesTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 10,
     },
     viewMoreText: {
         color: '#4B00B8',
         textDecorationLine: 'underline',
-        marginBottom: 5,
     },
     backgroundIcon: {
         position: 'absolute',
@@ -253,7 +250,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 10,
         marginBottom: 10,
     },
 });
