@@ -10,7 +10,7 @@ interface AddProfileModalProps {
 }
 
 const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded }) => {
-  const { currentProfileId, user } = useAppContext();
+  const { user } = useAppContext();
 
   const [profileName, setProfileName] = useState('');
   const [sharedUsers, setSharedUsers] = useState('');
