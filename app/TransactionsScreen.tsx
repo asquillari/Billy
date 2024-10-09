@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TransactionList } from '@/components/TransactionList';
 import { BillyHeader } from '@/components/BillyHeader';
@@ -22,32 +22,35 @@ export default function TransactionsScreen() {
     }
   }, [userEmail, setCurrentProfileId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchData = async () => {
-        await fetchProfile();
-        await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
-      };
-      fetchData();
-    }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData])
-  );
+  const fetchData = useCallback(async () => {
+    await fetchProfile();
+    await Promise.all([getCategoryData(), getIncomeData(), getOutcomeData()]);
+  }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData]);
+
+  useFocusEffect(useCallback(() => {
+    fetchData();
+  }, [fetchData]));
+
+  const memoizedTransactionList = useMemo(() => (
+    <TransactionList
+      incomeData={incomeData}
+      outcomeData={outcomeData}
+      refreshIncomeData={getIncomeData}
+      refreshOutcomeData={getOutcomeData}
+      refreshCategoryData={getCategoryData}
+      currentProfileId={currentProfileId || ""}
+      scrollEnabled={true}
+      showHeader={false}
+      timeRange='all'
+    />
+  ), [incomeData, outcomeData, getIncomeData, getOutcomeData, getCategoryData, currentProfileId]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <BillyHeader title="Transacciones" subtitle="Historial de ingresos y gastos" />
         <View style={styles.contentContainer}>
-          <TransactionList
-            incomeData={incomeData}
-            outcomeData={outcomeData}
-            refreshIncomeData={getIncomeData}
-            refreshOutcomeData={getOutcomeData}
-            refreshCategoryData={getCategoryData}
-            currentProfileId={currentProfileId || ""}
-            scrollEnabled={true}
-            showHeader={false}
-            timeRange='all'
-          />
+          {memoizedTransactionList}
         </View>
       </LinearGradient>
     </View>
