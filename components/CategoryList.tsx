@@ -8,6 +8,7 @@ import AddCategoryModal from './modals/AddCategoryModal';
 import CategoryDetailsModal from './modals/CategoryDetailsModal';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface CategoryListProps {
     showAddButton?: boolean;
@@ -80,12 +81,14 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
         return (
             <TouchableOpacity key={category.id || index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)}>
                 <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}}>
+                    <Icon name={category.icon || 'cash-multiple'} size={60} color="rgba(255,255,255,0.2)" style={styles.backgroundIcon} />
                     <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
                     <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
                 </LinearGradient>
             </TouchableOpacity>
         );
     }, [getCategoryColor, handleCategoryPress, handleLongPress]);
+
 
     return (
         <View>
@@ -156,6 +159,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         position: 'relative',
         overflow: 'hidden',
+    },
+    backgroundIcon: {
+        position: 'absolute',
+        right: -10,
+        bottom: -10,
     },
     addCategoryText: {
         fontSize: 24,
