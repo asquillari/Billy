@@ -9,6 +9,7 @@ const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
 const DEBTS_TABLE = 'Debts';
+const BILLS_TABLE = 'Bills';
 
 export interface UserData {
   email: string;
@@ -1282,6 +1283,223 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   
   catch (error) {
     console.error("Error inesperado añadiendo deuda:", error);
+    return false;
+  }
+}
+
+/* División de Cuenta */
+
+export async function createBill(total: number, participants: string[]): Promise<boolean> {
+  try {
+    // Insertar el total en la tabla Bills
+    const { data: billData, error: billError } = await supabase
+      .from(BILLS_TABLE)
+      .insert({ total: total })
+      .select()
+      .single();
+
+    if (billError) {
+      console.error("Error al crear la factura:", billError);
+      return false;
+    }
+
+    const billId = billData.id;
+
+    // Añadir cada participante a la factura
+    for (const participant of participants) {
+      const success = await addParticipantToBill(billId, participant);
+      if (!success) {
+        console.error("Error al añadir participante:", participant);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al crear la factura:", error);
+    return false;
+  }
+}
+
+export async function addParticipantToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipantes')
+      .insert({ id: billId, email: participant })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al añadir participante a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al añadir participante a la factura:", error);
+    return false;
+  }
+}
+
+export async function addOutcomeToBill(billId: string, participant: string, amount: number): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_spent: amount })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al agregar gasto a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al agregar gasto a la factura:", error);
+    return false;
+  }
+}
+
+export async function deleteOutcomeToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_spent: null })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al eliminar gasto de la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al eliminar gasto de la factura:", error);
+    return false;
+  }
+}
+
+
+export async function addIncomeToBill(billId: string, participant: string, amount: number): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_paid: amount })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al agregar pago a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al agregar pago a la factura:", error);
+    return false;
+  }
+
+}
+
+export async function deleteIncomeToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_paid: null })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al eliminar pago de la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al eliminar pago de la factura:", error);
+    return false;
+  }
+}
+
+
+
+export async function calculateDebts(billId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .select('email, amount_spent, amount_paid')
+      .eq('bill', billId);
+
+    if (error) {
+      console.error("Error al obtener los datos de los participantes de la factura:", error);
+      return false;
+    }
+
+    if (!data || data.length === 0) {
+      console.error("No se encontraron participantes para esta factura");
+      return false;
+    }
+
+    let totalSpent = 0;
+    const participants = data.map(participant => {
+      totalSpent += participant.amount_spent || 0;
+      return {
+        email: participant.email,
+        spent: participant.amount_spent || 0,
+        paid: participant.amount_paid || 0
+      };
+    });
+
+    const averageSpent = totalSpent / participants.length;
+
+    const debts: { debtor: string; creditor: string; amount: number }[] = [];
+    participants.forEach(debtor => {
+      participants.forEach(creditor => {
+        if (debtor.email !== creditor.email) {
+          const debtorBalance = debtor.paid - averageSpent;
+          const creditorBalance = creditor.paid - averageSpent;
+          
+          if (debtorBalance < 0 && creditorBalance > 0) {
+            const debtAmount = Math.min(Math.abs(debtorBalance), creditorBalance);
+            debts.push({
+              debtor: debtor.email,
+              creditor: creditor.email,
+              amount: Number(debtAmount.toFixed(2))
+            });
+          }
+        }
+      });
+    });
+
+    for (const debt of debts) {
+      const { error: insertError } = await supabase
+        .from('BillDebts')
+        .insert({
+          bill: billId,
+          debtor: debt.debtor,
+          creditor: debt.creditor,
+          amount: debt.amount
+        });
+
+      if (insertError) {
+        console.error("Error al insertar la deuda en BillDebts:", insertError);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al calcular e insertar las deudas:", error);
     return false;
   }
 }
