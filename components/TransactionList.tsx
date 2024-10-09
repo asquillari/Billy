@@ -28,14 +28,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
 
-  const { 
-    incomeData, 
-    outcomeData, 
-    currentProfileId, 
-    refreshIncomeData, 
-    refreshOutcomeData, 
-    refreshCategoryData 
-  } = useAppContext();
+  const { incomeData, outcomeData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
   
   // Agrupo los ingresos y egresos
   const groupedTransactions = useMemo(() => {
@@ -50,7 +43,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     const filteredTransactions = sorted.filter(transaction => {
       const transactionDate = moment(transaction.created_at);
       const now = moment();
-      
       switch (timeRange) {
         case 'day':
           return transactionDate.isSameOrAfter(now.clone().startOf('day'));

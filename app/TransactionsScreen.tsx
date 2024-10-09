@@ -4,50 +4,28 @@ import { TransactionList } from '@/components/TransactionList';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchCurrentProfile } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 
 export default function TransactionsScreen() {
-    const { 
-        user, 
-        currentProfileId, 
-        setCurrentProfileId, 
-        incomeData, 
-        outcomeData, 
-        refreshIncomeData, 
-        refreshOutcomeData, 
-        refreshCategoryData 
-      } = useAppContext();
-
-  const fetchProfile = useCallback(async () => {
-    if (user?.email) {
-      const profileData = await fetchCurrentProfile(user.email);
-      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') setCurrentProfileId(profileData);
-      else console.error('Invalid or empty profile ID received');
-    }
-  }, [user?.email, setCurrentProfileId]);
+    const { currentProfileId, incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshProfileData } = useAppContext();
 
   const fetchData = useCallback(async () => {
-    await fetchProfile();
+    await refreshProfileData();
     await Promise.all([refreshCategoryData(), refreshIncomeData(), refreshOutcomeData()]);
-  }, [fetchProfile, refreshCategoryData, refreshIncomeData, refreshOutcomeData]);
+  }, [refreshProfileData, refreshCategoryData, refreshIncomeData, refreshOutcomeData]);
 
   useFocusEffect(useCallback(() => {
     fetchData();
   }, [fetchData]));
 
   const memoizedTransactionList = useMemo(() => (
-    <TransactionList
-      scrollEnabled={true}
-      showHeader={false}
-      timeRange='all'
-    />
+    <TransactionList scrollEnabled={true} showHeader={false} timeRange='all'/>
   ), [incomeData, outcomeData, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <BillyHeader title="Transacciones" subtitle="Historial de ingresos y gastos" />
+        <BillyHeader title="Transacciones" subtitle="Mirá tu historial de ingresos y gastos." />
         <View style={styles.contentContainer}>
           {memoizedTransactionList}
         </View>
