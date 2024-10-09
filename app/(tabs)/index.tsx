@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -12,60 +12,63 @@ import { SharedBalanceCard } from '@/components/SharedBalanceCard';
 import { useAppContext } from '@/hooks/useAppContext';
 
 export default function HomeScreen() {
-  const { 
-    user, 
-    setCurrentProfileId, 
-    refreshAllData 
-  } = useAppContext();
+  const { user, currentProfileId, setCurrentProfileId, refreshAllData } = useAppContext();
 
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (user?.email) {
-      let currentProfile = await fetchCurrentProfile(user.email);
-      // Si, por algún error, no hay perfil actual, se selecciona el primero de la lista
-      if (!currentProfile || typeof currentProfile !== 'string' || currentProfile.trim() === '') {
-        const profiles = await fetchProfiles(user.email);
-        if (profiles && profiles.length > 0) {
-          currentProfile = profiles[0].id;
-          await changeCurrentProfile(user.email, currentProfile);
-        } 
-        else {
-          console.error('No profiles found for the user');
-          setShared(false);
-          setSharedUsers(null);
-          return;
-        }
-      }
+    if (!user?.email) return false;
   
-      setCurrentProfileId(currentProfile);
-      const isShared = await isProfileShared(currentProfile);
-      setShared(isShared);
-      if (isShared) {
-        const users = await getSharedUsers(currentProfile);
-        setSharedUsers(users);
-      } 
-      else {
+    let profileChanged = false;
+    let currentProfile = await fetchCurrentProfile(user.email);
+  
+    if (!currentProfile || typeof currentProfile !== 'string' || currentProfile.trim() === '') {
+      const profiles = await fetchProfiles(user.email);
+      if (!profiles || profiles.length === 0) {
+        console.error('No profiles found for the user');
+        setShared(false);
         setSharedUsers(null);
+        return true;
       }
+      currentProfile = profiles[0].id;
+      await changeCurrentProfile(user.email, currentProfile);
+      profileChanged = true;
     }
-  }, [user?.email, setCurrentProfileId]);
+  
+    if (currentProfile !== currentProfileId) {
+      setCurrentProfileId(currentProfile);
+      profileChanged = true;
+    }
+  
+    const isShared = await isProfileShared(currentProfile);
+    if (isShared !== shared) {
+      setShared(isShared);
+      profileChanged = true;
+    }
+  
+    const users = isShared ? await getSharedUsers(currentProfile) : null;
+    if (JSON.stringify(users) !== JSON.stringify(sharedUsers)) {
+      setSharedUsers(users);
+      profileChanged = true;
+    }
+  
+    return profileChanged;
+  }, [user?.email, setCurrentProfileId, currentProfileId, shared, sharedUsers]);
   
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
       const fetchData = async () => {
         if (isMounted) {
-          await fetchProfile();
-          if (isMounted) await refreshAllData();
+          const profileChanged = await fetchProfile();
+          if (isMounted && profileChanged) await refreshAllData();
         }
       };
       fetchData();
       return () => { isMounted = false; };
     }, [fetchProfile, refreshAllData])
   );
-
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>

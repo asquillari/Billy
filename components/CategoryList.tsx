@@ -22,7 +22,7 @@ const parseGradient = (color: string): string[] => {
 export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true, showHeader }) => {    
     const navigation = useNavigation();
 
-    const { categoryData, currentProfileId, refreshCategoryData, refreshAllData } = useAppContext();
+    const { categoryData, refreshCategoryData, refreshAllData } = useAppContext();
 
     const [modalVisible, setModalVisible] = useState(false);
 

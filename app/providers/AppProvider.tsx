@@ -28,6 +28,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshProfileData = useCallback(() => fetchData(fetchProfiles, setProfileData, true), [fetchData]);
 
   const refreshAllData = useCallback(async () => {
+    console.log("hola");
     if (!currentProfileId) {
       setIncomeData(null);
       setOutcomeData(null);
