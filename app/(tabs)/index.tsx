@@ -4,7 +4,7 @@ import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
-import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile, fetchProfiles } from '../../api/api';
+import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,7 +12,7 @@ import { SharedBalanceCard } from '@/components/SharedBalanceCard';
 import { useAppContext } from '@/hooks/useAppContext';
 
 export default function HomeScreen() {
-  const { user, currentProfileId, setCurrentProfileId, refreshAllData } = useAppContext();
+  const { user, currentProfileId, setCurrentProfileId, profileData, refreshAllData } = useAppContext();
 
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
@@ -24,14 +24,13 @@ export default function HomeScreen() {
     let currentProfile = await fetchCurrentProfile(user.email);
   
     if (!currentProfile || typeof currentProfile !== 'string' || currentProfile.trim() === '') {
-      const profiles = await fetchProfiles(user.email);
-      if (!profiles || profiles.length === 0) {
+      if (!profileData || profileData.length === 0) {
         console.error('No profiles found for the user');
         setShared(false);
         setSharedUsers(null);
         return true;
       }
-      currentProfile = profiles[0].id;
+      currentProfile = profileData[0].id;
       await changeCurrentProfile(user.email, currentProfile);
       profileChanged = true;
     }

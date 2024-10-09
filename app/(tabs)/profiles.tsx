@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { ProfileList } from '@/components/ProfileList';
-import { fetchProfiles, ProfileData, processInvitation } from '@/api/api';
+import { processInvitation } from '@/api/api';
 import AddProfileModal from '@/components/modals/AddProfileModal';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';

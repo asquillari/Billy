@@ -12,14 +12,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [profileData, setProfileData] = useState<ProfileData[] | null>(null);
 
   const fetchData = useCallback(async (fetchFunction: (id: string) => Promise<any>, setStateFunction: React.Dispatch<React.SetStateAction<any>>, isProfile: boolean = false) => {
-    if (isProfile && user?.email) {
+    if (isProfile && user && user.email) {
       const data = await fetchFunction(user.email);
       setStateFunction(data);
     } else if (currentProfileId) {
       const data = await fetchFunction(currentProfileId);
       setStateFunction(data);
     }
-  }, [currentProfileId]);
+  }, [currentProfileId, user]);
 
   const refreshIncomeData = useCallback(() => fetchData(fetchIncomes, setIncomeData), [fetchData]);
   const refreshOutcomeData = useCallback(() => fetchData(fetchOutcomes, setOutcomeData), [fetchData]);
@@ -27,11 +27,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshBalanceData = useCallback(() => fetchData(fetchBalance, setBalance), [fetchData]);
   const refreshProfileData = useCallback(() => fetchData(fetchProfiles, setProfileData, true), [fetchData]);
 
-  const refreshAllData = useCallback(async () => {
-    if (!currentProfileId) {
+  const refreshAllData = useCallback(async () => {    
+    if (!user || !currentProfileId) {
       setIncomeData(null);
       setOutcomeData(null);
       setCategoryData(null);
+      setProfileData(null);
       setBalance(null);
       return;
     }

@@ -9,17 +9,27 @@ export default function Start() {
   const navigation = useNavigation();
   const { setUser } = useAppContext();
 
-  // Do this in splash screen, eventually
   useEffect(() => {
     const checkSession = async () => {
-      const session = await AsyncStorage.getItem('userSession');
-      if (session) { 
-        setUser(JSON.parse(session).user.email);
-        navigation.navigate('(tabs)' as never);
+      try { 
+        const session = await AsyncStorage.getItem('userSession');
+        if (session) { 
+          const parsedSession = JSON.parse(session);
+          if (parsedSession && parsedSession.user && parsedSession.user.email) {
+            setUser({ email: parsedSession.user.email });
+            navigation.navigate('(tabs)' as never);
+          } 
+          else await AsyncStorage.removeItem('userSession');
+        }
+      }
+      catch (error) {
+        console.error('Error checking session:', error);
+        await AsyncStorage.removeItem('userSession');
       }
     };
+
     checkSession();
-  }, [navigation]);
+  }, [navigation, setUser]);
 
   return (
     <View style={styles.container}>
