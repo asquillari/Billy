@@ -2,17 +2,17 @@ import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { removeOutcome, OutcomeData} from '../api/api';
-import { FontAwesome } from '@expo/vector-icons';
+import { removeOutcome, OutcomeData } from '../api/api';
 import moment from 'moment';
 import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface OutcomeListProps {
   category?: string;
 }
 
 export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
-  const { outcomeData, currentProfileId, refreshOutcomeData } = useAppContext();
+  const { outcomeData, categoryData, currentProfileId, refreshOutcomeData } = useAppContext();
 
   // For deleting
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeData | null>(null);
@@ -43,11 +43,16 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ category }) => {
     refreshOutcomeData();
   };
 
+  const getCategoryIcon = useCallback((categoryID: string) => {
+    const category = categoryData?.find(c => c.id === categoryID);
+    return category?.icon || 'cash-multiple';
+  }, [categoryData]);
+
   const renderItem = useCallback(({ item }: { item: OutcomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <FontAwesome name="dollar" size={24} color="red"/>
+          <Icon name={getCategoryIcon(item.category)} size={24} color="red"/>
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>

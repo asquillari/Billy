@@ -51,6 +51,7 @@ export interface CategoryData {
   spent? : number;
   limit?: number;
   color: string;
+  icon: string;
   created_at?: Date;
 }
 
@@ -444,8 +445,8 @@ export async function getCategoryIdByName(profile: string, categoryName: string)
   return category ? category.id : null;
 }
 
-export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
-  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
+export async function addCategory(profile: string, name: string, color: string, icon: string, limit?: number): Promise<CategoryData | null> {
+  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color, icon: icon };
   return await addData(CATEGORIES_TABLE, newCategory);
 }
 
@@ -463,6 +464,10 @@ async function getCategoryLimit(category: string): Promise<number | null> {
 
 async function getCategorySpent(category: string): Promise<number | null> {
   return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
+}
+
+async function getCategoryIcon(category: string): Promise<string | null> {
+  return await getValueFromData(CATEGORIES_TABLE, 'icon', 'id', category);
 }
 
 async function updateCategorySpent(category: string, added: number) {

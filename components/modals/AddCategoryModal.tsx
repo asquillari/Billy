@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { addCategory } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface AddCategoryModalProps {
   isVisible: boolean;
@@ -33,6 +34,15 @@ const gradients = [
   ['#72EDF2', '#5151E5']
 ];
 
+const DEFAULT_ICON = 'cart-outline';
+
+const icons = [
+  'home', 'food', 'car', 'shopping-outline', 'medical-bag', 'school',
+  'airplane', 'gift', 'dumbbell', 'music', 'movie', 'book-open-variant',
+  'gamepad-variant', 'cash', 'credit-card', 'piggy-bank', 'chart-line',
+  'account', 'heart', 'star'
+];
+
 const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose, onCategoryAdded, sortedCategories }) => {
   const { currentProfileId } = useAppContext();
 
@@ -40,6 +50,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
   const [limit, setLimit] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(gradients[0]);
+  const [selectedIcon, setSelectedIcon] = useState(icons[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleNameChange = useCallback((text: string) => {
@@ -61,20 +72,30 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
   const handleAddCategory = useCallback(async () => {
     if (!validateCategoryName() || isSubmitting) return;
     setIsSubmitting(true);
-    await addCategory(currentProfileId??"", name, JSON.stringify(selectedGradient), parseFloat(limit));
+    await addCategory(currentProfileId??"", name, JSON.stringify(selectedGradient), selectedIcon || DEFAULT_ICON, parseFloat(limit));
     setName('');
     setLimit('');
     setSelectedGradient(gradients[0]);
+    setSelectedIcon(icons[0]);
     onCategoryAdded();
     setIsSubmitting(false);
     onClose();
-  }, [validateCategoryName, isSubmitting, currentProfileId, name, limit, selectedGradient, onCategoryAdded, onClose]);
+  }, [validateCategoryName, isSubmitting, currentProfileId, name, limit, selectedGradient, selectedIcon, onCategoryAdded, onClose]);
 
   const renderGradientItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[ styles.gradientItem, { backgroundColor: item[0] }, selectedGradient === item && styles.selectedGradient ]}
       onPress={() => setSelectedGradient(item)}
     />
+  );
+
+  const renderIconItem = ({ item }: { item: string }) => (
+    <TouchableOpacity
+      style={[styles.iconItem, selectedIcon === item && styles.selectedIcon]}
+      onPress={() => setSelectedIcon(item)}
+    >
+      <Icon name={item} size={24} color={selectedIcon === item ? '#4B00B8' : '#000'} />
+    </TouchableOpacity>
   );
 
   return (
@@ -100,6 +121,15 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
           />
 
           <FlatList
+            data={icons}
+            renderItem={renderIconItem}
+            keyExtractor={(item) => item}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.iconList}
+          />
+
+          <FlatList
             data={gradients}
             renderItem={renderGradientItem}
             keyExtractor={(index) => index.toString()}
@@ -107,7 +137,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isVisible, onClose,
             showsHorizontalScrollIndicator={false}
             style={styles.gradientList}
           />
-
+          
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={onClose}>
               <Text style={styles.buttonText}>Cancelar</Text>
@@ -180,6 +210,30 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   selectedGradient: {
+    borderWidth: 2,
+    borderColor: '#4B00B8',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 5,
+    alignSelf: 'flex-start',
+  },
+  iconList: {
+    marginBottom: 10,
+  },
+  iconItem: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  selectedIcon: {
+    backgroundColor: '#e0e0e0',
     borderWidth: 2,
     borderColor: '#4B00B8',
   },

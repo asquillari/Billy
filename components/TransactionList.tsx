@@ -3,11 +3,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity, FlatList, Text } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData, removeOutcome, OutcomeData} from '../api/api';
-import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
 import 'moment/locale/es';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 moment.locale('es');
 
@@ -28,8 +28,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
 
-  const { incomeData, outcomeData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
+  const { incomeData, outcomeData, categoryData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
   
+  const getCategoryIcon = useCallback((categoryID: string) => {
+    const category = categoryData?.find(c => c.id === categoryID);
+    return category?.icon || 'cash-multiple';
+  }, [categoryData]);
+
   // Agrupo los ingresos y egresos
   const groupedTransactions = useMemo(() => {
     if (!incomeData || !outcomeData) return [];
@@ -101,17 +106,21 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <FontAwesome name={(item as any).type === 'income' ? "dollar" : "shopping-cart"} size={24} color={(item as any).type === 'income' ? "green" : "red"}/>
+          {(item as any).type === 'income' ? (
+            <Icon name="cash-plus" size={24} color="green" />
+          ) : (
+            <Icon name={getCategoryIcon((item as OutcomeData).category) || 'help-circle'} size={24} color="red" />
+          )}
         </View>
         <View style={styles.textContainer}>
           <ThemedText style={styles.description}>{item.description}</ThemedText>
         </View>
-        <ThemedText style={[styles.amount, (item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
+        <ThemedText style={[(item as any).type === 'income' ? styles.incomeAmount : styles.outcomeAmount]}>
           {(item as any).type === 'income' ? '+' : '-'} ${item.amount.toFixed(2)}
         </ThemedText>
       </View>
     </TouchableOpacity>
-  ), [handleLongPress]);
+  ), [handleLongPress, getCategoryIcon]);
 
   const renderDateHeader = useCallback(({ date }: { date: string }) => (
     <View style={styles.dateHeader}>
@@ -196,15 +205,13 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
-  amount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   incomeAmount: {
     color: '#4CAF50',
+    fontWeight: 'bold',
   },
   outcomeAmount: {
     color: '#F44336',
+    fontWeight: 'bold',
   },
   rowContainer: {
     flexDirection: 'row',

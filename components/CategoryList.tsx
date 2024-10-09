@@ -22,7 +22,7 @@ const parseGradient = (color: string): string[] => {
 export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true, showHeader }) => {    
     const navigation = useNavigation();
 
-    const { outcomeData, categoryData, refreshCategoryData } = useAppContext();
+    const { outcomeData, refreshOutcomeData, categoryData, refreshCategoryData } = useAppContext();
 
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -62,7 +62,10 @@ export const CategoryList: React.FC<CategoryListProps> = ({ showAddButton = true
             onPress: async () => {
                 if (category) {
                     await removeCategory(category.id||"null");
-                    refreshCategoryData();
+                    await Promise.all([
+                        refreshOutcomeData(),
+                        refreshCategoryData()
+                    ]);
                 }
             }}]);
     }, [refreshCategoryData]);
