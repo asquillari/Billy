@@ -20,6 +20,8 @@ interface TransactionListProps {
 }
 
 export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled = true, showHeader, timeRange, customStartDate, customEndDate}) => {
+  const { incomeData, outcomeData, categoryData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData } = useAppContext();
+  
   const navigation = useNavigation();
   const [selectedTransaction, setSelectedTransaction] = useState<IncomeData | OutcomeData | null>(null);
 
@@ -27,8 +29,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
   const sortTransactions = useCallback((transactions: (IncomeData | OutcomeData)[]) => {
     return transactions.sort((a, b) => new Date(b.created_at ?? "").getTime() - new Date(a.created_at ?? "").getTime());
   }, []);
-
-  const { incomeData, outcomeData, categoryData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
   
   const getCategoryIcon = useCallback((categoryID: string) => {
     const category = categoryData?.find(c => c.id === categoryID);
@@ -94,12 +94,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
     refreshIncomeData();
+    refreshBalanceData();
   };
 
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();
-    refreshCategoryData?.();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas 
+    refreshCategoryData?.();  // Las categorías muestran lo gastado, por lo que hay que actualizarlas
+    refreshBalanceData(); 
   };
 
   const renderTransactionItem = useCallback(({ item }: { item: IncomeData | OutcomeData }) => (
