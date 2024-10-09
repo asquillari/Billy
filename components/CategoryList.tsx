@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     viewMoreText: {
         color: '#4B00B8',
         textDecorationLine: 'underline',
+        marginBottom: 5,
     },
     categoriesContainer: {
         flexWrap: 'nowrap',
@@ -173,9 +174,5 @@ const styles = StyleSheet.create({
     addCategoryButtonText: {
         fontSize: 24,
         color: '#370185',
-    },
-    viewMoreButtonText: {
-        color: '#FFFFFF',
-        fontWeight: 'bold',
     },
 });
