@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet  } from "react-native";
 import { Svg, Circle } from "react-native-svg";
-import { useFocusEffect } from '@react-navigation/native';
-import { getTotalToPayInDateRange, CategoryData, fetchCurrentProfile, getSharedUsers,getOutcomesFromDateRangeAndCategory } from '../api/api';
+import { getTotalToPayInDateRange, CategoryData, getSharedUsers, getOutcomesFromDateRangeAndCategory } from '../api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 
 interface Expense {
@@ -21,7 +20,7 @@ const getLastDayOfMonth = (year: number, month: number): number => {
 
 //if mode is false, then it's category. TODO: optimize this. Should be a better way.
 export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
-  const { currentProfileId, categoryData, refreshCategoryData, refreshProfileData } = useAppContext();
+  const { currentProfileId, categoryData } = useAppContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const calculateExpenses = useCallback(async () => {
@@ -46,31 +45,16 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     }
     
     else {
-      try {
-        const sharedUsers = await getSharedUsers(currentProfileId);
-        if (sharedUsers && sharedUsers.length > 0) {
-          calculatedExpenses = await Promise.all(
-            sharedUsers.map(async (user) => {
-              const items = await getTotalToPayInDateRange(
-                currentProfileId,
-                parseDate(month, year, 1),
-                parseDate(month, year, getLastDayOfMonth(year, month))
-              );
-              if (items) {
-                return { label: user, amount: items[user], color: generateRandomColor() } as Expense;
-              }
-              return { label: user, amount: 0, color: generateRandomColor() } as Expense;
-            })
-          );
-          // Filter out any undefined results
-          calculatedExpenses = calculatedExpenses.filter(expense => expense !== undefined);
-        } 
-        else {
-          console.log('No shared users found');
-        }
-      } 
-      catch (error) {
-        console.error('Error fetching shared users:', error);
+      const sharedUsers = await getSharedUsers(currentProfileId);
+      if (sharedUsers && sharedUsers.length > 0) {
+        const startDate = parseDate(month, year, 1);
+        const endDate = parseDate(month, year, getLastDayOfMonth(year, month));
+        const items = await getTotalToPayInDateRange(currentProfileId, startDate, endDate);
+    
+        calculatedExpenses = await Promise.all(sharedUsers.map(async (user: any) => {
+          const label = typeof user === 'string' ? user : (user.name || user.email || 'Unknown');
+          return { label, amount: items ? items[typeof user === 'string' ? user : user.email] || 0 : 0, color: generateRandomColor() } as Expense;
+        }));
       }
     }
     setExpenses(calculatedExpenses);
@@ -158,7 +142,6 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
     </View>
   );
 });
-
 
 const styles = StyleSheet.create({
   container: {
