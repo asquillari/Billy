@@ -164,14 +164,17 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
   const barWidth = maxAmount > 0 ? ((amount ?? 0) / maxAmount) * 100 : 0;
   return (
     <View style={styles.expenseItem}>
-      <View style={styles.textContainer}>
-        <Text style={styles.textWrapper} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
-        <Text style={styles.textWrapperAmount}>- ${ (amount ?? 0).toFixed(2) }</Text>
+      <Text style={styles.expenseLabel} numberOfLines={1} ellipsizeMode="tail">{label}</Text>
+      <View style={styles.barOuterContainer}>
+        <View style={styles.barContainer}>
+          <View style={[styles.bar, { backgroundColor: color, width: `${barWidth}%` }]} />
+        </View>
       </View>
-      <View style={[styles.rectangle, { backgroundColor: color, width: `${barWidth}%` }]}/>
+      <Text style={styles.expenseAmount}>${(amount ?? 0).toFixed(2)}</Text>
     </View>
   );
 });
+
 
 const styles = StyleSheet.create({
   container: {
@@ -179,29 +182,55 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     padding: 10,
-    paddingTop: 260, 
+    paddingTop: 260,
   },
   box: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
     width: "100%",
-    maxWidth: 400, 
-    marginTop: 20, 
+    maxWidth: 400,
+    marginTop: 20,
   },
   expenseItem: {
-    width: "48%", 
-    height: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    padding: 10,
     backgroundColor: "#fff",
     borderRadius: 12,
-    elevation: 4, 
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    marginBottom: 10,
-    padding: 10,
-    justifyContent: "flex-start",
+  },
+  expenseLabel: {
+    flex: 1 ,
+    color: "#3c3c3c",
+    fontSize: 16,
+    fontWeight: "400",
+    marginRight: 10,
+  },
+  barOuterContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  barContainer: {
+    width: '100%',
+    height: 13,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  bar: {
+    height: '100%',
+    borderRadius: 25,
+  },
+  expenseAmount: {
+    flex: 1,
+    color: "#3c3c3c",
+    fontSize: 14,
+    textAlign: 'right',
+    marginLeft: 10,
   },
   textContainer: {
     flexDirection: "row",
@@ -241,9 +270,10 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontSize: 36,
-    color: '#3c3c3c',
+    color: '#3B3B3B',
     textAlign: 'center',
     marginVertical: -5,
+    fontWeight: 'bold',
   },
 });
 
