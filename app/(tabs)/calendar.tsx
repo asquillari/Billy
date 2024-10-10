@@ -29,7 +29,7 @@ const customArrowRight = () => {
 };
 
 export default function CalendarScreen() {
-  const { user, currentProfileId, setCurrentProfileId, refreshCategoryData, refreshIncomeData, refreshOutcomeData } = useAppContext();
+  const { currentProfileId, refreshCategoryData, refreshIncomeData, refreshOutcomeData } = useAppContext();
 
   const [markedDates, setMarkedDates] = useState({});
   const [currentDate, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
@@ -48,15 +48,6 @@ export default function CalendarScreen() {
     const currentYear = moment().year();
     return Array.from({ length: 24 }, (_, i) => currentYear - 20 + i);
   }, []);
-
-  const fetchProfile = useCallback(async () => {
-    if (user?.email) {
-      const profileData = await fetchCurrentProfile(user.email);
-      if (profileData && typeof profileData === 'string') {
-        setCurrentProfileId(profileData);
-      }
-    }
-  }, [user?.email, setCurrentProfileId]);
 
   const onYearPress = () => {
     setViewMode('year');
@@ -161,14 +152,7 @@ export default function CalendarScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const refreshData = async () => {
-        await fetchProfile();
-        if (currentProfileId) {
-          await Promise.all([ refreshCategoryData(), refreshIncomeData(), refreshOutcomeData() ]);
-          processTransactions();
-        }
-      };
-      refreshData();
+        if (currentProfileId) processTransactions();
     }, [currentProfileId, refreshCategoryData, refreshIncomeData, refreshOutcomeData])
   );
   
