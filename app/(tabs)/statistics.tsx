@@ -59,27 +59,63 @@ const App = () => {
   };
 
   const changeDate = (type: 'month' | 'year', increment: number) => () => {
-    if (type === 'month') setSelectedMonth((prev) => (prev + increment + 12) % 12);
-    else setSelectedYear((prev) => prev + increment);
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    if (type === 'month') {
+      const newMonth = (selectedMonth + increment + 12) % 12;
+      const newYear = selectedYear + Math.floor((selectedMonth + increment) / 12);
+      
+      if (newYear < currentYear || (newYear === currentYear && newMonth <= currentMonth)) {
+        setSelectedMonth(newMonth);
+        setSelectedYear(newYear);
+      }
+    } else {
+      const newYear = selectedYear + increment;
+      if (newYear <= currentYear) {
+        setSelectedYear(newYear);
+        // Adjust month if necessary
+        if (newYear === currentYear && selectedMonth > currentMonth) {
+          setSelectedMonth(currentMonth);
+        }
+      }
+    }
   };
 
   const toggleMode = () => {
     setMode(prevMode => prevMode === 'category' ? 'person' : 'category');
   };
 
-  const renderSelector = (type: 'month' | 'year') => (
-    <View style={styles.selectorContainer}>
-      <TouchableOpacity onPress={changeDate(type, -1)} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{"<"}</Text>
-      </TouchableOpacity>
-      <Text style={styles.selectorText}>
-        {type === 'month' ? months[selectedMonth] : selectedYear}
-      </Text>
-      <TouchableOpacity onPress={changeDate(type, 1)} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{">"}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderSelector = (type: 'month' | 'year') => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const canGoForward = type === 'month' 
+      ? selectedYear < currentYear || (selectedYear === currentYear && selectedMonth < currentMonth)
+      : selectedYear < currentYear;
+
+    return (
+      <View style={styles.selectorContainer}>
+        <View style={styles.arrowContainer}>
+          <TouchableOpacity onPress={changeDate(type, -1)} style={styles.arrowButton}>
+            <Text style={styles.arrowText}>{"<"}</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.selectorText}>
+          {type === 'month' ? months[selectedMonth] : selectedYear}
+        </Text>
+        <View style={styles.arrowContainer}>
+          {canGoForward && (
+            <TouchableOpacity onPress={changeDate(type, 1)} style={styles.arrowButton}>
+              <Text style={styles.arrowText}>{">"}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
@@ -178,6 +214,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  arrowContainer: {
+    width: 50,
+    alignItems: 'center',
   },
 });
 
