@@ -21,7 +21,7 @@ const getLastDayOfMonth = (year: number, month: number): number => {
 
 //if mode is false, then it's category. TODO: optimize this. Should be a better way.
 export const StatsComponent = React.memo(({ month, year, mode }: { month: number; year: number, mode: boolean | null }) => {
-  const { user, currentProfileId, setCurrentProfileId, categoryData, refreshCategoryData } = useAppContext();
+  const { currentProfileId, categoryData, refreshCategoryData, refreshProfileData } = useAppContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const calculateExpenses = useCallback(async () => {
@@ -75,22 +75,6 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
     }
     setExpenses(calculatedExpenses);
   }, [categoryData, currentProfileId, month, year]);
-
-  const fetchProfile = useCallback(async () => {
-    if (user?.email) {
-      const profileData = await fetchCurrentProfile(user.email);
-      if (profileData && typeof profileData === 'string') {
-        setCurrentProfileId(profileData);
-      }
-    }
-  }, [user?.email, setCurrentProfileId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchProfile();
-      refreshCategoryData();
-    }, [fetchProfile, refreshCategoryData, currentProfileId])
-  );
 
   useEffect(() => {
     calculateExpenses();
