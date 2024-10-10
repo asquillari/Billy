@@ -178,10 +178,7 @@ const ExpenseItem = React.memo(({ expense, maxAmount }: { expense: Expense; maxA
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start",
-    padding: 10,
     paddingTop: 260,
   },
   box: {
