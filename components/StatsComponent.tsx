@@ -51,9 +51,9 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
         const endDate = parseDate(month, year, getLastDayOfMonth(year, month));
         const items = await getTotalToPayInDateRange(currentProfileId, startDate, endDate);
     
-        calculatedExpenses = await Promise.all(sharedUsers.map(async (user: any) => {
-          const label = typeof user === 'string' ? user : (user.name || user.email || 'Unknown');
-          return { label, amount: items ? items[typeof user === 'string' ? user : user.email] || 0 : 0, color: generateRandomColor() } as Expense;
+        calculatedExpenses = await Promise.all(sharedUsers.map(async (user) => {
+          const label = user.name || user.email;
+          return { label, amount: items ? items[user.email] || 0 : 0, color: generateRandomColor() } as Expense;
         }));
       }
     }

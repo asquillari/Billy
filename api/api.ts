@@ -634,8 +634,16 @@ export async function removeSharedUsers(profileId: string, emails: string[]) {
   }
 }
 
-export async function getSharedUsers(profileId: string) {
-  return await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
+export async function getSharedUsers(profileId: string): Promise<UserData[]> {
+  const users = await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
+  if (!users) return [];
+  
+  const userDetails = await Promise.all(users.map(async (email: string) => {
+    const name = await getValueFromData(USERS_TABLE, 'name', 'email', email);
+    return { email, name: name || email };
+  }));
+  
+  return userDetails;
 }
 
 export async function isProfileShared(profileId: string): Promise<boolean | null> {
@@ -772,6 +780,10 @@ export async function logOut() {
     console.error("Unexpected error during logout:", error);
     return { error: "An unexpected error occurred." };
   }
+}
+
+export async function getUser(email: string): Promise<UserData | null> {
+  return await getData(USERS_TABLE, email);
 }
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {
