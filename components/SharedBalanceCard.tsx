@@ -24,7 +24,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
       const [debtsToUser, debtsFromUser, totalToPay] = await Promise.all([
         getDebtsToUser(profileEmail, currentProfileId),
         getDebtsFromUser(profileEmail, currentProfileId),
-        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2024-12-31'))
+        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2030-12-31'))
       ]);
 
       if (debtsToUser && debtsFromUser) {
