@@ -634,7 +634,7 @@ export async function removeSharedUsers(profileId: string, emails: string[]) {
   }
 }
 
-export async function getSharedUsers(profileId: string): Promise<string[] | null> {
+export async function getSharedUsers(profileId: string) {
   return await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
 }
 

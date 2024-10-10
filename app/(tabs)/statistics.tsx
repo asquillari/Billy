@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
-import { fetchCurrentProfile, isProfileShared } from "@/api/api";
+import { isProfileShared } from "@/api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAppContext } from "@/hooks/useAppContext";
 
@@ -26,21 +26,13 @@ const App = () => {
   const [selectedButton, setSelectedButton] = useState<'month' | 'year'>('month');
   const [mode, setMode] = useState<'category' | 'person'>('category');
 
-  const { user, currentProfileId, setCurrentProfileId } = useAppContext();
+  const { currentProfileId } = useAppContext();
   const [shared, setShared] = useState<boolean | null>(null);
-
-  const fetchProfile = useCallback(async () => {
-    if (user?.email) {
-      const profileData = await fetchCurrentProfile(user.email);
-      if (profileData && typeof profileData === 'string') setCurrentProfileId(profileData);
-      if (currentProfileId) isProfileShared(currentProfileId).then(setShared);
-    }
-  }, [user?.email, setCurrentProfileId, currentProfileId]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [fetchProfile])
+      if (currentProfileId) isProfileShared(currentProfileId).then(setShared);
+    }, [])
   );
 
   const toggleSelector = (type: 'month' | 'year') => () => {
