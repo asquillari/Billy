@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { addProfile, addSharedUsers, addCategory } from '@/api/api';
+import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface AddProfileModalProps {
   isVisible: boolean;
   onClose: () => void;
   onProfileAdded: () => void;
-  email: string;
 }
 
-const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded, email }) => {
+const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, onProfileAdded }) => {
+  const { user } = useAppContext();
+
   const [profileName, setProfileName] = useState('');
   const [sharedUsers, setSharedUsers] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,8 +21,8 @@ const AddProfileModal: React.FC<AddProfileModalProps> = ({ isVisible, onClose, o
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (profileName.trim()) {
-      const newProfile = await addProfile(profileName, email);
-      await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']));
+      const newProfile = await addProfile(profileName, user?.email ?? "");
+      await addCategory(newProfile?.id ?? "", "Otros", JSON.stringify(['#AAAAAA', '#AAAAAA']), "shape");
       if (sharedUsers.trim()) {
         const emails = [...sharedUsers.split(',').map(e => e.trim()).filter(e => e)];
         await addSharedUsers(newProfile?.id ?? "", emails);

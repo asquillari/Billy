@@ -5,17 +5,16 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addIncome, addOutcome, fetchCategories, CategoryData,isProfileShared, getSharedUsers, getCategoryIdByName } from '@/api/api';
 import moment from 'moment';
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface AddTransactionModalProps {
   isVisible: boolean;
   onClose: () => void;
-  refreshIncomeData: () => void;
-  refreshOutcomeData: () => void;
-  refreshCategoryData: () => void;
-  currentProfileId: string;
 }
 
-const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, onClose, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
+const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, onClose }) => {
+  const { currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
+  
   const [type, setType] = useState<'Income' | 'Outcome'>('Income');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
@@ -45,12 +44,12 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
   useEffect(() => {
     if (isVisible) {
       fetchProfileData();
-      fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
+      fetchCategories(currentProfileId??"").then(categories => setCategories(categories || []));
     }
   }, [isVisible, currentProfileId, fetchProfileData]);
 
   const fetchCategoriesData = useCallback(() => {
-    fetchCategories(currentProfileId).then(categories => setCategories(categories || []));
+    fetchCategories(currentProfileId??"").then(categories => setCategories(categories || []));
   }, [currentProfileId]);
 
   useEffect(() => {
@@ -66,16 +65,16 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (type === 'Income') {
-      await addIncome(currentProfileId, parseFloat(amount), description);
+      await addIncome(currentProfileId??"", parseFloat(amount), description);
       refreshIncomeData();
     } 
     else {
       let categoryToUse = selectedCategory;
-      if (selectedCategory === '') categoryToUse = await getCategoryIdByName(currentProfileId, 'Otros') ?? "null";
+      if (selectedCategory === '') categoryToUse = await getCategoryIdByName(currentProfileId??"", 'Otros') ?? "null";
       if (categoryToUse === "null") return;
       if (shared && whoPaidIt && whoPaidIt.length > 0) {
         await addOutcome(
-          currentProfileId, 
+          currentProfileId??"", 
           categoryToUse || '', 
           parseFloat(amount), 
           description, 
@@ -85,7 +84,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
         );
       }
       else {
-        await addOutcome(currentProfileId, categoryToUse || '', parseFloat(amount), description, date);
+        await addOutcome(currentProfileId??"", categoryToUse || '', parseFloat(amount), description, date);
       }
       refreshOutcomeData();
       refreshCategoryData();

@@ -4,14 +4,14 @@ import { ThemedText } from '@/components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { logIn } from '@/api/api';
-import { useUser } from '../contexts/UserContext';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [password, setPassword] = useState('');
-  const { setUserEmail } = useUser();
+  const { setUser } = useAppContext();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -21,7 +21,7 @@ export default function Login() {
     try {
       const result = await logIn(email, password);
       if (result.user) { 
-        setUserEmail(email);
+        setUser({ email });
         navigation.navigate('(tabs)' as never);
       } 
       else Alert.alert('Login Failed', 'Invalid email or password');

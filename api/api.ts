@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
-import FeComponentTransferFunction from 'react-native-svg/lib/typescript/elements/filters/FeComponentTransferFunction';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -9,6 +8,8 @@ const SHARED_OUTCOMES_TABLE = 'SharedOutcomes';
 const CATEGORIES_TABLE = 'Categories';
 const PROFILES_TABLE = 'Profiles';
 const USERS_TABLE = 'Users';
+const DEBTS_TABLE = 'Debts';
+const BILLS_TABLE = 'Bills';
 
 export interface UserData {
   email: string;
@@ -51,6 +52,7 @@ export interface CategoryData {
   spent? : number;
   limit?: number;
   color: string;
+  icon: string;
   created_at?: Date;
 }
 
@@ -301,11 +303,11 @@ export async function addOutcome(
   created_at?: Date,
   paid_by?: string,
   debtors?: string[]
-): Promise<OutcomeData[] | null> {
+) {
   try {
     if (category === "" || !(await checkCategoryLimit(category, amount))) {
       console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
-      return null;
+      return -3;
     }
 
     const newOutcome: OutcomeData = { 
@@ -315,17 +317,8 @@ export async function addOutcome(
       description, 
       created_at: created_at || new Date()
     };
-    
-    const { data: outcomeData, error: outcomeError } = await supabase
-      .from(OUTCOMES_TABLE)
-      .insert(newOutcome)
-      .select()
-      .single();
 
-    if (outcomeError) {
-      console.error("Error añadiendo gasto:", outcomeError);
-      return null;
-    }
+    const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
 
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
@@ -362,13 +355,26 @@ export async function addOutcome(
 
 export async function addSharedOutcome(users: string[], toPay: number[]) {
   const hasPaid: boolean[] = users.map((_, index) => index === 0);
-  const newSharedOutcome: SharedOutcomeData = { 
-    users: users,
-    to_pay: toPay,
-    has_paid: hasPaid
-  };
+  const newSharedOutcome: SharedOutcomeData = { users: users, to_pay: toPay, has_paid: hasPaid };
   const data = await addData(SHARED_OUTCOMES_TABLE, newSharedOutcome);
   return data.id;
+}
+
+async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
+  return await getData(SHARED_OUTCOMES_TABLE, id);
+}
+
+// In testing phase
+async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOutcomeData) {
+  const paidBy = sharedOutcome.users[0];
+
+  for (let i = 1; i < sharedOutcome.users.length; i++) {
+    const debtor = sharedOutcome.users[i];
+    const amount = sharedOutcome.to_pay[i];    
+    await updateDebt(profile, paidBy, debtor, -amount);
+  }
+
+  await redistributeDebts(profile);
 }
 
 export async function removeOutcome(profile: string, id: string) {
@@ -392,7 +398,7 @@ export async function removeOutcome(profile: string, id: string) {
     }
 
     return deleteResult;
-  } 
+  }
   
   catch (error) {
     console.error("Unexpected error removing outcome:", error);
@@ -440,8 +446,8 @@ export async function getCategoryIdByName(profile: string, categoryName: string)
   return category ? category.id : null;
 }
 
-export async function addCategory(profile: string, name: string, color: string, limit?: number): Promise<CategoryData | null> {
-  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color };
+export async function addCategory(profile: string, name: string, color: string, icon: string, limit?: number): Promise<CategoryData | null> {
+  const newCategory: CategoryData = { profile: profile, name: name, limit: limit, color: color, icon: icon };
   return await addData(CATEGORIES_TABLE, newCategory);
 }
 
@@ -459,6 +465,10 @@ async function getCategoryLimit(category: string): Promise<number | null> {
 
 async function getCategorySpent(category: string): Promise<number | null> {
   return await getValueFromData(CATEGORIES_TABLE, 'spent', 'id', category);
+}
+
+async function getCategoryIcon(category: string): Promise<string | null> {
+  return await getValueFromData(CATEGORIES_TABLE, 'icon', 'id', category);
 }
 
 async function updateCategorySpent(category: string, added: number) {
@@ -604,7 +614,9 @@ export async function addSharedUsers(profileId: string, emails: string[]) {
       const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profileId, new_user: email });
       if (profileError) console.error(`Error al añadir ${email} al perfil ${profileId}:`, profileError);
     }
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado en addSharedUsers:", error);
   }
 }
@@ -622,8 +634,16 @@ export async function removeSharedUsers(profileId: string, emails: string[]) {
   }
 }
 
-export async function getSharedUsers(profileId: string): Promise<string[] | null> {
-  return await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
+export async function getSharedUsers(profileId: string): Promise<UserData[]> {
+  const users = await getValueFromData(PROFILES_TABLE, 'users', 'id', profileId);
+  if (!users) return [];
+  
+  const userDetails = await Promise.all(users.map(async (email: string) => {
+    const name = await getValueFromData(USERS_TABLE, 'name', 'email', email);
+    return { email, name: name || email };
+  }));
+  
+  return userDetails;
 }
 
 export async function isProfileShared(profileId: string): Promise<boolean | null> {
@@ -762,6 +782,10 @@ export async function logOut() {
   }
 }
 
+export async function getUser(email: string): Promise<UserData | null> {
+  return await getData(USERS_TABLE, email);
+}
+
 export async function changeCurrentProfile(user: string, newProfileID: string) {
   return await updateData(USERS_TABLE, 'current_profile', newProfileID, 'email', user);
 }
@@ -770,7 +794,26 @@ export async function fetchCurrentProfile(user: string) {
   return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
 
+export async function updateUserEmail(profileId: string, newEmail: string) {
+  return await updateData(PROFILES_TABLE, 'email', newEmail, 'id', profileId);
+}
 
+export async function updateUserPassword(profileId: string, newPassword: string) {
+  return await updateData(PROFILES_TABLE, 'password', newPassword, 'id', profileId);
+}
+
+export async function updateUserName(profileId: string, newName: string) {
+  return await updateData(PROFILES_TABLE, 'name', newName, 'id', profileId);
+}
+
+export async function updateUserSurname(profileId: string, newSuranme: string) {
+  return await updateData(PROFILES_TABLE, 'surname', newSuranme, 'id', profileId);
+}
+
+export async function updateUserFullName(profileId: string, newName: string, newSurname: string) {
+  updateUserName(profileId, newName);
+  updateUserSurname(profileId, newSurname);
+}
 
 /* Stats */
 
@@ -982,11 +1025,15 @@ export async function processInvitation(invitationId: string, email: string): Pr
     //   .eq('id', invitationId);
 
     return invitation.profile; // Devolvemos el ID del perfil añadido
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado procesando la invitación:", error);
     return null;
   }
 }
+
+
 
 /* Debts */
 
@@ -1000,6 +1047,7 @@ export async function getDebtsBeetweenUsers(user1: string, user2: string) {
       .eq('has_paid', false);
       
   }
+  
   catch (error) {
     console.error("Unexpected error fetching debts between users:", error);
     return null;
@@ -1019,6 +1067,7 @@ export async function getDebtsToUser(debtor: string, profileId: string): Promise
       console.error("Error fetching debts to user:", error);
       return null;
     }
+
     return data;
   } 
   
@@ -1053,15 +1102,16 @@ export async function getDebtsFromUser(debtor: string, profileId: string): Promi
 
 export async function removeSharedProfile(profileId: string, email: string) {
   const profile = await getProfile(profileId);
-  if(profile?.owner !== email) {
+  if (profile?.owner !== email) {
     await removeSharedUsers(profileId, [email]);
-  }else{
+  }
+  
+  else {
     await removeSharedUsers(profileId, profile.users ?? []);
-    const removedProfile = await removeData(PROFILES_TABLE, profileId);
+    await removeData(PROFILES_TABLE, profileId);
   }
   return true;
 }
-
 
 async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
@@ -1130,7 +1180,9 @@ async function redistributeDebts(profileId: string): Promise<boolean> {
     }
 
     return true;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error redistributing debts:", error);
     return false;
   }
@@ -1160,8 +1212,15 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
   }
 
   if (existingDebt) {
-    await supabase.from('Debts').update({ amount: amount }).eq('profile', existingDebt.profile).eq('paid_by', paidBy).eq('debtor', debtor);
-  } else {
+    await supabase
+      .from('Debts')
+      .update({ amount: amount })
+      .eq('profile', existingDebt.profile)
+      .eq('paid_by', paidBy)
+      .eq('debtor', debtor);
+  } 
+  
+  else {
     await supabase.from('Debts').insert({
       profile: profileId,
       paid_by: paidBy,
@@ -1211,7 +1270,9 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
         console.error("Error actualizando deuda existente:", updateError);
         return false;
       }
-    } else {
+    } 
+    
+    else {
       const { error: insertError } = await supabase
         .from('Debts')
         .insert({
@@ -1230,45 +1291,246 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
     }
     await redistributeDebts(profileId);
     return true;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Error inesperado añadiendo deuda:", error);
     return false;
   }
 }
 
-/* Shared Calendar*/
+/* División de Cuenta */
 
-export async function getSharedOutcomesFromDateRangeAndProfileName(profileId: string, start: Date, end: Date, profileName: string) {
+export async function createBill(total: number, participants: string[]): Promise<boolean> {
   try {
-    // Primero, verificamos que el perfil exista
-    const { data: profile, error: profileError } = await supabase
-      .from(PROFILES_TABLE)
-      .select('*')
-      .eq('id', profileId)
+    // Insertar el total en la tabla Bills
+    const { data: billData, error: billError } = await supabase
+      .from(BILLS_TABLE)
+      .insert({ total: total })
+      .select()
       .single();
 
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      return { error: "Profile not found", details: profileError.message };
+    if (billError) {
+      console.error("Error al crear la factura:", billError);
+      return false;
     }
 
-    // Si el perfil existe, es compartido y el nombre coincide, obtenemos los outcomes
-    const { data: outcomes, error: outcomesError } = await supabase
-      .from(OUTCOMES_TABLE)
-      .select('*')
-      .eq('id', profileId)
-      .eq('profile', profileName)
-      .gte('created_at', start.toISOString())
-      .lte('created_at', end.toISOString());
+    const billId = billData.id;
 
-    if (outcomesError) {
-      console.error("Error fetching shared outcomes:", outcomesError);
-      return { error: "Failed to fetch outcomes", details: outcomesError.message };
+    // Añadir cada participante a la factura
+    for (const participant of participants) {
+      const success = await addParticipantToBill(billId, participant);
+      if (!success) {
+        console.error("Error al añadir participante:", participant);
+        return false;
+      }
     }
 
-    return outcomes;
+    return true;
   } catch (error) {
-    console.error("Unexpected error in getSharedOutcomesFromDateRangeAndProfileName:", error);
-    return { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) };
+    console.error("Error inesperado al crear la factura:", error);
+    return false;
+  }
+}
+
+export async function addParticipantToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipantes')
+      .insert({ id: billId, email: participant })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al añadir participante a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al añadir participante a la factura:", error);
+    return false;
+  }
+}
+
+export async function addOutcomeToBill(billId: string, participant: string, amount: number): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_spent: amount })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al agregar gasto a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al agregar gasto a la factura:", error);
+    return false;
+  }
+}
+
+export async function deleteOutcomeToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_spent: null })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al eliminar gasto de la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al eliminar gasto de la factura:", error);
+    return false;
+  }
+}
+
+
+export async function addIncomeToBill(billId: string, participant: string, amount: number): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_paid: amount })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al agregar pago a la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al agregar pago a la factura:", error);
+    return false;
+  }
+
+}
+
+export async function deleteIncomeToBill(billId: string, participant: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .update({ amount_paid: null })
+      .eq('bill', billId)
+      .eq('email', participant)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al eliminar pago de la factura:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al eliminar pago de la factura:", error);
+    return false;
+  }
+}
+
+
+
+export async function calculateDebts(billId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('BillParticipants')
+      .select('email, amount_spent, amount_paid')
+      .eq('bill', billId);
+
+    if (error) {
+      console.error("Error al obtener los datos de los participantes de la factura:", error);
+      return false;
+    }
+
+    if (!data || data.length === 0) {
+      console.error("No se encontraron participantes para esta factura");
+      return false;
+    }
+
+    let totalSpent = 0;
+    const participants = data.map(participant => {
+      totalSpent += participant.amount_spent || 0;
+      return {
+        email: participant.email,
+        spent: participant.amount_spent || 0,
+        paid: participant.amount_paid || 0
+      };
+    });
+
+    const averageSpent = totalSpent / participants.length;
+
+    const debts: { debtor: string; creditor: string; amount: number }[] = [];
+    participants.forEach(debtor => {
+      participants.forEach(creditor => {
+        if (debtor.email !== creditor.email) {
+          const debtorBalance = debtor.paid - averageSpent;
+          const creditorBalance = creditor.paid - averageSpent;
+          
+          if (debtorBalance < 0 && creditorBalance > 0) {
+            const debtAmount = Math.min(Math.abs(debtorBalance), creditorBalance);
+            debts.push({
+              debtor: debtor.email,
+              creditor: creditor.email,
+              amount: Number(debtAmount.toFixed(2))
+            });
+          }
+        }
+      });
+    });
+
+    for (const debt of debts) {
+      const { error: insertError } = await supabase
+        .from('BillDebts')
+        .insert({
+          bill: billId,
+          debtor: debt.debtor,
+          creditor: debt.creditor,
+          amount: debt.amount
+        });
+
+      if (insertError) {
+        console.error("Error al insertar la deuda en BillDebts:", insertError);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error inesperado al calcular e insertar las deudas:", error);
+    return false;
+  }
+}
+
+export async function getBillDebts(billId: string) {
+  try {
+    const { data: debts, error } = await supabase
+      .from('BillDebts')
+      .select('*')
+      .eq('bill', billId);
+
+    if (error) {
+      console.error("Error al obtener las deudas de la factura:", error);
+      return null;
+    }
+
+    return debts;
+  } catch (error) {
+    console.error("Error inesperado al obtener las deudas de la factura:", error);
+    return null;
   }
 }

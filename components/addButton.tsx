@@ -3,14 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AddTransactionModal from './modals/AddTransactionModal';
 
-interface AddButtonProps {
-  refreshIncomeData: () => void;
-  refreshOutcomeData: () => void;
-  refreshCategoryData: () => void;
-  currentProfileId: string;
-}
-
-const AddButton: React.FC<AddButtonProps> = ({ refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId }) => {
+const AddButton = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -18,7 +11,7 @@ const AddButton: React.FC<AddButtonProps> = ({ refreshIncomeData, refreshOutcome
       <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.button}>
         <Icon name="add" size={24} color="#B29CCA"/>
       </TouchableOpacity>
-      <AddTransactionModal isVisible={modalVisible} onClose={() => setModalVisible(false)} refreshIncomeData={refreshIncomeData} refreshOutcomeData={refreshOutcomeData} refreshCategoryData={refreshCategoryData} currentProfileId={currentProfileId}/>
+      <AddTransactionModal isVisible={modalVisible} onClose={() => setModalVisible(false)}/>
     </View>
   );
 };

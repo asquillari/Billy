@@ -5,14 +5,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { removeIncome, IncomeData } from '../api/api';
 import { FontAwesome } from '@expo/vector-icons';
 import moment from 'moment';
+import { useAppContext } from '@/hooks/useAppContext';
 
-interface IncomeListProps {
-  incomeData: IncomeData[] | null;
-  refreshData: () => void;
-  currentProfileId: string;
-}
-
-export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData, currentProfileId }) => {
+export const IncomeList = () => {
+  const { incomeData, currentProfileId, refreshIncomeData } = useAppContext();
 
   // For deleting
   const [selectedIncome, setSelectedIncome] = useState<IncomeData | null>(null);
@@ -28,28 +24,28 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
     setSelectedIncome(income);
     Alert.alert("Eliminar ingreso", "¿Está seguro de que quiere eliminar el ingreso?", [{text: "Cancelar", style: "cancel"}, {text: "Eliminar", style: "destructive",
       onPress: async () => {
-        if (income) handleRemoveIncome(currentProfileId, income.id ?? "0")
+        if (income) handleRemoveIncome(currentProfileId??"", income.id ?? "0")
       }
     }]);
   }, [incomeData]);
 
   const handleRemoveIncome = async (profile: string, id: string) => {
     await removeIncome(profile, id);
-    refreshData();  // Actualiza los datos después de eliminar
+    refreshIncomeData();
   };
 
   const renderItem = useCallback(({ item }: { item: IncomeData }) => (
     <TouchableOpacity onLongPress={() => handleLongPress(item)}>
-        <View style={styles.card}>
-            <View style={styles.iconContainer}>
-                <FontAwesome name="dollar" size={24} color="green"/>
-            </View>
-            <View style={styles.textContainer}>
-                <ThemedText style={styles.description}>{item.description}</ThemedText>
-                <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
-            </View>
-            <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
+      <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <FontAwesome name="dollar" size={24} color="green"/>
         </View>
+        <View style={styles.textContainer}>
+          <ThemedText style={styles.description}>{item.description}</ThemedText>
+          <ThemedText style={styles.date}>{moment(item.created_at ?? "").format('DD/MM/YYYY')}</ThemedText>
+        </View>
+        <ThemedText style={styles.amount}>+ ${item.amount.toFixed(2)}</ThemedText>
+      </View>
     </TouchableOpacity>
   ), [handleLongPress]);
 
@@ -58,10 +54,10 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomeData, refreshData,
   return (
     <View style={styles.container}>
       <FlatList
-          data={sortedIncomeData}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          showsVerticalScrollIndicator={false}
+        data={sortedIncomeData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );

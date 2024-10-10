@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName } from '@/api/api';
-
-interface BalanceCardProps {
-  currentProfileId: string;
-  outcomes: number;
-  refreshData: () => void;
-  profileEmail: string;
-}
+import { useAppContext } from '@/hooks/useAppContext';
 
 interface DebtEntryProps {
   name1: string;
@@ -30,7 +24,7 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
       const [debtsToUser, debtsFromUser, totalToPay] = await Promise.all([
         getDebtsToUser(profileEmail, currentProfileId),
         getDebtsFromUser(profileEmail, currentProfileId),
-        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2024-12-31'))
+        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2030-12-31'))
       ]);
 
       if (debtsToUser && debtsFromUser) {
@@ -40,7 +34,9 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
         setTotalDebtsFromUser(debtsFromUser.reduce((total, debt) => total + debt.amount, 0));
       }
       setTotalToPay(totalToPay);
-    } catch (error) {
+    } 
+
+    catch (error) {
       console.error('Error fetching debts:', error);
     }
   }, [profileEmail, currentProfileId]);
@@ -58,15 +54,9 @@ export const DebtEntryComponent: React.FC<DebtEntryProps> = ({ name1, name2, amo
     <View style={styles.debtEntry}>
       <Text style={styles.debtText}>{name1} le debe(s) a {name2}</Text>
       <View style={styles.debtDetailsContainer}>
-        <Image
-          source={require('@/assets/images/icons/UserIcon.png')}
-          style={styles.avatar}
-        />
+        <Image source={require('@/assets/images/icons/UserIcon.png')} style={styles.avatar} />
         <Text style={styles.userAmount}>$ {amount.toFixed(2)}</Text>
-        <Image
-          source={require('@/assets/images/icons/UserIcon.png')}
-          style={styles.avatar}
-        />
+        <Image source={require('@/assets/images/icons/UserIcon.png')} style={styles.avatar} />
       </View>
     </View>
   );
@@ -83,28 +73,34 @@ const ExpenseItem: React.FC<{ label: string; value: number }> = ({ label, value 
 );
 
 {/* Shared balance card component */}
-export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId, outcomes, refreshData, profileEmail }) => {
+export const SharedBalanceCard  = () => {
+  const { outcomeData, currentProfileId, user, refreshBalanceData } = useAppContext();
 
   const [profileName, setProfileName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
-  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(profileEmail, currentProfileId);
+  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(user?.email ?? "", currentProfileId??"");
 
+  const { totalOutcome } = useMemo(() => {
+    const outcome = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
+    return { totalOutcome: outcome };
+}, [outcomeData]);
 
   const fetchProfileName = useCallback(async () => {
     try {
       setIsLoading(true);
-      const name = await getProfileName(currentProfileId);
+      const name = await getProfileName(currentProfileId??"");
       setProfileName(name || '');
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error fetching profile name:', error);
-    } finally {
+    } 
+    finally {
       setIsLoading(false);
     }
   }, [currentProfileId]);
-
 
   useEffect(() => {
     fetchProfileName();
@@ -117,9 +113,9 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   }, [profileName, isLoading]);
 
   useEffect(() => {
-    refreshData();
+    refreshBalanceData();
     refreshDebts();
-  }, [refreshData, refreshDebts]);
+  }, [refreshBalanceData, refreshDebts]);
 
   const handleEditPress = () => {
     setIsEditing(true);
@@ -136,22 +132,17 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
   const handleTitleSubmit = async () => {
     setIsEditing(false);
     try {
-      await updateProfileName(currentProfileId, title);
+      await updateProfileName(currentProfileId??"", title);
       setProfileName(title);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error updating profile name:', error);
       setTitle(profileName);
     }
   };
 
-
   return (
-    <LinearGradient
-    colors={['#e8e0ff', '#d6c5fc']} 
-    start={[0, 0]} 
-      end={[1, 1]}
-      style={styles.card}
-    >
+    <LinearGradient colors={['#e8e0ff', '#d6c5fc']} start={[0, 0]} end={[1, 1]} style={styles.card}>
       <View style={styles.titleContainer}>
         <TouchableOpacity onPress={handleEditPress} style={styles.editButton}>
           <Ionicons name="pencil" size={20} color="#666" />
@@ -164,7 +155,7 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
       </View>
 
       <View style={styles.expensesContainer}>
-        <ExpenseItem label="Gastos totales:" value={outcomes} />
+        <ExpenseItem label="Gastos totales:" value={totalOutcome} />
         <ExpenseItem label="Mis Gastos:" value={totalToPay} />
       </View>
 
@@ -172,7 +163,6 @@ export const SharedBalanceCard: React.FC<BalanceCardProps> = ({ currentProfileId
         <ExpenseItem label="Te deben:" value={totalDebtsToUser} />
         <ExpenseItem label="Tu deuda:" value={totalDebtsFromUser} />
       </View>
-
 
       <View style={styles.userDebtSection}>
         {debtsToUser.length > 0 && (
@@ -243,7 +233,6 @@ const styles = StyleSheet.create({
   expenseItem: {
     flex: 1,
     paddingHorizontal: 8,
-
   },
   expenseLabel: {
     fontSize: 14,
@@ -266,7 +255,6 @@ const styles = StyleSheet.create({
   userDebtSection: {
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
   },
   debtEntry: {
     marginBottom: 16,
@@ -277,7 +265,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
     textAlign: 'center',
-
   },
   debtDetailsContainer: {
     flexDirection: 'row',
@@ -300,7 +287,7 @@ const styles = StyleSheet.create({
   viewAll: {
     textAlign: 'center',
     color: '#6200ee',
-    marginTop: 16,
     fontSize: 16,
+    marginTop: -16,
   },
 });

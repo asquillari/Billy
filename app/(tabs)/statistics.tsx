@@ -1,27 +1,21 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import StatsComponent from '@/components/StatsComponent';
 import { BillyHeader } from "@/components/BillyHeader";
-import { Dimensions } from "react-native";
-import { useProfile } from "../contexts/ProfileContext";
-import { useUser } from "../contexts/UserContext";
-import { fetchCurrentProfile, isProfileShared } from "@/api/api";
+import { isProfileShared } from "@/api/api";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAppContext } from "@/hooks/useAppContext";
 
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const Stats = React.memo(({ selectedMonth, selectedYear, mode }: { selectedMonth: number; selectedYear: number, mode: boolean | null }) => {
-  // Use useMemo to create a memoized key that changes when any prop changes
   const memoKey = useMemo(() => `${selectedMonth}-${selectedYear}-${mode}`, [selectedMonth, selectedYear, mode]);
 
   return (
-    <ScrollView>
-      <View style={styles.card}>
-        <Text style={styles.monthText}>{months[selectedMonth]} {selectedYear}</Text>
-        <StatsComponent key={memoKey} month={selectedMonth} year={selectedYear} mode={mode}/>
-      </View>
-    </ScrollView>
+    <View style={styles.statsContainer}>
+      <StatsComponent key={memoKey} month={selectedMonth} year={selectedYear} mode={mode}/>
+    </View>
   );
 });
 
@@ -32,28 +26,13 @@ const App = () => {
   const [selectedButton, setSelectedButton] = useState<'month' | 'year'>('month');
   const [mode, setMode] = useState<'category' | 'person'>('category');
 
-  {/* Aca tengo que checkear si el usuario tiene un perfil compartido, pero estaria repitiendo codigo
-  con statsComponent, ver si lo puedo optimizar. */}
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
+  const { currentProfileId } = useAppContext();
   const [shared, setShared] = useState<boolean | null>(null);
-
-  const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
-      if (profileData && typeof profileData === 'string') {
-        setCurrentProfileId(profileData);
-      }
-      if (currentProfileId) {
-        isProfileShared(currentProfileId).then(setShared);
-      }
-    }
-  }, [userEmail, setCurrentProfileId, currentProfileId]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [fetchProfile])
+      if (currentProfileId) isProfileShared(currentProfileId).then(setShared);
+    }, [])
   );
 
   const toggleSelector = (type: 'month' | 'year') => () => {
@@ -61,105 +40,165 @@ const App = () => {
   };
 
   const changeDate = (type: 'month' | 'year', increment: number) => () => {
-    if (type === 'month') setSelectedMonth((prev) => (prev + increment + 12) % 12);
-    else setSelectedYear((prev) => prev + increment);
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    if (type === 'month') {
+      const newMonth = (selectedMonth + increment + 12) % 12;
+      const newYear = selectedYear + Math.floor((selectedMonth + increment) / 12);
+      
+      if (newYear < currentYear || (newYear === currentYear && newMonth <= currentMonth)) {
+        setSelectedMonth(newMonth);
+        setSelectedYear(newYear);
+      }
+    } 
+    
+    else {
+      const newYear = selectedYear + increment;
+      if (newYear <= currentYear) {
+        setSelectedYear(newYear);
+        if (newYear === currentYear && selectedMonth > currentMonth) {
+          setSelectedMonth(currentMonth);
+        }
+      }
+    }
   };
 
   const toggleMode = () => {
     setMode(prevMode => prevMode === 'category' ? 'person' : 'category');
   };
 
-  const renderSelector = (type: 'month' | 'year') => (
-    <View style={styles.selectorContainer}>
-      <TouchableOpacity onPress={changeDate(type, -1)} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{"<"}</Text>
-      </TouchableOpacity>
-      <Text style={styles.selectorText}>
-        {type === 'month' ? months[selectedMonth] : selectedYear}
-      </Text>
-      <TouchableOpacity onPress={changeDate(type, 1)} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{">"}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const canGoForward = selectedButton === 'month' 
+    ? selectedYear < currentDate.getFullYear() || (selectedYear === currentDate.getFullYear() && selectedMonth < currentDate.getMonth())
+    : selectedYear < currentDate.getFullYear();
 
   return (
     <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-      <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
-      <View style={styles.selectorContainer}>
-        {['month', 'year'].map((type) => (
-          <TouchableOpacity key={type} onPress={toggleSelector(type as 'month' | 'year')} style={[styles.selectorButton, { backgroundColor: selectedButton === type ? '#4B00B8' : '#fff' }]}>
-            <Text style={[styles.selectorText, { color: selectedButton === type ? '#fff' : '#4A00E0' }]}>
-              {type === 'month' ? 'Mes' : 'Año'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        {shared && (
-        <TouchableOpacity onPress={toggleMode} style={styles.circularButton}>
-          <Text style={styles.circularButtonText}>
-          {mode === 'category' ? 'C' : 'P'}
-          </Text>
-        </TouchableOpacity>
-        )}
+      <View style={styles.headerContainer}>
+        <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
       </View>
-      {renderSelector(selectedButton)} 
-      <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} mode={mode === 'category' ? false : true} />
+      <View style={styles.contentContainer}>
+        <View style={styles.selectorWrapper}>
+          <View style={styles.selectorContainer}>
+            <TouchableOpacity 
+              style={[styles.selectorButton, selectedButton === 'month' && styles.selectorButtonActive]} 
+              onPress={toggleSelector('month')}
+            >
+              <Text style={[styles.selectorButtonText, selectedButton === 'month' && styles.selectorButtonTextActive]}>Mes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.selectorButton, selectedButton === 'year' && styles.selectorButtonActive]} 
+              onPress={toggleSelector('year')}
+            >
+              <Text style={[styles.selectorButtonText, selectedButton === 'year' && styles.selectorButtonTextActive]}>Año</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.card}>
+          <View style={styles.dateSelector}>
+            <TouchableOpacity onPress={changeDate(selectedButton, -1)} style={styles.arrowButton}>
+              <Text style={styles.arrowText}>{"<"}</Text>
+            </TouchableOpacity>
+            <View style={styles.dateTextContainer}>
+              <Text style={styles.dateText}>
+                {selectedButton === 'month' ? `${months[selectedMonth]} ${selectedYear}` : selectedYear.toString()}
+              </Text>
+            </View>
+            <View style={styles.arrowButton}>
+              {canGoForward && (
+                <TouchableOpacity onPress={changeDate(selectedButton, 1)}>
+                  <Text style={styles.arrowText}>{">"}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          {shared && (
+            <TouchableOpacity onPress={toggleMode} style={styles.circularButton}>
+              <Text style={styles.circularButtonText}>
+                {mode === 'category' ? 'C' : 'P'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <Stats selectedMonth={selectedMonth} selectedYear={selectedYear} mode={mode === 'category' ? false : true} />
+        </View>
+      </View>
     </LinearGradient>
   );
 };
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
+  headerContainer: {
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  selectorWrapper: {
+    alignItems: 'center',
+  },
+  selectorContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 25,
+    padding: 4,
+  },
+  selectorButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  selectorButtonActive: {
+    backgroundColor: 'white',
+  },
+  selectorButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  selectorButtonTextActive: {
+    color: '#4B00B8',
+  },
   card: {
-    minHeight: SCREEN_HEIGHT * 0.62,
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
+    paddingTop: 40,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3,
   },
-  monthText: {
-    fontSize: 28,
-    color: '#3e0196',
-    textAlign: 'center',
-  },
-  selectorContainer: {
+  dateSelector: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   arrowButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   arrowText: {
     fontSize: 24,
-    color: '#fff',
+    color: '#4B00B8',
   },
-  selectorText: {
-    fontSize: 18,
-    color: '#fff',
-    marginHorizontal: 10,
-  },
-  selectorButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#4B00B8',
-    marginHorizontal: 5,
+  dateTextContainer: {
+    flex: 1,
     alignItems: 'center',
-    elevation: 5, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    maxWidth: 210,
   },
-  gradientContainer: {
+  dateText: {
+    fontSize: 24,
+    color: '#4B00B8',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  statsContainer: {
     flex: 1,
   },
   circularButton: {
@@ -169,12 +208,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#87CEFA',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 30,
+    position: 'absolute',
+    right: 20,
+    top: 20,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
+    zIndex: 3,
   },
   circularButtonText: {
     fontSize: 18,

@@ -1,18 +1,19 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, StyleSheet, Alert, View } from 'react-native';
 import { CategoryData, removeCategory, fetchOutcomesByCategory } from '@/api/api';
 import { ThemedText } from './ThemedText';
 import { OutcomeData } from '@/api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import AddCategoryModal from './modals/AddCategoryModal';
-import CategoryDetailsModal from './modals/CategoryDetailsModal';
+import { useNavigation } from '@react-navigation/native';
+import { useAppContext } from '@/hooks/useAppContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { NavigationProp } from '@/types/navigation';
 
 interface CategoryListProps {
-    categoryData: CategoryData[] | null;
-    refreshCategoryData: () => void;
-    refreshAllData: () => void;
-    currentProfileId: string;
+    layout: 'row' | 'grid';
     showAddButton?: boolean;
+    showHeader?: boolean;
 }
 
 const parseGradient = (color: string): string[] => {
@@ -20,20 +21,23 @@ const parseGradient = (color: string): string[] => {
     catch { return ['#48ECE2', '#62D29C']; }
 };
 
-export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refreshCategoryData, refreshAllData, currentProfileId, showAddButton = true }) => {    
+export const CategoryList: React.FC<CategoryListProps> = ({ layout, showAddButton = true, showHeader = true }) => {    
+    const navigation = useNavigation<NavigationProp<'Home'>>();
+    
+    const { outcomeData, refreshOutcomeData, categoryData, refreshCategoryData } = useAppContext();
+
     const [modalVisible, setModalVisible] = useState(false);
 
     // For details
-    const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
+    const [filteredOutcomeData, setFilteredOutcomeData] = useState<OutcomeData[]>([]);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
     
     // Get categories' outcomes
-    async function getOutcomeData(profile: string, category: string) {
-        const data = await fetchOutcomesByCategory(category);
-        setOutcomeData(data as OutcomeData[]);
-        refreshAllData();
-    };
+    const getOutcomeData = useCallback((categoryId: string) => {
+        const filtered = outcomeData?.filter(outcome => outcome.category === categoryId) || [];
+        setFilteredOutcomeData(filtered);
+      }, [outcomeData]);  
 
     // Aseguramos que "Otros" siempre esté presente y al final
     const sortedCategories = useMemo(() => {
@@ -43,13 +47,9 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
         return [...otherCategories, othersCategory];
     }, [categoryData]);
 
-    // See category details
     const handleCategoryPress = useCallback((category: CategoryData) => {
-        setSelectedCategory(category);
-        getOutcomeData(currentProfileId, category.id ?? "null").then(() => {
-            setDetailsModalVisible(true);
-        });
-    }, [getOutcomeData]);
+        navigation.navigate('CategoryDetailsScreen', { category } as never);
+    }, [navigation]);
 
     const handleLongPress = useCallback((category: CategoryData) => {
         if (category.name === "Otros") {
@@ -61,7 +61,10 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
             onPress: async () => {
                 if (category) {
                     await removeCategory(category.id||"null");
-                    refreshCategoryData();
+                    await Promise.all([
+                        refreshOutcomeData(),
+                        refreshCategoryData()
+                    ]);
                 }
             }}]);
     }, [refreshCategoryData]);
@@ -74,35 +77,67 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
     const renderCategory = useCallback((category: CategoryData, index: number) => {
         const gradientColors = getCategoryColor(category);
         return (
-            <TouchableOpacity key={category.id || index} onPress={() => handleCategoryPress(category)} onLongPress={() => handleLongPress(category)}>
-                <LinearGradient colors={gradientColors} style={styles.category} start={{x: 0, y: 0}} end={{x: 0, y: 1}}>
-                    <ThemedText style={styles.categoryName}>{category.name}</ThemedText>
-                    <ThemedText style={styles.categoryAmount}>${category.spent}</ThemedText>
+            <TouchableOpacity 
+                key={category.id || index} 
+                onPress={() => handleCategoryPress(category)} 
+                onLongPress={() => handleLongPress(category)}
+                style={layout === 'grid' ? styles.gridItem : styles.rowItem}
+            >
+                <LinearGradient 
+                    colors={gradientColors} 
+                    style={layout === 'grid' ? styles.gridCategory : styles.rowCategory} 
+                    start={{x: 0, y: 0}} 
+                    end={{x: 0, y: 1}}
+                >
+                    <Icon 
+                        name={category.icon || 'cash-multiple'} 
+                        size={layout === 'grid' ? 60 : 40} 
+                        color="rgba(255,255,255,0.2)" 
+                        style={styles.backgroundIcon} 
+                    />
+                    <ThemedText style={layout === 'grid' ? styles.gridCategoryName : styles.rowCategoryName}>
+                        {category.name}
+                    </ThemedText>
+                    <ThemedText style={layout === 'grid' ? styles.gridCategoryAmount : styles.rowCategoryAmount}>
+                        ${category.spent}
+                    </ThemedText>
                 </LinearGradient>
             </TouchableOpacity>
         );
-    }, [getCategoryColor, handleCategoryPress, handleLongPress]);
+    }, [getCategoryColor, handleCategoryPress, handleLongPress, layout]);
 
     return (
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-            {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
-
-            {/* Add button */}
-            {showAddButton && ( // Condicional para mostrar el botón de agregar
-                <TouchableOpacity style={styles.addCategoryButton} onPress={() => setModalVisible(true)}>
-                    <Text style={styles.addCategoryButtonText}>+</Text>
-                </TouchableOpacity>
+        <View>
+            {showHeader && (
+                <View style={styles.headerContainer}>
+                    <Text style={styles.categoriesTitle}>Categorías</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('CategoriesScreen' as never)}>
+                        <Text style={styles.viewMoreText}>Ver más</Text>
+                    </TouchableOpacity>
+                </View>
             )}
-
-            <CategoryDetailsModal
-                isVisible={detailsModalVisible}
-                onClose={() => setDetailsModalVisible(false)}
-                selectedCategory={selectedCategory}
-                outcomeData={outcomeData}
-                refreshData={() => getOutcomeData(currentProfileId, selectedCategory?.id ?? "null")}
-                currentProfileId={currentProfileId}
-            />
-
+    
+            <ScrollView 
+                horizontal={layout === 'row'}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={layout === 'grid' ? styles.gridContainer : styles.rowContainer}
+            >
+                {sortedCategories.filter((category): category is CategoryData => category !== undefined).map(renderCategory)}
+    
+                {showAddButton && (
+                    <TouchableOpacity 
+                        style={[
+                            styles.addCategoryButton, 
+                            layout === 'grid' ? styles.gridAddButton : styles.rowAddButton
+                        ]} 
+                        onPress={() => setModalVisible(true)}
+                    >
+                        <Text style={styles.addCategoryButtonText}>+</Text>
+                    </TouchableOpacity>
+                )}
+            </ScrollView>
+    
             <AddCategoryModal
                 isVisible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -110,37 +145,86 @@ export const CategoryList: React.FC<CategoryListProps> = ({ categoryData, refres
                     refreshCategoryData();
                     setModalVisible(false);
                 }}
-                currentProfileId={currentProfileId}
                 sortedCategories={sortedCategories}
             />
-        </ScrollView>       
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    categoriesContainer: {
-        flexWrap: 'nowrap',
+    rowContainer: {
+        flexDirection: 'row',
+    },
+    gridContainer: {
+        marginTop: 10,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    rowItem: {
+        marginRight: 16,
+    },
+    gridItem: {
+        width: '48%',
         marginBottom: 16,
     },
-    category: {
+    rowCategory: {
         width: 150,
         height: 80,
         padding: 15,
         borderRadius: 15,
-        marginRight: 16,
         justifyContent: 'space-between',
         position: 'relative',
         overflow: 'hidden',
     },
-    addCategoryText: {
-        fontSize: 24,
+    gridCategory: {
+        aspectRatio: 1,
+        padding: 15,
+        borderRadius: 15,
+        position: 'relative',
+        overflow: 'hidden',
     },
-    categoryName: {
+    rowCategoryName: {
         color: '#3B3B3B',
         fontWeight: 'bold',
+        fontSize: 16,
     },
-    categoryAmount: {
+    gridCategoryName: {
         color: '#3B3B3B',
+        fontWeight: 'bold',
+        fontSize: 24,
+        marginTop: 5,
+    },
+    rowCategoryAmount: {
+        color: '#3B3B3B',
+        fontSize: 13,
+    },
+    gridCategoryAmount: {
+        color: '#3B3B3B',
+        fontSize: 20,
+        marginTop: 5,
+    },
+    rowAddButton: {
+        width: 40,
+        height: 80,
+    },
+    gridAddButton: {
+        width: '48%',
+        aspectRatio: 1,
+    },
+    categoriesTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    viewMoreText: {
+        color: '#4B00B8',
+        textDecorationLine: 'underline',
+    },
+    backgroundIcon: {
+        position: 'absolute',
+        right: -10,
+        bottom: -10,
     },
     addCategoryButton: {
         width: 40,
@@ -152,5 +236,11 @@ const styles = StyleSheet.create({
     addCategoryButtonText: {
         fontSize: 24,
         color: '#370185',
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
     },
 });

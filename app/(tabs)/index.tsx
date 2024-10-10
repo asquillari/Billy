@@ -1,94 +1,105 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
 import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
-import useProfileData from '@/hooks/useProfileData';
-import { IncomeData, OutcomeData, fetchCurrentProfile, getSharedUsers, isProfileShared } from '../../api/api';
+import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUser } from '../contexts/UserContext';
-import { useProfile } from '../contexts/ProfileContext';
 import { SharedBalanceCard } from '@/components/SharedBalanceCard';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function HomeScreen() {
-  const { userEmail } = useUser();
-  const { currentProfileId, setCurrentProfileId } = useProfile();
-  const { incomeData, outcomeData, categoryData, balance, getIncomeData, getOutcomeData, getCategoryData, getBalanceData, refreshAllData } = useProfileData(currentProfileId || "");
+  const { user, currentProfileId, setCurrentProfileId, profileData, refreshAllData } = useAppContext();
+
   const [shared, setShared] = useState<boolean | null>(null);
   const [sharedUsers, setSharedUsers] = useState<string[] | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (userEmail) {
-      const profileData = await fetchCurrentProfile(userEmail);
-      if (profileData && typeof profileData === 'string' && profileData.trim() !== '') {
-        setCurrentProfileId(profileData);
-        const isShared = await isProfileShared(profileData);
-        setShared(isShared);
-        if (isShared) {
-          const users = await getSharedUsers(profileData);
-          setSharedUsers(users);
-        }
-      } else {
-        console.error('Invalid or empty profile ID received');
+    if (!user?.email) return false;
+  
+    let profileChanged = false;
+    let currentProfile = await fetchCurrentProfile(user.email);
+  
+    if (!currentProfile || typeof currentProfile !== 'string' || currentProfile.trim() === '') {
+      if (!profileData || profileData.length === 0) {
+        console.error('No profiles found for the user');
         setShared(false);
         setSharedUsers(null);
+        return true;
       }
+      currentProfile = profileData[0].id;
+      await changeCurrentProfile(user.email, currentProfile);
+      profileChanged = true;
     }
-  }, [userEmail, setCurrentProfileId]);
+  
+    if (currentProfile !== currentProfileId) {
+      setCurrentProfileId(currentProfile);
+      profileChanged = true;
+    }
+  
+    const isShared = await isProfileShared(currentProfile);
+    if (isShared !== shared) {
+      setShared(isShared);
+      profileChanged = true;
+    }
+  
+    const users = isShared ? await getSharedUsers(currentProfile) : null;
+    if (JSON.stringify(users) !== JSON.stringify(sharedUsers)) {
+      setSharedUsers(users);
+      profileChanged = true;
+    }
+  
+    return profileChanged;
+  }, [user?.email, setCurrentProfileId, currentProfileId, shared, sharedUsers]);
   
   useFocusEffect(
     useCallback(() => {
+      let isMounted = true;
       const fetchData = async () => {
-        await fetchProfile();
-        await Promise.all([ getCategoryData(), getIncomeData(), getOutcomeData() ]);
+        if (isMounted) {
+          const profileChanged = await fetchProfile();
+          if (isMounted && profileChanged) await refreshAllData();
+        }
       };
       fetchData();
-    }, [fetchProfile, getCategoryData, getIncomeData, getOutcomeData])
+      return () => { isMounted = false; };
+    }, [fetchProfile, refreshAllData])
   );
-  
-  const { totalIncome, totalExpenses } = useMemo(() => {
-    const income = incomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
-    const expenses = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
-    return { totalIncome: income, totalExpenses: expenses };
-  }, [incomeData, outcomeData]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
         <BillyHeader/>
         <View style={styles.contentContainer}>
-          <ScrollView style={styles.scrollView}>
+          <ScrollView>
             
           {!shared && (
-              <BalanceCard balance={balance} incomes={totalIncome} outcomes={totalExpenses} refreshData={getBalanceData}/>
-            )}  
+            <BalanceCard/>
+          )}
 
-            {shared && (
-              <View style={styles.sharedBalanceContainer}>
-                <SharedBalanceCard currentProfileId={currentProfileId??""} outcomes={totalExpenses} refreshData={getBalanceData} profileEmail={userEmail}/> 
-                <View style={styles.addButtonContainer}>
-                  <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
-                </View>
+          {shared && (
+            <View>
+              <SharedBalanceCard/> 
+              <View style={styles.addButtonContainer}>
+                <AddButton/>
               </View>
-            )}  
+            </View>
+          )}  
 
-            {!shared && (
-              <AddButton refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""}/>
-            )}
+          {!shared && (
+            <AddButton/>
+          )}
           
-            <View style={styles.sectionContainer}> 
-              <ThemedText style={styles.title}>Categorías</ThemedText>
-              <CategoryList categoryData={categoryData} refreshCategoryData={getCategoryData} refreshAllData={refreshAllData} currentProfileId={currentProfileId??""}/>
-            </View>
+          <View style={styles.sectionContainer}> 
+            <CategoryList showHeader={true} layout='row'/>
+          </View>
 
-            <View style={styles.sectionContainer}> 
-              <ThemedText style={styles.title}>Actividad reciente</ThemedText>
-              <TransactionList incomeData={incomeData} outcomeData={outcomeData} refreshIncomeData={getIncomeData} refreshOutcomeData={getOutcomeData} refreshCategoryData={getCategoryData} currentProfileId={currentProfileId??""} scrollEnabled={false}/>
-            </View>
+          <View style={styles.sectionContainer}> 
+            <TransactionList scrollEnabled={false} showHeader={true} showDateSeparators={false} timeRange='month'/>
+          </View>
 
           </ScrollView>
         </View>
@@ -97,11 +108,7 @@ export default function HomeScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
-  sharedBalanceContainer: {
-    position: 'relative',
-  },
   addButtonContainer: {
     position: 'absolute',
     top: 235,
@@ -121,17 +128,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: '2.5%',
   },
-  scrollView: {
-    flex: 1,
-  },
   sectionContainer: {
     paddingHorizontal: 15,
     marginBottom: 20,
-  },
-  title: {
-    marginBottom: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3B3B3B',
   },
 });
