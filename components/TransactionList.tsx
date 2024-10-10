@@ -20,14 +20,7 @@ interface TransactionListProps {
   customEndDate?: Date;
 }
 
-export const TransactionList: React.FC<TransactionListProps> = ({ 
-  scrollEnabled = true, 
-  showHeader, 
-  showDateSeparators = true, 
-  timeRange, 
-  customStartDate, 
-  customEndDate
-}) => {
+export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled = true, showHeader, showDateSeparators = true, timeRange, customStartDate, customEndDate }) => {
   const { incomeData, outcomeData, categoryData, currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData } = useAppContext();
   
   const navigation = useNavigation();
