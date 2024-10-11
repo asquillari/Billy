@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { logIn } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
+import { Alert } from 'react-native'; 
 
 export default function Login() {
   const navigation = useNavigation();
@@ -23,17 +24,20 @@ export default function Login() {
       if (result.user) { 
         setUser({ email });
         navigation.navigate('(tabs)' as never);
-      } 
-      else Alert.alert('Login Failed', 'Invalid email or password');
-    } 
-    
-    catch (error) {
+      } else {
+        Alert.alert('Login Failed', 'Invalid email or password');
+      }
+    } catch (error) {
       Alert.alert('Login Error', 'An error occurred during login');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Ajusta este valor según sea necesario
+    >
       <Image style={styles.logo} source={require('../../assets/images/Billy/billy-start.png')}/>
       <View style={styles.whiteContainer}>
 
@@ -53,15 +57,11 @@ export default function Login() {
           </TouchableOpacity>
         </View>
         
-        <TouchableOpacity>
-          <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
-        </TouchableOpacity>
-        
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

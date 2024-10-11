@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { signUp, addProfile, changeCurrentProfile } from '@/api/api';
@@ -51,7 +51,11 @@ export default function Signup() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Ajusta este valor según sea necesario
+    >
       <Image source={require('../../assets/images/Billy/billy-signup.png')} style={styles.logo}/>
       <View style={styles.whiteContainer}>
         <View style={styles.headerContainer}>
@@ -87,7 +91,7 @@ export default function Signup() {
           <ThemedText style={styles.buttonText}>Registrarme</ThemedText>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
