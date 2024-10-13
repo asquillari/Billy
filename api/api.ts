@@ -305,8 +305,8 @@ export async function addOutcome(
   debtors?: string[]
 ) {
   try {
-    if (category === "" || !(await checkCategoryLimit(category, amount))) {
-      console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
+    if (category === "") {
+      console.log("No se pudo añadir debido a categoría faltante");
       return -3;
     }
 
@@ -476,7 +476,7 @@ async function updateCategorySpent(category: string, added: number) {
   if (currentSpent !== null) return await updateData(CATEGORIES_TABLE, 'spent', currentSpent + added, 'id', category);
 }
 
-async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
+export async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
   try {
     const limit = await getCategoryLimit(category);
     if (limit == null || limit <= 0) return true;
