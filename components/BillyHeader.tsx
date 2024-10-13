@@ -14,7 +14,6 @@ interface BillyHeaderProps {
 
 export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
   const { profileData, currentProfileId } = useAppContext();
-
   const navigation = useNavigation();
   
   const handleLogout = async () => {
@@ -29,13 +28,15 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
   return (
     <View style={styles.headerContainer}>
       <View style={styles.barraSuperior}>
-        <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
-        <View style={styles.profileContainer}>
-          <Text style={styles.profileName}>{profileName}</Text>
+        <View style={styles.overlapGroup}>
+          <View style={styles.logoContainer}>
+            <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
+            <Text style={styles.profileName}>{profileName}</Text>
+          </View>
+          <TouchableOpacity onPress={handleLogout} style={styles.usuarioContainer}>
+            <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleLogout}>
-          <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario} />
-        </TouchableOpacity>
       </View>
       
       <View style={styles.textIconContainer}>
@@ -54,35 +55,57 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 40 : (StatusBar.currentHeight ?? 0) + 10;
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    paddingTop: STATUSBAR_HEIGHT,
+  },
   barraSuperior: {
-    height: 60,
+    height: 90,
+    width: '100%',
+    position: 'fixed',
+    top: 0,
+    zIndex: 1000,
+  },
+  overlapGroup: {
     backgroundColor: '#ffffff',
     borderRadius: 30,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
-    shadowRadius: 5,
+    shadowRadius: 10,
     elevation: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    height: 80,
+    width: '100%',
+    position: 'relative',
     paddingHorizontal: 28,
-    marginHorizontal: 10,
-    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', 
+  },
+  logoContainer: {
+    flexDirection: 'column', 
+    alignItems: 'flex-start', 
   },
   logoBilly: {
     width: 80,
     height: 40,
     resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 10,
+    marginTop: 0, 
+  },
+  profileName: {
+    color: '#3d2b7e',
+    fontSize: 25,
+    fontWeight: 'bold',
+    marginTop: -15, // Usar un valor negativo más pronunciado para acercar más
+    marginBottom: 0, // Eliminar margen inferior
+    fontFamily: 'Arial Rounded MT Bold', // Aplicar la fuente personalizada
+  },
+  usuarioContainer: {
+    marginLeft: 'auto', // Alinear el icono de usuario a la derecha
   },
   usuario: {
-    width: 40,
-    height: 40,
+    width: 47,
+    height: 47,
     resizeMode: 'contain',
-    borderRadius: 20,
-    alignSelf: 'center',
   },
   tituloContainer: {
     marginHorizontal: 20,
@@ -101,26 +124,13 @@ const styles = StyleSheet.create({
     letterSpacing: -0.12,
     marginTop: 5,
   },
-  headerContainer: {
-    paddingTop: STATUSBAR_HEIGHT,
-  },
-  icon: {
-    marginRight: 15,
-  },
   textIconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  profileContainer: {
-    justifyContent: 'center',
-  },
-  profileName: {
-    color: '#4B00B8',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginRight: 40,
+  icon: {
+    marginRight: 15,
   },
 });
 
