@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
+import { Alert } from 'react-native';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -318,6 +319,20 @@ export async function addOutcome(
       created_at: created_at || new Date()
     };
 
+    // Verificar si se ha alcanzado el límite
+    const isWithinLimit = await checkCategoryLimit(category, amount);
+    if (!isWithinLimit) {
+      // Obtener el nombre de la categoría directamente desde la lista de categorías
+      const categoryData = await fetchCategories(profile); // Asegúrate de que esta función devuelva todas las categorías
+      if (!categoryData) {
+          throw new Error("No se encontraron categorías."); // Manejo de error si categoryData es null
+      }
+      const categoryInfo = categoryData.find(cat => cat.id === category);
+      const categoryName = categoryInfo ? categoryInfo.name : "Categoría desconocida"; // Obtener el nombre
+
+      Alert.alert("¡Cuidado!", `Has alcanzado tu límite en ${categoryName}.`); // Mostrar el nombre en la alerta
+    }
+
     const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
 
     // Si es un gasto grupal, añadir las deudas correspondientes
@@ -346,7 +361,6 @@ export async function addOutcome(
 
     return [outcomeData];
   } 
-
   catch (error) {
     console.error("Error inesperado añadiendo gasto:", error);
     return null;

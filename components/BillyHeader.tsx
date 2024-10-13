@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Alert, View, Image, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, Alert, View, Image, TouchableOpacity, Text, ImageStyle } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import { logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
@@ -30,11 +30,11 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
       <View style={styles.barraSuperior}>
         <View style={styles.overlapGroup}>
           <View style={styles.logoContainer}>
-            <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly}/>
+            <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly as ImageStyle}/>
             <Text style={styles.profileName}>{profileName}</Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={styles.usuarioContainer}>
-            <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario} />
+            <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario as ImageStyle} />
           </TouchableOpacity>
         </View>
       </View>
