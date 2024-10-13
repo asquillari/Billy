@@ -1,24 +1,25 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { Redirect, Stack } from 'expo-router';
 import 'react-native-reanimated';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
-import React, { useState } from 'react';
+import React from 'react';
+import { AppProvider } from './providers/AppProvider';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [userEmail, setUserEmail] = useState('');
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} initialParams={{ userEmail, setUserEmail }}/>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} initialParams={{ setUserEmail }}/>
-      </Stack>
-    </ThemeProvider>
+    <AppProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }}/>
+          <Stack.Screen name="(auth)" options={{ headerShown: false }}/>
+          <Stack.Screen name="CategoriesScreen" options={{ headerShown: false }}/>
+          <Stack.Screen name="TransactionsScreen" options={{ headerShown: false }}/>
+          <Stack.Screen name="CategoryDetailsScreen" options={{ headerShown: false }}/>
+        </Stack>
+      </ThemeProvider>
+    </AppProvider>
   );
 }
 
