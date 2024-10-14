@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
 import { Alert } from 'react-native';
+import { decode } from 'base64-arraybuffer';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -19,6 +20,7 @@ export interface UserData {
   surname: string;
   currentProfile?: string;
   my_profiles?: string[];
+  profilePicture?: string;
 }
 
 export interface IncomeData {
@@ -827,6 +829,53 @@ export async function updateUserSurname(profileId: string, newSuranme: string) {
 export async function updateUserFullName(profileId: string, newName: string, newSurname: string) {
   updateUserName(profileId, newName);
   updateUserSurname(profileId, newSurname);
+}
+
+export async function uploadProfilePicture(userId: string, base64Image: string): Promise<string | null> {
+  try {
+    const fileName = `${userId}_${Date.now()}.jpg`;
+    const { data, error } = await supabase.storage
+      .from('Users')
+      .upload(fileName, decode(base64Image), {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) {
+      console.error("Error uploading profile picture:", error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('Users')
+      .getPublicUrl(fileName);
+
+    await updateUserProfileUrl(userId, publicUrl);
+
+    return publicUrl;
+  } catch (error) {
+    console.error("Unexpected error uploading profile picture:", error);
+    return null;
+  }
+}
+
+async function updateUserProfileUrl(userId: string, profileUrl: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from(USERS_TABLE)
+      .update({ profile_url: profileUrl })
+      .eq('id', userId);
+
+    if (error) {
+      console.error("Error updating user profile URL:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error updating user profile URL:", error);
+    return false;
+  }
 }
 
 /* Stats */
