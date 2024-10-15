@@ -17,7 +17,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
     const { categoryData } = useAppContext();
 
     // Encuentra la categoría correspondiente para obtener el límite y el gasto
-    const categoryInfo = categoryData.find(cat => cat.id === category.id);
+    const categoryInfo = categoryData?.find(cat => cat.id === category.id);
     const spent = categoryInfo?.spent || 0;
     const limit = categoryInfo?.limit || 0;
 

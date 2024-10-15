@@ -164,7 +164,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    paddingTop: 40,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 5,
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   arrowButton: {
-    width: 40,
+    width: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
