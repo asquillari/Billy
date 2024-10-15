@@ -88,11 +88,11 @@ export const SharedBalanceCard  = () => {
 
   useEffect(() => {
     const fetchUserNames = async () => {
-      const emails = [...new Set([
+      const emails = Array.from(new Set([
         ...debtsToUser.map(debt => debt.debtor),
         ...debtsFromUser.map(debt => debt.paid_by),
         ...debtsFromUser.map(debt => debt.debtor)
-      ])];
+      ]));
       const names = await getUserNames(emails);
       setUserNames(names);
     };
