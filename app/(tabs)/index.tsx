@@ -48,7 +48,7 @@ export default function HomeScreen() {
   
     const users = isShared ? await getSharedUsers(currentProfile) : null;
     if (JSON.stringify(users) !== JSON.stringify(sharedUsers)) {
-      setSharedUsers(users);
+      setSharedUsers(users?.map(user => user.email) || null);
       profileChanged = true;
     }
   
