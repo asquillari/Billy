@@ -26,7 +26,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
     return (
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-                <BillyHeader title={title} icon={category.icon} />
+                <BillyHeader title={title} icon={category.icon}/>
                 <View style={styles.contentContainer}>
                     <OutcomeList category={category.id} showDateSeparators={true} />
                 </View>

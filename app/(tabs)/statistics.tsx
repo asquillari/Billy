@@ -75,9 +75,7 @@ const App = () => {
 
   return (
     <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-      <View style={styles.headerContainer}>
-        <BillyHeader title="Estadísticas" subtitle="Mirá tu actividad mensual o anual." />
-      </View>
+      <BillyHeader/>
       <View style={styles.contentContainer}>
         <View style={styles.selectorWrapper}>
           <View style={styles.selectorContainer}>
@@ -131,8 +129,6 @@ const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
-  headerContainer: {
-  },
   contentContainer: {
     flex: 1,
   },
@@ -140,6 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectorContainer: {
+    marginTop: 5,
     flexDirection: 'row',
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 25,
