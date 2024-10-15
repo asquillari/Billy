@@ -32,7 +32,7 @@ const App = () => {
   useFocusEffect(
     useCallback(() => {
       if (currentProfileId) isProfileShared(currentProfileId).then(setShared);
-    }, [])
+    }, [currentProfileId])
   );
 
   const toggleSelector = (type: 'month' | 'year') => () => {
