@@ -111,8 +111,8 @@ export const OutcomeList: React.FC<OutcomeListProps> = ({ category, showDateSepa
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   card: {
     flexDirection: 'row',
@@ -131,6 +131,12 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginRight: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textContainer: {
     flex: 1,
@@ -151,7 +157,6 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   dateHeader: {
-    paddingVertical: 8,
     paddingHorizontal: 8,
   },
   dateHeaderText: {
