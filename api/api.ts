@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
+import { Alert } from 'react-native';
+import { decode } from 'base64-arraybuffer';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -18,6 +20,7 @@ export interface UserData {
   surname: string;
   currentProfile?: string;
   my_profiles?: string[];
+  profilePicture?: string;
 }
 
 export interface IncomeData {
@@ -295,19 +298,11 @@ export async function getOutcome(id: string): Promise<OutcomeData | null> {
   return await getData(OUTCOMES_TABLE, id);
 }
 
-export async function addOutcome(
-  profile: string, 
-  category: string, 
-  amount: number, 
-  description: string, 
-  created_at?: Date,
-  paid_by?: string,
-  debtors?: string[]
-) {
+export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, paid_by?: string, debtors?: string[]) {
   try {
-    if (category === "" || !(await checkCategoryLimit(category, amount))) {
-      console.log("No se pudo añadir debido al límite de categoría o categoría faltante");
-      return -3;
+    if (category === "") {
+      console.log("No se pudo añadir debido a categoría faltante");
+      return null;
     }
 
     const newOutcome: OutcomeData = { 
@@ -317,6 +312,20 @@ export async function addOutcome(
       description, 
       created_at: created_at || new Date()
     };
+
+    // Verificar si se ha alcanzado el límite
+    const isWithinLimit = await checkCategoryLimit(category, amount);
+    if (!isWithinLimit) {
+      // Obtener el nombre de la categoría directamente desde la lista de categorías
+      const categoryData = await fetchCategories(profile); // Asegúrate de que esta función devuelva todas las categorías
+      if (!categoryData) {
+          throw new Error("No se encontraron categorías."); // Manejo de error si categoryData es null
+      }
+      const categoryInfo = categoryData.find(cat => cat.id === category);
+      const categoryName = categoryInfo ? categoryInfo.name : "Categoría desconocida"; // Obtener el nombre
+
+      Alert.alert("¡Cuidado!", `Has alcanzado tu límite en ${categoryName}.`); // Mostrar el nombre en la alerta
+    }
 
     const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
 
@@ -346,7 +355,6 @@ export async function addOutcome(
 
     return [outcomeData];
   } 
-
   catch (error) {
     console.error("Error inesperado añadiendo gasto:", error);
     return null;
@@ -370,7 +378,7 @@ async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOu
 
   for (let i = 1; i < sharedOutcome.users.length; i++) {
     const debtor = sharedOutcome.users[i];
-    const amount = sharedOutcome.to_pay[i];    
+    const amount = sharedOutcome.to_pay[i];
     await updateDebt(profile, paidBy, debtor, -amount);
   }
 
@@ -389,7 +397,8 @@ export async function removeOutcome(profile: string, id: string) {
     const [deleteResult] = await Promise.all([
       supabase.from(OUTCOMES_TABLE).delete().eq('id', id),
       updateBalance(profile, outcome.amount),
-      updateCategorySpent(outcome.category, -outcome.amount)
+      updateCategorySpent(outcome.category, -outcome.amount),
+      outcome.shared_outcome ? removeSharedOutcomeDebts(profile, (await getSharedOutcome(outcome.shared_outcome)) ?? { users: [], to_pay: [] }) : Promise.resolve()
     ]);
 
     if (deleteResult.error) {
@@ -476,7 +485,7 @@ async function updateCategorySpent(category: string, added: number) {
   if (currentSpent !== null) return await updateData(CATEGORIES_TABLE, 'spent', currentSpent + added, 'id', category);
 }
 
-async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
+export async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
   try {
     const limit = await getCategoryLimit(category);
     if (limit == null || limit <= 0) return true;
@@ -815,6 +824,77 @@ export async function updateUserFullName(profileId: string, newName: string, new
   updateUserSurname(profileId, newSurname);
 }
 
+export async function getUserNames(emails: string[]): Promise<Record<string, string>> {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select('email, name')
+      .in('email', emails);
+
+    if (error) {
+      console.error('Error fetching user names:', error);
+      return {};
+    }
+
+    return data.reduce((acc, user) => {
+      acc[user.email] = user.name || user.email;
+      return acc;
+    }, {} as Record<string, string>);
+  } 
+  
+  catch (error) {
+    console.error('Unexpected error fetching user names:', error);
+    return {};
+  }
+}
+
+export async function uploadProfilePicture(userId: string, base64Image: string): Promise<string | null> {
+  try {
+    const fileName = `${userId}_${Date.now()}.jpg`;
+    const { data, error } = await supabase.storage
+      .from('Users')
+      .upload(fileName, decode(base64Image), {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) {
+      console.error("Error uploading profile picture:", error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('Users')
+      .getPublicUrl(fileName);
+
+    await updateUserProfileUrl(userId, publicUrl);
+
+    return publicUrl;
+  } catch (error) {
+    console.error("Unexpected error uploading profile picture:", error);
+    return null;
+  }
+}
+
+async function updateUserProfileUrl(userId: string, profileUrl: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from(USERS_TABLE)
+      .update({ profile_url: profileUrl })
+      .eq('id', userId);
+
+    if (error) {
+      console.error("Error updating user profile URL:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error updating user profile URL:", error);
+    return false;
+  }
+}
+
 /* Stats */
 
 export async function getIncomesFromDateRange(profile: string, start: Date, end: Date) {
@@ -1113,7 +1193,7 @@ export async function removeSharedProfile(profileId: string, email: string) {
   return true;
 }
 
-async function redistributeDebts(profileId: string): Promise<boolean> {
+export async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
     // Obtener todas las deudas del perfil
     const { data: debts, error: debtsError } = await supabase
@@ -1289,7 +1369,6 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
         return false;
       }
     }
-    await redistributeDebts(profileId);
     return true;
   } 
   

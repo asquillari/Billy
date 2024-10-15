@@ -34,9 +34,11 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
 
       calculatedExpenses = await Promise.all(
         categoryData.map(async (category) => {
-          let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
-          idColorMap.set(category.id || "", color);
           const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
+          let color = total > 0 
+            ? idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered)
+            : '#CCCCCC'; // No data
+          idColorMap.set(category.id || "", color);
           return { label: category.name, amount: total, color } as Expense;
         })
       );
@@ -196,28 +198,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginLeft: 10,
   },
-  textContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10, 
-    width: '100%',
-  },
   textWrapper: {
     color: "#3c3c3c",
     fontSize: 16,
     fontWeight: "400",
     flexShrink: 1,
     marginRight: 5,
-  },
-  textWrapperAmount: {
-    color: "#3c3c3c",
-    fontSize: 12,
-    flexShrink: 0,
-  },
-  rectangle: {
-    borderRadius: 25,
-    height: 13,
   },
   pieContainer: {
     alignItems: "center",
@@ -236,7 +222,6 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: '#3B3B3B',
     textAlign: 'center',
-    marginVertical: -5,
     fontWeight: 'bold',
   },
 });
