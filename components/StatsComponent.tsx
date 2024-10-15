@@ -34,9 +34,11 @@ export const StatsComponent = React.memo(({ month, year, mode }: { month: number
 
       calculatedExpenses = await Promise.all(
         categoryData.map(async (category) => {
-          let color = idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered);
-          idColorMap.set(category.id || "", color);
           const total = await getCategoryTotal(currentProfileId, category.id || '', month, year);
+          let color = total > 0 
+            ? idColorMap.get(category.id || "") || getColorForCategory(category, colorsRegistered)
+            : '#CCCCCC'; // No data
+          idColorMap.set(category.id || "", color);
           return { label: category.name, amount: total, color } as Expense;
         })
       );
