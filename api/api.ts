@@ -1227,11 +1227,11 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
     let cambios = true;
     while (cambios) {
       cambios = false;
-      for (const [acreedor, deudores] of netDebts) {
-        for (const [deudor, cantidad] of deudores) {
+      Array.from(netDebts.entries()).forEach(([acreedor, deudores]) => {
+        Array.from(deudores.entries()).forEach(([deudor, cantidad]) => {
           const deudasDeudor = netDebts.get(deudor);
           if (deudasDeudor) {
-            for (const [tercero, cantidadTercero] of deudasDeudor) {
+            Array.from(deudasDeudor.entries()).forEach(([tercero, cantidadTercero]) => {
               if (tercero !== acreedor) {
                 const cantidadTransferir = Math.min(cantidad, cantidadTercero);
                 if (cantidadTransferir > 0) {
@@ -1243,21 +1243,21 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
                   cambios = true;
                 }
               }
-            }
+            });
           }
-        }
-      }
+        });
+      });
     }
 
     // Aplicar las deudas redistribuidas
     await removeAllDebts(profileId);
-    for (const [acreedor, deudores] of netDebts) {
-      for (const [deudor, cantidad] of deudores) {
+    await Promise.all(Array.from(netDebts.entries()).map(async ([acreedor, deudores]) => {
+      await Promise.all(Array.from(deudores.entries()).map(async ([deudor, cantidad]) => {
         if (cantidad > 0) {
           await updateDebt(profileId, acreedor, deudor, cantidad);
         }
-      }
-    }
+      }));
+    }));
 
     return true;
   } 
