@@ -96,8 +96,9 @@ const styles = StyleSheet.create({
   tituloTexto: {
     color: '#ffffff',
     fontSize: 32,
-    fontWeight: '400',
+    fontFamily: 'ArialRoundedMTBold',
     letterSpacing: -1.6,
+    marginVertical: 5,
   },
   subtituloTexto: {
     color: '#ffffff',
