@@ -325,8 +325,8 @@ const styles = StyleSheet.create({
   },
   redistributeButton: {
     position: 'absolute',
-    bottom: 16,
-    right: 16,
+    bottom: 10,
+    right: 10,
     backgroundColor: '#6200ee',
     borderRadius: 30,
     width: 30,
