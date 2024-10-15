@@ -308,13 +308,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 5,
   },
-  subtituloTexto: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '400',
-    letterSpacing: -0.12,
-    marginTop: 5,
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
