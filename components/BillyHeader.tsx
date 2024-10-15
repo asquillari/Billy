@@ -27,13 +27,13 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
 
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.barraSuperior}>
+      <View>
         <View style={styles.overlapGroup}>
-          <View style={styles.logoContainer}>
+          <View>
             <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly as ImageStyle}/>
             <Text style={styles.profileName}>{profileName}</Text>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.usuarioContainer}>
+          <TouchableOpacity onPress={handleLogout}>
             <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario as ImageStyle} />
           </TouchableOpacity>
         </View>
@@ -45,7 +45,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
           {subtitle && <Text style={styles.subtituloTexto}>{subtitle}</Text>}
         </View>
         {icon && (
-          <Icon name={icon} size={40} color="#FFFFFF" style={styles.icon} />
+          <Icon name={icon} size={40} color="#FFFFFF" />
         )}
       </View>
     </View>
@@ -57,13 +57,7 @@ const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 40 : (StatusBar.currentHeight ?
 const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: STATUSBAR_HEIGHT,
-  },
-  barraSuperior: {
-    height: 90,
-    width: '100%',
-    position: 'fixed',
-    top: 0,
-    zIndex: 1000,
+    paddingHorizontal: 10,
   },
   overlapGroup: {
     backgroundColor: '#ffffff',
@@ -73,34 +67,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 5,
-    height: 80,
-    width: '100%',
+    height: 65,
     position: 'relative',
-    paddingHorizontal: 28,
+    paddingHorizontal: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between', 
   },
-  logoContainer: {
-    flexDirection: 'column', 
-    alignItems: 'flex-start', 
-  },
   logoBilly: {
     width: 80,
     height: 40,
-    resizeMode: 'contain',
-    marginTop: 0, 
   },
   profileName: {
     color: '#3d2b7e',
     fontSize: 25,
     fontWeight: 'bold',
-    marginTop: -15, // Usar un valor negativo más pronunciado para acercar más
-    marginBottom: 0, // Eliminar margen inferior
-    fontFamily: 'Arial Rounded MT Bold', // Aplicar la fuente personalizada
-  },
-  usuarioContainer: {
-    marginLeft: 'auto', // Alinear el icono de usuario a la derecha
+    marginTop: -15,
+    fontFamily: 'Arial Rounded MT Bold',
   },
   usuario: {
     width: 47,
@@ -108,8 +91,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   tituloContainer: {
-    marginHorizontal: 20,
-    marginBottom: 10,
+    marginHorizontal: 15,
+    marginBottom: 5,
   },
   tituloTexto: {
     color: '#ffffff',
@@ -122,15 +105,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     letterSpacing: -0.12,
-    marginTop: 5,
   },
   textIconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  icon: {
-    marginRight: 15,
   },
 });
 
