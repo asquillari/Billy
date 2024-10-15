@@ -17,7 +17,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
     const { categoryData } = useAppContext();
 
     // Encuentra la categoría correspondiente para obtener el límite y el gasto
-    const categoryInfo = categoryData.find(cat => cat.id === category.id);
+    const categoryInfo = categoryData?.find(cat => cat.id === category.id);
     const spent = categoryInfo?.spent || 0;
     const limit = categoryInfo?.limit || 0;
 
@@ -26,7 +26,7 @@ const CategoryDetailsScreen: React.FC<Props> = () => {
     return (
         <View style={styles.container}>
             <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-                <BillyHeader title={title} icon={category.icon} />
+                <BillyHeader title={title} icon={category.icon}/>
                 <View style={styles.contentContainer}>
                     <OutcomeList category={category.id} showDateSeparators={true} />
                 </View>

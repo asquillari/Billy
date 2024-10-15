@@ -91,8 +91,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   tituloContainer: {
-    marginHorizontal: 15,
-    marginBottom: 5,
+    marginHorizontal: 5,
   },
   tituloTexto: {
     color: '#ffffff',

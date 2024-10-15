@@ -25,7 +25,7 @@ export default function TransactionsScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <BillyHeader title="Transacciones" subtitle="Mirá tu historial de ingresos y gastos." />
+        <BillyHeader/>
         <View style={styles.contentContainer}>
           {memoizedTransactionList}
         </View>
