@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     color: '#3d2b7e',
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: -15,
     fontFamily: 'ArialRoundedMTBold',
