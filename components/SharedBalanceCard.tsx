@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName } from '@/api/api';
+import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName, redistributeDebts } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 
 interface DebtEntryProps {
@@ -12,7 +12,9 @@ interface DebtEntryProps {
 }
 
 {/* Debts data component */}
-const useDebtsData = (profileEmail: string, currentProfileId: string) => {
+const useDebtsData = (profileEmail: string) => {
+  const { currentProfileId } = useAppContext();
+
   const [totalDebtsToUser, setTotalDebtsToUser] = useState(0);
   const [totalDebtsFromUser, setTotalDebtsFromUser] = useState(0);
   const [totalToPay, setTotalToPay] = useState(0);
@@ -22,9 +24,9 @@ const useDebtsData = (profileEmail: string, currentProfileId: string) => {
   const fetchDebts = useCallback(async () => {
     try {
       const [debtsToUser, debtsFromUser, totalToPay] = await Promise.all([
-        getDebtsToUser(profileEmail, currentProfileId),
-        getDebtsFromUser(profileEmail, currentProfileId),
-        getTotalToPayForUserInDateRange(profileEmail, currentProfileId, new Date('2024-01-01'), new Date('2030-12-31'))
+        getDebtsToUser(profileEmail, currentProfileId ?? ""),
+        getDebtsFromUser(profileEmail, currentProfileId ?? ""),
+        getTotalToPayForUserInDateRange(profileEmail, currentProfileId ?? "", new Date('2024-01-01'), new Date('2030-12-31'))
       ]);
 
       if (debtsToUser && debtsFromUser) {
@@ -81,7 +83,7 @@ export const SharedBalanceCard  = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
-  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(user?.email ?? "", currentProfileId??"");
+  const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(user?.email ?? "");
 
   const { totalOutcome } = useMemo(() => {
     const outcome = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
@@ -128,6 +130,18 @@ export const SharedBalanceCard  = () => {
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
   };
+
+  const handleRedistributeDebts = useCallback(async () => {
+    if (currentProfileId) {
+      const success = await redistributeDebts(currentProfileId);
+      if (success) {
+        Alert.alert("Operación exitosa", "Las deudas han sido redistribuidas.");
+        refreshDebts();
+      } else {
+        Alert.alert("Error", "No se pudieron redistribuir las deudas. Por favor, inténtelo de nuevo.");
+      }
+    }
+  }, [currentProfileId, refreshDebts]);
 
   const handleTitleSubmit = async () => {
     setIsEditing(false);
@@ -180,6 +194,10 @@ export const SharedBalanceCard  = () => {
 
       <TouchableOpacity onPress={toggleExpanded}>
         <Text style={styles.viewAll}>{isExpanded ? 'Ver menos' : 'Ver todo'}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.redistributeButton} onPress={handleRedistributeDebts}>
+        <Ionicons name="swap-horizontal" size={24} color="#fff" />
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -289,5 +307,21 @@ const styles = StyleSheet.create({
     color: '#6200ee',
     fontSize: 16,
     marginTop: -16,
+  },
+  redistributeButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: '#6200ee',
+    borderRadius: 30,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
 });

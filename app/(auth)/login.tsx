@@ -36,7 +36,7 @@ export default function Login() {
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Ajusta este valor según sea necesario
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <Image style={styles.logo} source={require('../../assets/images/Billy/billy-start.png')}/>
       <View style={styles.whiteContainer}>
@@ -56,6 +56,10 @@ export default function Login() {
             <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="black" />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity>
+          <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
+        </TouchableOpacity>
         
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>

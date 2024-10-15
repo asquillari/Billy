@@ -36,7 +36,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       
       if (isShared) {
         const users = await getSharedUsers(currentProfileId);
-        setSharedUsers(users);
+        setSharedUsers(users.map(user => user.email));
       }
     }
   }, [currentProfileId]);

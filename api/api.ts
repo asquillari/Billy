@@ -389,8 +389,6 @@ async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOu
     const amount = sharedOutcome.to_pay[i];    
     await updateDebt(profile, paidBy, debtor, -amount);
   }
-
-  await redistributeDebts(profile);
 }
 
 export async function removeOutcome(profile: string, id: string) {
@@ -1176,7 +1174,7 @@ export async function removeSharedProfile(profileId: string, email: string) {
   return true;
 }
 
-async function redistributeDebts(profileId: string): Promise<boolean> {
+export async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
     // Obtener todas las deudas del perfil
     const { data: debts, error: debtsError } = await supabase
@@ -1352,7 +1350,6 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
         return false;
       }
     }
-    await redistributeDebts(profileId);
     return true;
   } 
   
