@@ -358,7 +358,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   categoryListContainer: {
-    marginTop: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
   },
 });
