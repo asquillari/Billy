@@ -298,19 +298,11 @@ export async function getOutcome(id: string): Promise<OutcomeData | null> {
   return await getData(OUTCOMES_TABLE, id);
 }
 
-export async function addOutcome(
-  profile: string, 
-  category: string, 
-  amount: number, 
-  description: string, 
-  created_at?: Date,
-  paid_by?: string,
-  debtors?: string[]
-) {
+export async function addOutcome(profile: string, category: string, amount: number, description: string, created_at?: Date, paid_by?: string, debtors?: string[]) {
   try {
     if (category === "") {
       console.log("No se pudo añadir debido a categoría faltante");
-      return -3;
+      return null;
     }
 
     const newOutcome: OutcomeData = { 
@@ -386,7 +378,7 @@ async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOu
 
   for (let i = 1; i < sharedOutcome.users.length; i++) {
     const debtor = sharedOutcome.users[i];
-    const amount = sharedOutcome.to_pay[i];    
+    const amount = sharedOutcome.to_pay[i];
     await updateDebt(profile, paidBy, debtor, -amount);
   }
 }
@@ -403,7 +395,8 @@ export async function removeOutcome(profile: string, id: string) {
     const [deleteResult] = await Promise.all([
       supabase.from(OUTCOMES_TABLE).delete().eq('id', id),
       updateBalance(profile, outcome.amount),
-      updateCategorySpent(outcome.category, -outcome.amount)
+      updateCategorySpent(outcome.category, -outcome.amount),
+      outcome.shared_outcome ? removeSharedOutcomeDebts(profile, (await getSharedOutcome(outcome.shared_outcome)) ?? { users: [], to_pay: [] }) : Promise.resolve()
     ]);
 
     if (deleteResult.error) {
