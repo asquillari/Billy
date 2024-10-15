@@ -44,17 +44,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
     const sorted = sortTransactions(combined);
     
     const filteredTransactions = sorted.filter(transaction => {
-      const transactionDate = moment(transaction.created_at);
-      const now = moment();
+      const transactionDate = moment(transaction.created_at).utc().startOf('day');
       switch (timeRange) {
         case 'day':
-          return transactionDate.isSameOrAfter(now.clone().startOf('day'));
+          return transactionDate.isSame(moment().utc().startOf('day'), 'day');
         case 'week':
-          return transactionDate.isSameOrAfter(now.clone().startOf('week'));
+          return transactionDate.isSameOrAfter(moment().utc().startOf('week'), 'day');
         case 'month':
-          return transactionDate.isSameOrAfter(now.clone().startOf('month'));
+          return transactionDate.isSameOrAfter(moment().utc().startOf('month'), 'day');
         case 'year':
-          return transactionDate.isSameOrAfter(now.clone().startOf('year'));
+          return transactionDate.isSameOrAfter(moment().utc().startOf('year'), 'day');
         case 'custom':
           if (customStartDate && customEndDate) {
             const start = moment(customStartDate).utc().startOf('day');
@@ -66,18 +65,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
           return true;
       }
     });
-
+  
     if (!showDateSeparators) {
       return filteredTransactions;
     }
-
+  
     const grouped = filteredTransactions.reduce((acc, transaction) => {
-      const date = moment(transaction.created_at).format('YYYY-MM-DD');
+      const date = moment(transaction.created_at).utc().format('YYYY-MM-DD');
       if (!acc[date]) acc[date] = [];
       acc[date].push(transaction);
       return acc;
     }, {} as Record<string, (IncomeData | OutcomeData)[]>);
-
+  
     return Object.entries(grouped).map(([date, transactions]) => ({ date, data: transactions }));
   }, [incomeData, outcomeData, sortTransactions, timeRange, customStartDate, customEndDate, showDateSeparators]);
 

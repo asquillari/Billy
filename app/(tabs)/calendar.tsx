@@ -54,17 +54,17 @@ export default function CalendarScreen() {
   };
 
   const onDayPress = useCallback((day: any) => {
+    const selectedDate = moment(day.dateString).utc().startOf('day');
     if (selectionStart) {
-      const start = moment(selectionStart);
-      const end = moment(day.dateString);
-      if (end.isBefore(start)) setSelectedRange({ start: day.dateString, end: selectionStart });
-      else setSelectedRange({ start: selectionStart, end: day.dateString });
+      const start = moment(selectionStart).utc().startOf('day');
+      const end = selectedDate;
+      if (end.isBefore(start)) setSelectedRange({ start: end.format('YYYY-MM-DD'), end: start.format('YYYY-MM-DD') });
+      else setSelectedRange({ start: start.format('YYYY-MM-DD'), end: end.format('YYYY-MM-DD') });
       setSelectionStart(null);
-    } else {
-      setSelectedRange({ start: day.dateString, end: day.dateString });
-    }
+    } 
+    else setSelectedRange({ start: selectedDate.format('YYYY-MM-DD'), end: selectedDate.format('YYYY-MM-DD') });
   }, [selectionStart]);
-
+  
   const onDayLongPress = useCallback((day: any) => {
     setSelectionStart(day.dateString);
     Alert.alert('Fecha de inicio', `${day.dateString} seleccionada. Ahora seleccione una fecha final.`);
