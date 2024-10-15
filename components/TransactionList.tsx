@@ -102,7 +102,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ scrollEnabled 
   const handleRemoveOutcome = async (profile: string, id: string) => {
     await removeOutcome(profile, id);
     refreshOutcomeData();
-    refreshCategoryData?.();
+    refreshCategoryData();
     refreshBalanceData(); 
   };
 
