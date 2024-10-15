@@ -1378,6 +1378,38 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
+export async function markDebtAsPaid(debtId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('Debts')
+      .update({ has_paid: true })
+      .eq('id', debtId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error marking debt as paid:", error);
+      return false;
+    }
+
+    if (!data) {
+      console.error("No debt found with id:", debtId);
+      return false;
+    }
+
+    // Redistribuyo las deudas luego de marcarla como pagada (creo que no hace falta)
+    //const redistributionSuccess = await redistributeDebts(profileId);
+    //if (!redistributionSuccess) {
+    //  console.error("Failed to redistribute debts after marking debt as paid");
+    //}
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error marking debt as paid:", error);
+    return false;
+  }
+}
+
 /* División de Cuenta */
 
 export async function createBill(total: number, participants: string[]): Promise<boolean> {
