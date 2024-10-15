@@ -1533,6 +1533,4 @@ export async function getBillDebts(billId: string) {
     console.error("Error inesperado al obtener las deudas de la factura:", error);
     return null;
   }
-
-  return { user, profile, session };
 }
