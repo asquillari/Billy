@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginTop: -15,
-    fontFamily: 'Arial Rounded MT Bold',
+    fontFamily: 'ArialRoundedMTBold',
   },
   usuario: {
     width: 47,

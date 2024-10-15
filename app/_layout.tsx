@@ -4,9 +4,14 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
 import { AppProvider } from './providers/AppProvider';
+import { useFonts } from 'expo-font';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  const [fontsLoaded] = useFonts({
+    'ArialRoundedMTBold': require('../assets/fonts/arialroundedmtbold.ttf'),
+  });
 
   return (
     <AppProvider>
