@@ -381,6 +381,8 @@ async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOu
     const amount = sharedOutcome.to_pay[i];
     await updateDebt(profile, paidBy, debtor, -amount);
   }
+
+  await redistributeDebts(profile);
 }
 
 export async function removeOutcome(profile: string, id: string) {
@@ -820,6 +822,30 @@ export async function updateUserSurname(profileId: string, newSuranme: string) {
 export async function updateUserFullName(profileId: string, newName: string, newSurname: string) {
   updateUserName(profileId, newName);
   updateUserSurname(profileId, newSurname);
+}
+
+export async function getUserNames(emails: string[]): Promise<Record<string, string>> {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select('email, name')
+      .in('email', emails);
+
+    if (error) {
+      console.error('Error fetching user names:', error);
+      return {};
+    }
+
+    return data.reduce((acc, user) => {
+      acc[user.email] = user.name || user.email;
+      return acc;
+    }, {} as Record<string, string>);
+  } 
+  
+  catch (error) {
+    console.error('Unexpected error fetching user names:', error);
+    return {};
+  }
 }
 
 export async function uploadProfilePicture(userId: string, base64Image: string): Promise<string | null> {

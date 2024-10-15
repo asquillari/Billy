@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName, redistributeDebts } from '@/api/api';
+import { getDebtsToUser,getDebtsFromUser, getTotalToPayForUserInDateRange, DebtData, getProfileName, updateProfileName, redistributeDebts, getUserNames } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 
 interface DebtEntryProps {
@@ -83,12 +83,27 @@ export const SharedBalanceCard  = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(profileName);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
   const { debtsToUser, debtsFromUser, totalDebtsToUser, totalDebtsFromUser, totalToPay, refreshDebts } = useDebtsData(user?.email ?? "");
+
+  useEffect(() => {
+    const fetchUserNames = async () => {
+      const emails = [...new Set([
+        ...debtsToUser.map(debt => debt.debtor),
+        ...debtsFromUser.map(debt => debt.paid_by),
+        ...debtsFromUser.map(debt => debt.debtor)
+      ])];
+      const names = await getUserNames(emails);
+      setUserNames(names);
+    };
+
+    fetchUserNames();
+  }, [debtsToUser, debtsFromUser]);
 
   const { totalOutcome } = useMemo(() => {
     const outcome = outcomeData?.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0) || 0;
     return { totalOutcome: outcome };
-}, [outcomeData]);
+  }, [outcomeData]);
 
   const fetchProfileName = useCallback(async () => {
     try {
@@ -180,15 +195,15 @@ export const SharedBalanceCard  = () => {
 
       <View style={styles.userDebtSection}>
         {debtsToUser.length > 0 && (
-          <DebtEntryComponent name1="Tú" name2={debtsToUser[0].debtor} amount={debtsToUser[0].amount} />
+          <DebtEntryComponent name1="Tú" name2={userNames[debtsToUser[0].debtor]} amount={debtsToUser[0].amount} />
         )}
 
         {isExpanded && debtsToUser.slice(1).map((debt, index) => (
-          <DebtEntryComponent key={debt.id || index} name1="Tú" name2={debt.debtor} amount={debt.amount} />
+          <DebtEntryComponent key={debt.id || index} name1="Tú" name2={userNames[debt.debtor]} amount={debt.amount} />
         ))}
 
         {isExpanded && debtsFromUser.map((debt, index) => (
-          <DebtEntryComponent key={debt.id || index} name1={debt.paid_by} name2={debt.debtor} amount={debt.amount} />
+          <DebtEntryComponent key={debt.id || index} name1={userNames[debt.paid_by]} name2={userNames[debt.debtor]} amount={debt.amount} />
         ))}
       </View>
 
