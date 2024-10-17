@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
 import { Alert } from 'react-native';
 import { decode } from 'base64-arraybuffer';
-import axios from 'axios';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -1615,47 +1614,28 @@ export async function getBillDebts(billId: string) {
   }
 }
 
-/* AI text recognition */
+/* AI */
 
-interface OllamaResponse {
-    answer: string;
-}
-
-// Función para obtener la categoría
-const categorizePurchase = async (description: string, categories: string[]): Promise<string | null> => {
-  const prompt = `
-  Tengo una lista de categorías de compras: ${categories.join(', ')}.
-  Clasifica la siguiente descripción de compra en una de esas categorías:
-
-  Descripción: "${description}"
-
-  Responde solo con el nombre de la categoría.
-  `;
-
+export const categorizePurchase = async (description: string, categories: string[]): Promise<string | null> => {
   try {
-      const response = await axios.post<OllamaResponse>('https://api.ollama.com/v1/chat', {
-          prompt: prompt,
-          model: 'ollama-gpt'
-      }, {
-          headers: {
-              'Authorization': `Bearer YOUR_API_KEY`,  // Reemplaza con tu clave API
-              'Content-Type': 'application/json'
-          }
-      });
+    const response = await fetch('http://192.168.1.89:3000/categorize', {
+      method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ description, categories }),
+  });
+  
 
-      // Limpiar y ajustar la respuesta
-      const category = response.data.answer.trim();
+    if (!response.ok) {
+      const errorText = await response.text(); // Agregado para obtener más información
+      throw new Error(`Error en la solicitud: ${response.status} ${errorText}`);
+    }
 
-      // Verificar si la respuesta está en las categorías proporcionadas
-      if (categories.includes(category)) {
-          console.log('Categoría asignada:', category);
-          return category;
-      } else {
-          console.log('Categoría no reconocida, asignando a "Otros"');
-          return "Otros";
-      }
+    const data = await response.json();
+    return data.category;
   } catch (error) {
-      console.error('Error al categorizar la compra:', error);
-      return null;
+    console.error('Error al categorizar la compra:', error);
+    return null;
   }
 };
