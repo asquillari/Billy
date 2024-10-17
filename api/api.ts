@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
 import { Alert } from 'react-native';
 import { decode } from 'base64-arraybuffer';
+import axios from 'axios';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -1613,3 +1614,48 @@ export async function getBillDebts(billId: string) {
     return null;
   }
 }
+
+/* AI text recognition */
+
+interface OllamaResponse {
+    answer: string;
+}
+
+// Función para obtener la categoría
+const categorizePurchase = async (description: string, categories: string[]): Promise<string | null> => {
+  const prompt = `
+  Tengo una lista de categorías de compras: ${categories.join(', ')}.
+  Clasifica la siguiente descripción de compra en una de esas categorías:
+
+  Descripción: "${description}"
+
+  Responde solo con el nombre de la categoría.
+  `;
+
+  try {
+      const response = await axios.post<OllamaResponse>('https://api.ollama.com/v1/chat', {
+          prompt: prompt,
+          model: 'ollama-gpt'
+      }, {
+          headers: {
+              'Authorization': `Bearer YOUR_API_KEY`,  // Reemplaza con tu clave API
+              'Content-Type': 'application/json'
+          }
+      });
+
+      // Limpiar y ajustar la respuesta
+      const category = response.data.answer.trim();
+
+      // Verificar si la respuesta está en las categorías proporcionadas
+      if (categories.includes(category)) {
+          console.log('Categoría asignada:', category);
+          return category;
+      } else {
+          console.log('Categoría no reconocida, asignando a "Otros"');
+          return "Otros";
+      }
+  } catch (error) {
+      console.error('Error al categorizar la compra:', error);
+      return null;
+  }
+};

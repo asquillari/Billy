@@ -26,6 +26,7 @@
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.45.3",
     "@tamagui/animations-css": "^1.110.2",
+    "axios": "^1.7.7",
     "base64-arraybuffer": "^1.0.2",
     "clsx": "^2.1.1",
     "expo": "^51.0.34",
