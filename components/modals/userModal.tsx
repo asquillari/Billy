@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames } from '@/api/api';
+import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName } from '@/api/api';
 //import { getUserNames, getProfileIcon } from '@/api/api';
 
 
@@ -10,16 +10,16 @@ interface UserProfileModalProps {
   isVisible: boolean;
   onClose: () => void;
   onLogout: () => void;
-
+  profileId: string;
 }
 
-const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout }) => {
+const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout, profileId }) => {
   const { user } = useAppContext();
   const [userName, setUserName] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
-
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,9 +38,35 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
     fetchUserData();
   }, [user?.email]);
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
+    if (isEditing) {
+      setIsUpdating(true);
+      try {
+        
+          await updateUserName(profileId, userName);
+          console.log('Nombre actualizado');
+          console.log(userName);
+        
+       
+        //   await updateUserEmail(profileId, userEmail);
+        //   console.log('Email actualizado');
+        //   console.log(userEmail);
+        
+        // Update the user context here if needed
+        // For example: updateUser({ ...user, name: userName, email: userEmail });
+      } catch (error) {
+        console.error('Error updating user information:', error);
+        // Revert changes on error
+        setUserName(userName);
+        setUserEmail(userEmail);
+        // Show error message to user
+        // For example: showErrorToast('Failed to update profile. Please try again.');
+      } finally {
+        setIsUpdating(false);
+      }
+    }
     setIsEditing(!isEditing);
-    //setEditingField(null);
+    setEditingField(null);
   };
 
   const handleChangePassword = () => {
@@ -133,8 +159,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
             </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={[ styles.button, isEditing ? styles.saveButton : null ]} onPress={handleEdit}>
-              <Text style={styles.buttonText}>{isEditing ? 'Guardar' : 'Editar'}</Text>
+            <TouchableOpacity 
+              style={[
+                styles.button, 
+                isEditing ? styles.saveButton : null,
+                isUpdating ? styles.disabledButton : null
+              ]} 
+              onPress={handleEdit}
+              disabled={isUpdating}
+            >
+              <Text style={styles.buttonText}>
+                {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}
+              </Text>
             </TouchableOpacity>
 
               {!isEditing && (
@@ -232,6 +268,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   logoutButton: {
     backgroundColor: '#D32F2F',
