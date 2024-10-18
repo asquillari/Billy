@@ -10,10 +10,9 @@ interface UserProfileModalProps {
   isVisible: boolean;
   onClose: () => void;
   onLogout: () => void;
-  profileId: string;
 }
 
-const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout, profileId }) => {
+const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout}) => {
   const { user } = useAppContext();
   const [userName, setUserName] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
@@ -109,13 +108,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
                 <Text style={styles.label}>Nombre:</Text>
                 <View style={styles.editableField}>
                   {isEditing && editingField === 'name' ? (
-                    <TextInput 
-                      style={[styles.input, styles.visibleInput]}
-                      value={userName}
-                      onChangeText={setUserName}
-                      onBlur={() => setEditingField(null)}
-                      autoFocus
-                    />
+                    <TextInput style={[styles.input, styles.visibleInput]} value={userName} onChangeText={setUserName} onBlur={() => setEditingField(null)} autoFocus/>
                   ) : (
                     <Text style={styles.value}>{userName || 'N/A'}</Text>
                   )}
@@ -131,19 +124,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
               <Text style={styles.label}>Mail:</Text>
               <View style={styles.editableField}>
                 {isEditing && editingField === 'email' ? (
-                  <TextInput
-                    style={styles.input}
-                    value={userEmail}
-                    onChangeText={setUserEmail}
-                    onBlur={() => setEditingField(null)}
-                    autoFocus
-                  />
+                  <TextInput style={styles.input} value={userEmail} onChangeText={setUserEmail} onBlur={() => setEditingField(null)} autoFocus/>
                 ) : (
                   <Text style={styles.value}>{userEmail || 'N/A'}</Text>
                 )}
                 <TouchableOpacity onPress={() => handleEditField('email')}>
-
-                {isEditing &&
+                  {isEditing &&
                   <Icon name="edit" size={20} color="#370185" />
                 }
                 </TouchableOpacity>
@@ -157,13 +143,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
             )}
 
             <TouchableOpacity 
-              style={[
-                styles.button, 
-                isEditing ? styles.saveButton : null,
-                isUpdating ? styles.disabledButton : null
-              ]} 
-              onPress={handleEdit}
-              disabled={isUpdating}
+              style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} 
+              onPress={handleEdit} disabled={isUpdating}
             >
               <Text style={styles.buttonText}>
                 {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}

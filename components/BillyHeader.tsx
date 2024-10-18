@@ -38,7 +38,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
           <TouchableOpacity onPress={() => setIsProfileIconOpened(!isProfileIconOpened)}>
             <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario as ImageStyle} />
           </TouchableOpacity>
-          <UserProfileModal isVisible={isProfileIconOpened} onClose={() => setIsProfileIconOpened(false)} onLogout={handleLogout} profileId={currentProfileId || ''}/>
+          <UserProfileModal isVisible={isProfileIconOpened} onClose={() => setIsProfileIconOpened(false)} onLogout={handleLogout}/>
         </View>
       </View>
       
