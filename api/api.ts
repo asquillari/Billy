@@ -803,25 +803,25 @@ export async function fetchCurrentProfile(user: string) {
   return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
 
-export async function updateUserEmail(profileId: string, newEmail: string) {
-  return await updateData(PROFILES_TABLE, 'email', newEmail, 'id', profileId);
+export async function updateUserEmail(email: string, newEmail: string) {
+  return await updateData(USERS_TABLE, 'email', newEmail, 'email', email);
 }
 
-export async function updateUserPassword(profileId: string, newPassword: string) {
-  return await updateData(PROFILES_TABLE, 'password', newPassword, 'id', profileId);
+export async function updateUserPassword(email: string, newPassword: string) {
+  return await updateData(USERS_TABLE, 'password', newPassword, 'email', email);
 }
 
-export async function updateUserName(profileId: string, newName: string) {
-  return await updateData(PROFILES_TABLE, 'name', newName, 'id', profileId);
+export async function updateUserName(email: string, newName: string) {
+  return await updateData(USERS_TABLE, 'name', newName, 'email', email);
 }
 
-export async function updateUserSurname(profileId: string, newSuranme: string) {
-  return await updateData(PROFILES_TABLE, 'surname', newSuranme, 'id', profileId);
+export async function updateUserSurname(email: string, newSuranme: string) {
+  return await updateData(USERS_TABLE, 'surname', newSuranme, 'email', email);
 }
 
-export async function updateUserFullName(profileId: string, newName: string, newSurname: string) {
-  updateUserName(profileId, newName);
-  updateUserSurname(profileId, newSurname);
+export async function updateUserFullName(email: string, newName: string, newSurname: string) {
+  updateUserName(email, newName);
+  updateUserSurname(email, newSurname);
 }
 
 export async function getUserNames(emails: string[]): Promise<Record<string, string>> {
