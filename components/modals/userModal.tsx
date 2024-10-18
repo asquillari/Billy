@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getUserNames } from '@/api/api';
@@ -14,23 +14,23 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout }) => {
-  const { user } = useAppContext(); 
-  const [userName, setUserName] = useState<string | null>(null);
+  const { user } = useAppContext();
+  const [userName, setUserName] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
- // const [userIcon, setUserIcon] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (user?.email) {
         try {
           const names = await getUserNames([user.email]);
-          setUserName(names[user.email] || 'N/A');
-        //  const icon = await getProfileIcon(user.email);
-        //  setUserIcon(icon);
+          setUserName(names[user.email] || '');
+          setUserEmail(user.email);
         } catch (error) {
           console.error('Error fetching user name:', error);
-          setUserName('N/A');
-         // setUserIcon(null);
+          setUserName('');
         }
       }
     };
@@ -40,6 +40,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
 
   const handleEdit = () => {
     setIsEditing(!isEditing);
+    //setEditingField(null);
   };
 
   const handleChangePassword = () => {
@@ -50,6 +51,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
   const handleChangeIcon = () => {
     // Implement icon change logic here
     console.log('Change icon');
+  };
+
+  const handleEditField = (field: string) => {
+    setEditingField(field === editingField ? null : field);
   };
 
   return (
@@ -63,6 +68,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
           <View style={styles.contentContainer}>
             <Text style={styles.title}>Perfil de usuario</Text>
 
+            {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
             <View style={styles.iconContainer}>
               <Image 
                 source={require('@/assets/images/icons/UserIcon.png')} 
@@ -77,13 +83,48 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
             </View>
             
             <View style={styles.infoContainer}>
-              <Text style={styles.label}>Nombre:</Text>
-              <Text style={styles.value}>{userName}</Text>
+                <Text style={styles.label}>Nombre:</Text>
+                <View style={styles.editableField}>
+                  {isEditing && editingField === 'name' ? (
+                    <TextInput 
+                      style={[styles.input, styles.visibleInput]}
+                      value={userName}
+                      onChangeText={setUserName}
+                      onBlur={() => setEditingField(null)}
+                      autoFocus
+                    />
+                  ) : (
+                    <Text style={styles.value}>{userName || 'N/A'}</Text>
+                  )}
+                  {isEditing && (
+                    <TouchableOpacity onPress={() => handleEditField('name')}>
+                      <Icon name="edit" size={20} color="#370185"/>
+                    </TouchableOpacity>
+                  )}
+                </View>
             </View>
             
             <View style={styles.infoContainer}>
               <Text style={styles.label}>Mail:</Text>
-              <Text style={styles.value}>{user?.email || 'N/A'}</Text>
+              <View style={styles.editableField}>
+                {isEditing && editingField === 'email' ? (
+                  <TextInput
+                    style={styles.input}
+                    value={userEmail}
+                    onChangeText={setUserEmail}
+                    onBlur={() => setEditingField(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <Text style={styles.value}>{userEmail || 'N/A'}</Text>
+                )}
+                <TouchableOpacity onPress={() => handleEditField('email')}>
+
+                {isEditing &&
+                  <Icon name="edit" size={20} color="#370185" />
+                }
+                </TouchableOpacity>
+              </View>
             </View>
 
             {isEditing && (
@@ -92,11 +133,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
             </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={styles.button} onPress={handleEdit}>
+            <TouchableOpacity style={[ styles.button, isEditing ? styles.saveButton : null ]} onPress={handleEdit}>
               <Text style={styles.buttonText}>{isEditing ? 'Guardar' : 'Editar'}</Text>
             </TouchableOpacity>
 
-            {!isEditing && (
+              {!isEditing && (
             <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={onLogout}>
               <Text style={styles.buttonText}>Cerrar Sesión</Text>
             </TouchableOpacity>
@@ -109,26 +150,25 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
 };
 
 const styles = StyleSheet.create({
-
-    iconContainer: {
-        alignItems: 'center',
-        marginBottom: 20,
-      },
-      userIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        marginBottom: 10,
-      },
-      changeIconButton: {
-        backgroundColor: '#370185',
-        borderRadius: 15,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-      },
-      changeIconText: {
-        color: '#FFFFFF',
-        fontSize: 14,
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  userIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+  },
+  changeIconButton: {
+    backgroundColor: '#370185',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  changeIconText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: 'bold',
   },
 
@@ -178,6 +218,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
+    flex: 1,
   },
   button: {
     backgroundColor: '#370185',
@@ -194,6 +235,25 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: '#D32F2F',
+  },
+  editableField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#370185',
+    marginRight: 10,
+    padding: 5,
+  },
+  visibleInput: {
+    color: '#000000',
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
   },
 });
 
