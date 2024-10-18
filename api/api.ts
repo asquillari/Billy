@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
 import { Alert } from 'react-native';
 import { decode } from 'base64-arraybuffer';
+import { AuthError } from '@supabase/supabase-js';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -809,6 +810,25 @@ export async function fetchCurrentProfile(user: string) {
 
 export async function updateUserEmail(email: string, newEmail: string) {
   return await updateData(USERS_TABLE, 'email', newEmail, 'email', email);
+}
+
+export async function updateUserPassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      console.error("Error updating password:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error updating password:", error);
+    if (error instanceof AuthError) return { success: false, error: error.message };
+    return { success: false, error: "An unexpected error occurred." };
+  }
 }
 
 export async function updateUserName(email: string, newName: string) {
