@@ -32,7 +32,7 @@ const App = () => {
   useFocusEffect(
     useCallback(() => {
       if (currentProfileId) isProfileShared(currentProfileId).then(setShared);
-    }, [])
+    }, [currentProfileId])
   );
 
   const toggleSelector = (type: 'month' | 'year') => () => {
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    marginHorizontal: '2.5%',
     flex: 1,
   },
   selectorWrapper: {

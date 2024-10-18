@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createURL } from 'expo-linking';
 import { Alert } from 'react-native';
 import { decode } from 'base64-arraybuffer';
+import { AuthError } from '@supabase/supabase-js';
 
 const INCOMES_TABLE = 'Incomes';
 const OUTCOMES_TABLE = 'Outcomes';
@@ -534,6 +535,10 @@ export async function getProfile(profileId: string): Promise<ProfileData | null>
   return await getData(PROFILES_TABLE, profileId);
 }
 
+// export async function getProfileIcon(profileId: string): Promise<string | null> {
+//   return await getValueFromData(PROFILES_TABLE, 'icon', 'id', profileId);
+// }
+
 export async function getProfileName(profileId: string): Promise<string | null> {
   return await getValueFromData(PROFILES_TABLE, 'name', 'id', profileId);
 }
@@ -803,25 +808,56 @@ export async function fetchCurrentProfile(user: string) {
   return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
 
-export async function updateUserEmail(profileId: string, newEmail: string) {
-  return await updateData(PROFILES_TABLE, 'email', newEmail, 'id', profileId);
+export async function updateUserEmail(currentEmail: string, newEmail: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error: authError } = await supabase.auth.updateUser({ email: newEmail });
+
+    if (authError) {
+      console.error("Error updating email in Auth:", authError);
+      return { success: false, error: authError.message };
+    }
+    
+    await updateData(USERS_TABLE, 'email', newEmail, 'email', currentEmail);
+
+    return { success: true };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error updating email:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
 }
 
-export async function updateUserPassword(profileId: string, newPassword: string) {
-  return await updateData(PROFILES_TABLE, 'password', newPassword, 'id', profileId);
+export async function updateUserPassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      console.error("Error updating password:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error updating password:", error);
+    if (error instanceof AuthError) return { success: false, error: error.message };
+    return { success: false, error: "An unexpected error occurred." };
+  }
 }
 
-export async function updateUserName(profileId: string, newName: string) {
-  return await updateData(PROFILES_TABLE, 'name', newName, 'id', profileId);
+export async function updateUserName(email: string, newName: string) {
+  return await updateData(USERS_TABLE, 'name', newName, 'email', email);
 }
 
-export async function updateUserSurname(profileId: string, newSuranme: string) {
-  return await updateData(PROFILES_TABLE, 'surname', newSuranme, 'id', profileId);
+export async function updateUserSurname(email: string, newSuranme: string) {
+  return await updateData(USERS_TABLE, 'surname', newSuranme, 'email', email);
 }
 
-export async function updateUserFullName(profileId: string, newName: string, newSurname: string) {
-  updateUserName(profileId, newName);
-  updateUserSurname(profileId, newSurname);
+export async function updateUserFullName(email: string, newName: string, newSurname: string) {
+  updateUserName(email, newName);
+  updateUserSurname(email, newSurname);
 }
 
 export async function getUserNames(emails: string[]): Promise<Record<string, string>> {
@@ -1227,11 +1263,11 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
     let cambios = true;
     while (cambios) {
       cambios = false;
-      for (const [acreedor, deudores] of netDebts) {
-        for (const [deudor, cantidad] of deudores) {
+      Array.from(netDebts.entries()).forEach(([acreedor, deudores]) => {
+        Array.from(deudores.entries()).forEach(([deudor, cantidad]) => {
           const deudasDeudor = netDebts.get(deudor);
           if (deudasDeudor) {
-            for (const [tercero, cantidadTercero] of deudasDeudor) {
+            Array.from(deudasDeudor.entries()).forEach(([tercero, cantidadTercero]) => {
               if (tercero !== acreedor) {
                 const cantidadTransferir = Math.min(cantidad, cantidadTercero);
                 if (cantidadTransferir > 0) {
@@ -1243,21 +1279,21 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
                   cambios = true;
                 }
               }
-            }
+            });
           }
-        }
-      }
+        });
+      });
     }
 
     // Aplicar las deudas redistribuidas
     await removeAllDebts(profileId);
-    for (const [acreedor, deudores] of netDebts) {
-      for (const [deudor, cantidad] of deudores) {
+    await Promise.all(Array.from(netDebts.entries()).map(async ([acreedor, deudores]) => {
+      await Promise.all(Array.from(deudores.entries()).map(async ([deudor, cantidad]) => {
         if (cantidad > 0) {
           await updateDebt(profileId, acreedor, deudor, cantidad);
         }
-      }
-    }
+      }));
+    }));
 
     return true;
   } 
