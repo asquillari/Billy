@@ -534,6 +534,10 @@ export async function getProfile(profileId: string): Promise<ProfileData | null>
   return await getData(PROFILES_TABLE, profileId);
 }
 
+// export async function getProfileIcon(profileId: string): Promise<string | null> {
+//   return await getValueFromData(PROFILES_TABLE, 'icon', 'id', profileId);
+// }
+
 export async function getProfileName(profileId: string): Promise<string | null> {
   return await getValueFromData(PROFILES_TABLE, 'name', 'id', profileId);
 }
