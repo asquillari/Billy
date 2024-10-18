@@ -43,24 +43,21 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
       setIsUpdating(true);
       try {
         
-          await updateUserName(profileId, userName);
+          await updateUserName(user?.email || '', userName);
           console.log('Nombre actualizado');
           console.log(userName);
         
-       
-        //   await updateUserEmail(profileId, userEmail);
+        {/* TODO: falta chequear la parte de email que funcione bien */}
+        //   await updateUserEmail(user?.email || '', userEmail);
         //   console.log('Email actualizado');
         //   console.log(userEmail);
         
-        // Update the user context here if needed
-        // For example: updateUser({ ...user, name: userName, email: userEmail });
+       
       } catch (error) {
         console.error('Error updating user information:', error);
-        // Revert changes on error
         setUserName(userName);
         setUserEmail(userEmail);
-        // Show error message to user
-        // For example: showErrorToast('Failed to update profile. Please try again.');
+       
       } finally {
         setIsUpdating(false);
       }
@@ -70,13 +67,13 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
   };
 
   const handleChangePassword = () => {
-    // Implement password change logic here
-    console.log('Change password');
+        {/* TODO: falta chequear la parte de contrasenia que funcione bien */}
+        console.log('Change password');
   };
 
   const handleChangeIcon = () => {
-    // Implement icon change logic here
-    console.log('Change icon');
+        {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
+        console.log('Change icon');
   };
 
   const handleEditField = (field: string) => {
