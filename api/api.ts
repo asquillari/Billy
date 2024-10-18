@@ -21,7 +21,7 @@ export interface UserData {
   surname: string;
   currentProfile?: string;
   my_profiles?: string[];
-  profilePicture?: string;
+  profile_url?: string;
 }
 
 export interface IncomeData {
@@ -828,6 +828,44 @@ export async function updateUserEmail(currentEmail: string, newEmail: string): P
   }
 }
 
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: undefined,
+    });
+
+    if (error) {
+      console.error("Error requesting password reset:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error requesting password reset:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+export async function verifyPasswordResetCode(email: string, token: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery'
+    });
+
+    if (error) {
+      console.error("Error verifying password reset code:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error verifying password reset code:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
 export async function updateUserPassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -884,9 +922,9 @@ export async function getUserNames(emails: string[]): Promise<Record<string, str
   }
 }
 
-export async function uploadProfilePicture(userId: string, base64Image: string): Promise<string | null> {
+export async function uploadProfilePicture(email: string, base64Image: string): Promise<string | null> {
   try {
-    const fileName = `${userId}_${Date.now()}.jpg`;
+    const fileName = `${email}_${Date.now()}.jpg`;
     const { data, error } = await supabase.storage
       .from('Users')
       .upload(fileName, decode(base64Image), {
@@ -903,7 +941,7 @@ export async function uploadProfilePicture(userId: string, base64Image: string):
       .from('Users')
       .getPublicUrl(fileName);
 
-    await updateUserProfileUrl(userId, publicUrl);
+    await updateUserProfileUrl(email, publicUrl);
 
     return publicUrl;
   } catch (error) {
@@ -912,12 +950,12 @@ export async function uploadProfilePicture(userId: string, base64Image: string):
   }
 }
 
-async function updateUserProfileUrl(userId: string, profileUrl: string): Promise<boolean> {
+async function updateUserProfileUrl(email: string, profileUrl: string): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from(USERS_TABLE)
+      .from('Users')
       .update({ profile_url: profileUrl })
-      .eq('id', userId);
+      .eq('email', email);
 
     if (error) {
       console.error("Error updating user profile URL:", error);
