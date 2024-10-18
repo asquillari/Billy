@@ -811,10 +811,6 @@ export async function updateUserEmail(email: string, newEmail: string) {
   return await updateData(USERS_TABLE, 'email', newEmail, 'email', email);
 }
 
-export async function updateUserPassword(email: string, newPassword: string) {
-  return await updateData(USERS_TABLE, 'password', newPassword, 'email', email);
-}
-
 export async function updateUserName(email: string, newName: string) {
   return await updateData(USERS_TABLE, 'name', newName, 'email', email);
 }
