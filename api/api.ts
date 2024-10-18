@@ -808,8 +808,24 @@ export async function fetchCurrentProfile(user: string) {
   return await getValueFromData(USERS_TABLE, 'current_profile', 'email', user);
 }
 
-export async function updateUserEmail(email: string, newEmail: string) {
-  return await updateData(USERS_TABLE, 'email', newEmail, 'email', email);
+export async function updateUserEmail(currentEmail: string, newEmail: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error: authError } = await supabase.auth.updateUser({ email: newEmail });
+
+    if (authError) {
+      console.error("Error updating email in Auth:", authError);
+      return { success: false, error: authError.message };
+    }
+    
+    await updateData(USERS_TABLE, 'email', newEmail, 'email', currentEmail);
+
+    return { success: true };
+  } 
+  
+  catch (error) {
+    console.error("Unexpected error updating email:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
 }
 
 export async function updateUserPassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
