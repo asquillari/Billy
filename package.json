@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/base64-arraybuffer": "^0.1.0",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.2.45",
     "@types/react-native-bcrypt": "^2.4.6",
