@@ -1,26 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode} from '@/api/api';
+import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode, uploadProfilePicture} from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChangePasswordModal } from '@/components/modals/ChangePasswordModal';
 import { VerificationModal } from '@/components/modals/VerificationModal';
+import * as ImagePicker from 'expo-image-picker';
 
 const EditableField = ({ label, value, isEditing, editingField, fieldName, onChangeText, onEditField }: { label: string, value: string, isEditing: boolean, editingField: string, fieldName: string, onChangeText: (text: string) => void, onEditField: (field: string | null) => void }) => (
   <View style={styles.infoContainer}>
     <Text style={styles.label}>{label}:</Text>
     <View style={styles.editableField}>
       {isEditing && editingField === fieldName ? (
-        <TextInput
-          style={[styles.input, styles.visibleInput]}
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={() => onEditField(null)}
-          autoFocus
-        />
+        <TextInput style={[styles.input, styles.visibleInput]} value={value} onChangeText={onChangeText} onBlur={() => onEditField(null)} autoFocus/>
       ) : (
         <Text style={styles.value}>{value || 'N/A'}</Text>
       )}
@@ -44,6 +39,7 @@ export default function UserProfileScreen() {
   const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [isPasswordChangeModalVisible, setIsPasswordChangeModalVisible] = useState(false);
+  const [userIcon, setUserIcon] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -98,7 +94,7 @@ export default function UserProfileScreen() {
       setIsVerificationModalVisible(true);
     } catch (error) {
       console.error('Error requesting password reset:', error);
-      Alert.alert('Error', 'Failed to initiate password change. Please try again.');
+      Alert.alert('Error', 'cambiar contraseña por ahora no se puede...');
     }
   };
 
@@ -115,9 +111,46 @@ export default function UserProfileScreen() {
     }
   };
 
-  const handleChangeIcon = () => {
-        {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
-        console.log('Change icon');
+  const handlePasswordSubmit = async (newPassword: string) => {
+    try {
+      const { success, error } = await updateUserPassword(newPassword);
+      if (!success) throw new Error(error || 'Failed to update password.');
+
+      console.log('Password updated');
+      setIsPasswordChangeModalVisible(false);
+      Alert.alert('Success', 'Your password has been updated.');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      Alert.alert('Error', 'Failed to update password. Please try again.');
+    }
+  };
+
+  const handleChangeIcon = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Required", "You need to grant camera roll permissions to change your icon.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setUserIcon(result.assets[0].uri);
+      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      const uploadedUrl = await uploadProfilePicture(user?.email || '', base64Image);
+      if (uploadedUrl) {
+        //TODO: needs backend update function. Does not work properly.
+      } else {
+        Alert.alert("Error", "Failed to upload profile picture. Please try again.");
+      }
+    }
   };
 
   const handleEditField = (field: string | null) => {
@@ -134,19 +167,7 @@ export default function UserProfileScreen() {
     navigation.goBack();
   };
 
-  const handlePasswordSubmit = async (newPassword: string) => {
-    try {
-      const { success, error } = await updateUserPassword(newPassword);
-      if (!success) throw new Error(error || 'Failed to update password.');
 
-      console.log('Password updated');
-      setIsPasswordChangeModalVisible(false);
-      Alert.alert('Success', 'Your password has been updated.');
-    } catch (error) {
-      console.error('Error updating password:', error);
-      Alert.alert('Error', 'Failed to update password. Please try again.');
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -161,10 +182,9 @@ export default function UserProfileScreen() {
             <View style={styles.contentContainer}>
               <Text style={styles.title}>Perfil de usuario</Text>
 
-              {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
               <View style={styles.iconContainer}>
                 <Image 
-                  source={require('@/assets/images/icons/UserIcon.png')} 
+                  source={userIcon ? { uri: userIcon } : require('@/assets/images/icons/UserIcon.png')} 
                   style={styles.userIcon} 
                 />
 
@@ -197,19 +217,9 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
               )}
 
-              <VerificationModal 
-                isVisible={isVerificationModalVisible}
-                onClose={() => setIsVerificationModalVisible(false)}
-                onSubmit={handleVerificationSubmit}
-                verificationCode={verificationCode}
-                setVerificationCode={setVerificationCode}
-              />
+              <VerificationModal isVisible={isVerificationModalVisible} onClose={() => setIsVerificationModalVisible(false)} onSubmit={handleVerificationSubmit} verificationCode={verificationCode} setVerificationCode={setVerificationCode}/>
 
-              <ChangePasswordModal 
-                isVisible={isPasswordChangeModalVisible}
-                onClose={() => setIsPasswordChangeModalVisible(false)}
-                onSubmit={handlePasswordSubmit}
-              />
+              <ChangePasswordModal isVisible={isPasswordChangeModalVisible} onClose={() => setIsPasswordChangeModalVisible(false)} onSubmit={handlePasswordSubmit}/>
             </View>
           </View>
         </View>
@@ -245,13 +255,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-  },
-
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
     width: '85%',
