@@ -4,12 +4,14 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
 import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
+import { BillyHeader } from '@/components/BillyHeader';
+import { LinearGradient } from 'expo-linear-gradient';
 //import { getUserNames, getProfileIcon } from '@/api/api';
 
 
 
 
-const UserProfileScreen: React.FC = () => {
+export default function UserProfileScreen() {
   const { user } = useAppContext();
   const navigation = useNavigation();
   const [userName, setUserName] = useState<string>('');
@@ -77,101 +79,110 @@ const UserProfileScreen: React.FC = () => {
     setEditingField(field === editingField ? null : field);
   };
 
-  const onLogout = async () => {
+  const handleLogout = async () => {
     const result = await logOut();
     if (result.error) Alert.alert('Logout Error', result.error);
     navigation.navigate('start' as never);
   };
 
-  const onClose = () => {
+  const handleClose = () => {
     navigation.goBack();
   };
 
   return (
-    <Modal animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Icon name="close" size={30} color="#000000"/>
-          </TouchableOpacity>
-          
-          <View style={styles.contentContainer}>
-            <Text style={styles.title}>Perfil de usuario</Text>
+    <View style={styles.container}>
+      <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
+        <BillyHeader/>
+        <View style={styles.modalWrapper}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              <Icon name="close" size={30} color="#000000"/>
+            </TouchableOpacity>
+            
+            <View style={styles.contentContainer}>
+              <Text style={styles.title}>Perfil de usuario</Text>
 
-            {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
-            <View style={styles.iconContainer}>
-              <Image 
-                source={require('@/assets/images/icons/UserIcon.png')} 
-                style={styles.userIcon} 
-              />
+              {/* TODO: falta que el back me de una funcion para obtener el icono anterior. */}
+              <View style={styles.iconContainer}>
+                <Image 
+                  source={require('@/assets/images/icons/UserIcon.png')} 
+                  style={styles.userIcon} 
+                />
+
+                {isEditing && (
+                <TouchableOpacity style={styles.changeIconButton} onPress={handleChangeIcon}>
+                  <Text style={styles.changeIconText}>Cambiar Icono</Text>
+                </TouchableOpacity>
+                )}
+              </View>
+              
+              <View style={styles.infoContainer}>
+                  <Text style={styles.label}>Nombre:</Text>
+                  <View style={styles.editableField}>
+                    {isEditing && editingField === 'name' ? (
+                      <TextInput style={[styles.input, styles.visibleInput]} value={userName} onChangeText={setUserName} onBlur={() => setEditingField(null)} autoFocus/>
+                    ) : (
+                      <Text style={styles.value}>{userName || 'N/A'}</Text>
+                    )}
+                    {isEditing && (
+                      <TouchableOpacity onPress={() => handleEditField('name')}>
+                        <Icon name="edit" size={20} color="#370185"/>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+              </View>
+              
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Mail:</Text>
+                <View style={styles.editableField}>
+                  {isEditing && editingField === 'email' ? (
+                    <TextInput style={styles.input} value={userEmail} onChangeText={setUserEmail} onBlur={() => setEditingField(null)} autoFocus/>
+                  ) : (
+                    <Text style={styles.value}>{userEmail || 'N/A'}</Text>
+                  )}
+                  <TouchableOpacity onPress={() => handleEditField('email')}>
+                    {isEditing &&
+                    <Icon name="edit" size={20} color="#370185" />
+                  }
+                  </TouchableOpacity>
+                </View>
+              </View>
 
               {isEditing && (
-              <TouchableOpacity style={styles.changeIconButton} onPress={handleChangeIcon}>
-                <Text style={styles.changeIconText}>Cambiar Icono</Text>
+              <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+                <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+              </TouchableOpacity>
+              )}
+
+              <TouchableOpacity 
+                style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} 
+                onPress={handleEdit} disabled={isUpdating}
+              >
+                <Text style={styles.buttonText}>
+                  {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}
+                </Text>
+              </TouchableOpacity>
+
+                {!isEditing && (
+              <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+                <Text style={styles.buttonText}>Cerrar Sesión</Text>
               </TouchableOpacity>
               )}
             </View>
-            
-            <View style={styles.infoContainer}>
-                <Text style={styles.label}>Nombre:</Text>
-                <View style={styles.editableField}>
-                  {isEditing && editingField === 'name' ? (
-                    <TextInput style={[styles.input, styles.visibleInput]} value={userName} onChangeText={setUserName} onBlur={() => setEditingField(null)} autoFocus/>
-                  ) : (
-                    <Text style={styles.value}>{userName || 'N/A'}</Text>
-                  )}
-                  {isEditing && (
-                    <TouchableOpacity onPress={() => handleEditField('name')}>
-                      <Icon name="edit" size={20} color="#370185"/>
-                    </TouchableOpacity>
-                  )}
-                </View>
-            </View>
-            
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Mail:</Text>
-              <View style={styles.editableField}>
-                {isEditing && editingField === 'email' ? (
-                  <TextInput style={styles.input} value={userEmail} onChangeText={setUserEmail} onBlur={() => setEditingField(null)} autoFocus/>
-                ) : (
-                  <Text style={styles.value}>{userEmail || 'N/A'}</Text>
-                )}
-                <TouchableOpacity onPress={() => handleEditField('email')}>
-                  {isEditing &&
-                  <Icon name="edit" size={20} color="#370185" />
-                }
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {isEditing && (
-            <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-              <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-            </TouchableOpacity>
-            )}
-
-            <TouchableOpacity 
-              style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} 
-              onPress={handleEdit} disabled={isUpdating}
-            >
-              <Text style={styles.buttonText}>
-                {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}
-              </Text>
-            </TouchableOpacity>
-
-              {!isEditing && (
-            <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={onLogout}>
-              <Text style={styles.buttonText}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-            )}
           </View>
         </View>
-      </View>
-    </Modal>
+      </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+  },
   iconContainer: {
     alignItems: 'center',
     marginBottom: 20,
@@ -280,6 +291,10 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#4CAF50',
   },
+  modalWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: '50%',
+  },
 });
-
-export default UserProfileScreen;
