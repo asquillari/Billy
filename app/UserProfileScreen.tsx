@@ -2,14 +2,36 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut } from '@/api/api';
+import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode} from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-//import { getUserNames, getProfileIcon } from '@/api/api';
+import { ChangePasswordModal } from '@/components/modals/ChangePasswordModal';
+import { VerificationModal } from '@/components/modals/VerificationModal';
 
-
-
+const EditableField = ({ label, value, isEditing, editingField, fieldName, onChangeText, onEditField }: { label: string, value: string, isEditing: boolean, editingField: string, fieldName: string, onChangeText: (text: string) => void, onEditField: (field: string | null) => void }) => (
+  <View style={styles.infoContainer}>
+    <Text style={styles.label}>{label}:</Text>
+    <View style={styles.editableField}>
+      {isEditing && editingField === fieldName ? (
+        <TextInput
+          style={[styles.input, styles.visibleInput]}
+          value={value}
+          onChangeText={onChangeText}
+          onBlur={() => onEditField(null)}
+          autoFocus
+        />
+      ) : (
+        <Text style={styles.value}>{value || 'N/A'}</Text>
+      )}
+      {isEditing && (
+        <TouchableOpacity onPress={() => onEditField(fieldName)}>
+          <Icon name="edit" size={20} color="#370185" />
+        </TouchableOpacity>
+      )}
+    </View>
+  </View>
+);
 
 export default function UserProfileScreen() {
   const { user } = useAppContext();
@@ -19,6 +41,9 @@ export default function UserProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isPasswordChangeModalVisible, setIsPasswordChangeModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -65,9 +90,29 @@ export default function UserProfileScreen() {
     setEditingField(null);
   };
 
-  const handleChangePassword = () => {
-        {/* TODO: falta chequear la parte de contrasenia que funcione bien */}
-        console.log('Change password');
+  const handleChangePassword = async () => {
+    try {
+      const { success, error } = await requestPasswordReset(user?.email || '');
+      if (!success) throw new Error(error || 'Failed to request password reset.');
+      
+      setIsVerificationModalVisible(true);
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      Alert.alert('Error', 'Failed to initiate password change. Please try again.');
+    }
+  };
+
+  const handleVerificationSubmit = async () => {
+    try {
+      const { success, error } = await verifyPasswordResetCode(user?.email || '', verificationCode);
+      if (!success) throw new Error(error || 'Failed to verify password reset code.');
+      
+      setIsVerificationModalVisible(false);
+      setIsPasswordChangeModalVisible(true);
+    } catch (error) {
+      console.error('Error verifying reset code:', error);
+      Alert.alert('Error', 'Failed to verify reset code. Please try again.');
+    }
   };
 
   const handleChangeIcon = () => {
@@ -75,7 +120,7 @@ export default function UserProfileScreen() {
         console.log('Change icon');
   };
 
-  const handleEditField = (field: string) => {
+  const handleEditField = (field: string | null) => {
     setEditingField(field === editingField ? null : field);
   };
 
@@ -87,6 +132,20 @@ export default function UserProfileScreen() {
 
   const handleClose = () => {
     navigation.goBack();
+  };
+
+  const handlePasswordSubmit = async (newPassword: string) => {
+    try {
+      const { success, error } = await updateUserPassword(newPassword);
+      if (!success) throw new Error(error || 'Failed to update password.');
+
+      console.log('Password updated');
+      setIsPasswordChangeModalVisible(false);
+      Alert.alert('Success', 'Your password has been updated.');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      Alert.alert('Error', 'Failed to update password. Please try again.');
+    }
   };
 
   return (
@@ -116,37 +175,9 @@ export default function UserProfileScreen() {
                 )}
               </View>
               
-              <View style={styles.infoContainer}>
-                  <Text style={styles.label}>Nombre:</Text>
-                  <View style={styles.editableField}>
-                    {isEditing && editingField === 'name' ? (
-                      <TextInput style={[styles.input, styles.visibleInput]} value={userName} onChangeText={setUserName} onBlur={() => setEditingField(null)} autoFocus/>
-                    ) : (
-                      <Text style={styles.value}>{userName || 'N/A'}</Text>
-                    )}
-                    {isEditing && (
-                      <TouchableOpacity onPress={() => handleEditField('name')}>
-                        <Icon name="edit" size={20} color="#370185"/>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-              </View>
+              <EditableField label="Nombre" value={userName} isEditing={isEditing} editingField={editingField || ''} fieldName="name" onChangeText={setUserName} onEditField={handleEditField}/>
               
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>Mail:</Text>
-                <View style={styles.editableField}>
-                  {isEditing && editingField === 'email' ? (
-                    <TextInput style={styles.input} value={userEmail} onChangeText={setUserEmail} onBlur={() => setEditingField(null)} autoFocus/>
-                  ) : (
-                    <Text style={styles.value}>{userEmail || 'N/A'}</Text>
-                  )}
-                  <TouchableOpacity onPress={() => handleEditField('email')}>
-                    {isEditing &&
-                    <Icon name="edit" size={20} color="#370185" />
-                  }
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <EditableField label="Mail" value={userEmail} isEditing={isEditing} editingField={editingField || ''} fieldName="email" onChangeText={setUserEmail} onEditField={handleEditField}/>
 
               {isEditing && (
               <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
@@ -154,20 +185,31 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
               )}
 
-              <TouchableOpacity 
-                style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} 
-                onPress={handleEdit} disabled={isUpdating}
-              >
+              <TouchableOpacity style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} onPress={handleEdit} disabled={isUpdating}>
                 <Text style={styles.buttonText}>
                   {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}
                 </Text>
               </TouchableOpacity>
 
-                {!isEditing && (
+              {!isEditing && (
               <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
                 <Text style={styles.buttonText}>Cerrar Sesión</Text>
               </TouchableOpacity>
               )}
+
+              <VerificationModal 
+                isVisible={isVerificationModalVisible}
+                onClose={() => setIsVerificationModalVisible(false)}
+                onSubmit={handleVerificationSubmit}
+                verificationCode={verificationCode}
+                setVerificationCode={setVerificationCode}
+              />
+
+              <ChangePasswordModal 
+                isVisible={isPasswordChangeModalVisible}
+                onClose={() => setIsPasswordChangeModalVisible(false)}
+                onSubmit={handlePasswordSubmit}
+              />
             </View>
           </View>
         </View>
