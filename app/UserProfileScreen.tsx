@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName } from '@/api/api';
+import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut } from '@/api/api';
+import { useNavigation } from '@react-navigation/native';
 //import { getUserNames, getProfileIcon } from '@/api/api';
 
 
-interface UserProfileModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onLogout: () => void;
-}
 
-const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose, onLogout}) => {
+
+const UserProfileScreen: React.FC = () => {
   const { user } = useAppContext();
+  const navigation = useNavigation();
   const [userName, setUserName] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
@@ -79,8 +77,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isVisible, onClose,
     setEditingField(field === editingField ? null : field);
   };
 
+  const onLogout = async () => {
+    const result = await logOut();
+    if (result.error) Alert.alert('Logout Error', result.error);
+    navigation.navigate('start' as never);
+  };
+
+  const onClose = () => {
+    navigation.goBack();
+  };
+
   return (
-    <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
+    <Modal animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -274,4 +282,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfileModal;
+export default UserProfileScreen;

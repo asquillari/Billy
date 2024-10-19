@@ -5,7 +5,6 @@ import { logOut } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppContext } from '@/hooks/useAppContext';
-import UserProfileModal from '@/components/modals/userModal';
 
 interface BillyHeaderProps {
   title?: string;
@@ -35,10 +34,9 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
             <Image source={require('../assets/images/Billy/logo2.png')} style={styles.logoBilly as ImageStyle}/>
             <Text style={styles.profileName}>{profileName}</Text>
           </View>
-          <TouchableOpacity onPress={() => setIsProfileIconOpened(!isProfileIconOpened)}>
+          <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen' as never)}>
             <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario as ImageStyle} />
           </TouchableOpacity>
-          <UserProfileModal isVisible={isProfileIconOpened} onClose={() => setIsProfileIconOpened(false)} onLogout={handleLogout}/>
         </View>
       </View>
       
