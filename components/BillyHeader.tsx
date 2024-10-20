@@ -20,13 +20,17 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
+  const userEmail = user?.email;
 
   {/* TODO:Deberia agregarlo en useAppContext?? */}
   useEffect(() => {
     const fetchProfilePicture = async () => {
-      if (user?.email) {
+      if (userEmail && currentProfile) {
         try {
-          const url = await getProfilePictureUrl(user.email);
+          // Add a 0.5-second delay before fetching
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          const url = await getProfilePictureUrl(userEmail);
           setProfilePictureUrl(url);
         } catch (error) {
           console.error('Error fetching profile picture:', error);
@@ -36,7 +40,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
     };
 
     fetchProfilePicture();
-  }, [user?.profile_picture]);
+  }, [userEmail, currentProfile]);
 
   return (
     <View style={styles.headerContainer}>
@@ -49,7 +53,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
           <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen' as never)}>
             <Image 
               source={profilePictureUrl ? { uri: profilePictureUrl } : require('../assets/images/icons/UserIcon.png')} 
-              style={styles.usuario as ImageStyle} 
+              style={styles.usuario} 
             />
           </TouchableOpacity>
         </View>
@@ -104,8 +108,8 @@ const styles = StyleSheet.create({
   usuario: {
     width: 47,
     height: 47,
-    resizeMode: 'contain',
-    borderRadius: 100,
+    borderRadius: 23.5, 
+    resizeMode: 'cover',
   },
   tituloContainer: {
     marginHorizontal: 5,
