@@ -52,7 +52,8 @@ export default function UserProfileScreen() {
           setUserSurname(user.surname || '');
           setUserEmail(user.email);
           setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
-        } catch (error) {
+        } 
+        catch (error) {
           setUserName('');
           setUserSurname('');
           setUserIcon('@/assets/images/icons/UserIcon.png');
@@ -91,9 +92,9 @@ export default function UserProfileScreen() {
     try {
       const { success, error } = await requestPasswordReset(user?.email || '');
       if (!success) throw new Error(error || 'Failed to request password reset.');
-      
       setIsVerificationModalVisible(true);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error requesting password reset:', error);
       Alert.alert('Error', 'cambiar contraseña por ahora no se puede...');
     }
@@ -103,10 +104,10 @@ export default function UserProfileScreen() {
     try {
       const { success, error } = await verifyPasswordResetCode(user?.email || '', verificationCode);
       if (!success) throw new Error(error || 'Failed to verify password reset code.');
-      
       setIsVerificationModalVisible(false);
       setIsPasswordChangeModalVisible(true);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error verifying reset code:', error);
       Alert.alert('Error', 'Failed to verify reset code. Please try again.');
     }
@@ -116,11 +117,10 @@ export default function UserProfileScreen() {
     try {
       const { success, error } = await updateUserPassword(newPassword);
       if (!success) throw new Error(error || 'Failed to update password.');
-
-      console.log('Password updated');
       setIsPasswordChangeModalVisible(false);
       Alert.alert('Success', 'Your password has been updated.');
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error updating password:', error);
       Alert.alert('Error', 'Failed to update password. Please try again.');
     }
@@ -146,12 +146,8 @@ export default function UserProfileScreen() {
       setUserIcon(result.assets[0].uri);
       const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
       const uploadedUrl = await uploadProfilePicture(user?.email || '', base64Image);
-      if (uploadedUrl) {
-        {/* TODO: needs backend update function. Does not work properly. */}
-        setUserIcon(uploadedUrl);
-      } else {
-        Alert.alert("Error", "Failed to upload profile picture. Please try again.");
-      }
+      if (uploadedUrl) setUserIcon(uploadedUrl);
+      else Alert.alert("Error", "Failed to upload profile picture. Please try again.");
     }
   };
 
@@ -168,8 +164,6 @@ export default function UserProfileScreen() {
   const handleClose = () => {
     navigation.goBack();
   };
-
-
 
   return (
     <View style={styles.container}>

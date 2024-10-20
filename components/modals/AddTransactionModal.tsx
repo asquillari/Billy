@@ -13,7 +13,7 @@ interface AddTransactionModalProps {
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, onClose }) => {
-  const { currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData } = useAppContext();
+  const { currentProfileId, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData } = useAppContext();
   
   const [type, setType] = useState<'Income' | 'Outcome'>('Income');
   const [amount, setAmount] = useState('');
@@ -67,6 +67,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (type === 'Income') {
       await addIncome(currentProfileId??"", parseFloat(amount), description);
       refreshIncomeData();
+      refreshBalanceData();
     } 
     else {
       let categoryToUse = selectedCategory;
@@ -88,6 +89,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       }
       refreshOutcomeData();
       refreshCategoryData();
+      refreshBalanceData();
     }
     // Reset form
     setAmount('');
