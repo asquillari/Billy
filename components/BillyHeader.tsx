@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, TouchableOpacity, Text, ImageStyle } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import { getProfilePictureUrl } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { useState, useEffect } from 'react';
 
 interface BillyHeaderProps {
   title?: string;
@@ -13,10 +12,10 @@ interface BillyHeaderProps {
   icon?: string;
 }
 
-export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
+export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle, icon }) => {
   const { user, profileData, currentProfileId } = useAppContext();
   const navigation = useNavigation();
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>('../assets/images/icons/UserIcon.png');
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
@@ -25,23 +24,22 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
   {/* TODO:Deberia agregarlo en useAppContext?? */}
   useEffect(() => {
     const fetchProfilePicture = async () => {
-      if (userEmail && profilePictureUrl) {
+      if (userEmail && currentProfile) {
         try {
           // Add a 0.5-second delay before fetching
-          // await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 500));
 
           const url = await getProfilePictureUrl(userEmail);
-          setProfilePictureUrl(url);
+          setProfilePicture(url);
         } catch (error) {
           console.error('Error fetching profile picture:', error);
-          setProfilePictureUrl(null);
+          setProfilePicture(null);
         }
       }
     };
 
     fetchProfilePicture();
-  }, [userEmail, profilePictureUrl]);
-
+  }, [userEmail, currentProfile]);
   return (
     <View style={styles.headerContainer}>
       <View>
@@ -52,7 +50,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen' as never)}>
             <Image 
-              source={profilePictureUrl ? { uri: profilePictureUrl } : require('../assets/images/icons/UserIcon.png')} 
+              source={profilePicture ? { uri: profilePicture } : require('../assets/images/icons/UserIcon.png')} 
               style={styles.usuario} 
             />
           </TouchableOpacity>
@@ -70,7 +68,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
       </View>
     </View>
   );
-});
+};
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 40 : (StatusBar.currentHeight ?? 0) + 10;
 
