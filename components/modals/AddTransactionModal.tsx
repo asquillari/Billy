@@ -65,7 +65,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (type === 'Income') {
-      await addIncome(currentProfileId??"", parseFloat(amount), description);
+      await addIncome(currentProfileId??"", parseFloat(amount), description, date);
       refreshIncomeData();
     } 
     else {

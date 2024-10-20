@@ -236,7 +236,7 @@ export async function addIncome(profile: string, amount: number, description: st
       profile: profile, 
       amount: amount, 
       description: description, 
-      created_at: created_at, 
+      created_at: created_at || new Date(), 
     };
     
     const [{ data: insertData, error: insertError }] = await Promise.all([

@@ -85,12 +85,12 @@ const CalendarAddModal = ({ isVisible, onClose, initialType, refreshTransactions
     }
 
     if (type === 'Income') {
-      await addIncome(currentProfileId || "", amountNumber, description);
+      await addIncome(currentProfileId || "", amountNumber, description, date);
       refreshIncomeData();
     } 
     
     else {
-      await addOutcome(currentProfileId || "", selectedCategory, amountNumber, description);
+      await addOutcome(currentProfileId || "", selectedCategory, amountNumber, description, date);
       refreshOutcomeData();
     }
 
