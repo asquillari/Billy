@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Image, TouchableOpacity, Text, ImageStyle } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import { getProfilePictureUrl } from '@/api/api';
@@ -19,27 +19,24 @@ export const BillyHeader: React.FC<BillyHeaderProps> = ({ title, subtitle, icon 
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
-  const userEmail = user?.email;
 
-  {/* TODO:Deberia agregarlo en useAppContext?? */}
+  const fetchProfilePicture = useCallback(async () => {
+    if (!user?.email || !currentProfile) return;
+    try {
+      const url = await getProfilePictureUrl(user.email);
+      setProfilePicture(url);
+    } 
+    catch (error) {
+      console.error('Error fetching profile picture:', error);
+      setProfilePicture(null);
+    }
+  }, [user?.email, currentProfile]);
+  
   useEffect(() => {
-    const fetchProfilePicture = async () => {
-      if (userEmail && currentProfile) {
-        try {
-          // Add a 0.5-second delay before fetching
-          await new Promise(resolve => setTimeout(resolve, 500));
+    const timer = setTimeout(fetchProfilePicture, 500);
+    return () => clearTimeout(timer);
+  }, [fetchProfilePicture]);
 
-          const url = await getProfilePictureUrl(userEmail);
-          setProfilePicture(url);
-        } catch (error) {
-          console.error('Error fetching profile picture:', error);
-          setProfilePicture(null);
-        }
-      }
-    };
-
-    fetchProfilePicture();
-  }, [userEmail, currentProfile]);
   return (
     <View style={styles.headerContainer}>
       <View>
