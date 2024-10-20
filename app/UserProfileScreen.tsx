@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode, uploadProfilePicture, getProfilePictureUrl} from '@/api/api';
+import { updateUserPassword, updateUserFullName, logOut, requestPasswordReset, verifyPasswordResetCode, uploadProfilePicture, getProfilePictureUrl} from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -67,13 +67,12 @@ export default function UserProfileScreen() {
     if (isEditing) {
       setIsUpdating(true);
       try {
-        await updateUserName(user?.email || '', userName);
-        await updateUserSurname(user?.email || '', userSurname);
+        await updateUserFullName(user?.email || '', userName, userSurname);
         
         {/* TODO: falta chequear la parte de email que funcione bien */}
         //   await updateUserEmail(user?.email || '', userEmail);
        
-      } 
+      }
       catch (error) {
         console.error('Error updating user information:', error);
         setUserName(userName);
