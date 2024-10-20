@@ -943,7 +943,7 @@ export async function uploadProfilePicture(email: string, base64Image: string): 
       .from(bucketName)
       .getPublicUrl(fileName);
 
-    await updateUserProfileUrl(email, publicUrl);
+    await updateProfilePictureUrl(email, publicUrl);
 
     return publicUrl;
   } 
@@ -954,8 +954,12 @@ export async function uploadProfilePicture(email: string, base64Image: string): 
   }
 }
 
-async function updateUserProfileUrl(email: string, profilePictureUrl: string) {
+async function updateProfilePictureUrl(email: string, profilePictureUrl: string) {
   return await updateData(USERS_TABLE, 'profile_picture_url', profilePictureUrl, 'email', email);
+}
+
+export async function getProfilePictureUrl(email: string) {
+  return await getValueFromData(USERS_TABLE, 'profile_picture_url', 'email', email);
 }
 
 /* Stats */
