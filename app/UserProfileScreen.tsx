@@ -33,6 +33,7 @@ export default function UserProfileScreen() {
   const { user } = useAppContext();
   const navigation = useNavigation();
   const [userName, setUserName] = useState<string>('');
+  const [userSurname, setUserSurname] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -46,19 +47,18 @@ export default function UserProfileScreen() {
     const fetchUserData = async () => {
       if (user?.email) {
         try {
-          {/* TODO: Deberia haber una funcion como getUserSurname para que pueda habilitar el cambio de apellido */}
-          const names = await getUserNames([user.email]);
           const profilePictureUrl = await getProfilePictureUrl(user.email);
-          setUserName(names[user.email] || '');
+          setUserName(user.name || '');
+          setUserSurname(user.surname || '');
           setUserEmail(user.email);
           setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
         } catch (error) {
           setUserName('');
+          setUserSurname('');
           setUserIcon('@/assets/images/icons/UserIcon.png');
         }
       }
     };
-
     fetchUserData();
   }, [user?.email]);
 
@@ -66,19 +66,20 @@ export default function UserProfileScreen() {
     if (isEditing) {
       setIsUpdating(true);
       try {
-        
-          await updateUserName(user?.email || '', userName);
+        await updateUserName(user?.email || '', userName);
+        await updateUserSurname(user?.email || '', userSurname);
         
         {/* TODO: falta chequear la parte de email que funcione bien */}
         //   await updateUserEmail(user?.email || '', userEmail);
-        
        
-      } catch (error) {
+      } 
+      catch (error) {
         console.error('Error updating user information:', error);
         setUserName(userName);
+        setUserSurname(userSurname);
         setUserEmail(userEmail);
-       
-      } finally {
+      } 
+      finally {
         setIsUpdating(false);
       }
     }
@@ -198,6 +199,8 @@ export default function UserProfileScreen() {
               
               <EditableField label="Nombre" value={userName} isEditing={isEditing} editingField={editingField || ''} fieldName="name" onChangeText={setUserName} onEditField={handleEditField}/>
               
+              <EditableField label="Apellido" value={userSurname} isEditing={isEditing} editingField={editingField || ''} fieldName="surname" onChangeText={setUserSurname} onEditField={handleEditField}/>
+
               <EditableField label="Mail" value={userEmail} isEditing={isEditing} editingField={editingField || ''} fieldName="email" onChangeText={setUserEmail} onEditField={handleEditField}/>
 
               {isEditing && (
