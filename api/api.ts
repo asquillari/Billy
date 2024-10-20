@@ -392,23 +392,27 @@ export async function removeOutcome(profile: string, id: string) {
       return { error: "Outcome not found." };
     }
 
-    let sharedOutcomeData = null;
-    if (outcome.shared_outcome) sharedOutcomeData = await getSharedOutcome(outcome.shared_outcome);    
-
-    await Promise.all([
+    const operations = [
       updateBalance(profile, outcome.amount),
       updateCategorySpent(outcome.category, -outcome.amount),
-      sharedOutcomeData ? removeSharedOutcomeDebts(profile, sharedOutcomeData) : Promise.resolve()
-    ]);
+      removeData(OUTCOMES_TABLE, id)
+    ];
 
-    const deleteResult = await removeData(OUTCOMES_TABLE, id);
+    if (outcome.shared_outcome) {
+      operations.push(getSharedOutcome(outcome.shared_outcome).then(sharedOutcomeData => 
+          sharedOutcomeData ? removeSharedOutcomeDebts(profile, sharedOutcomeData) : Promise.resolve()
+      ));
+    }
+    
+    const results = await Promise.allSettled(operations);
 
-    if (deleteResult.error) {
-      console.error("Error removing outcome:", deleteResult.error);
+    const failedOperations = results.filter(result => result.status === 'rejected' || (result.status === 'fulfilled' && result.value === false));
+    if (failedOperations.length > 0) {
+      console.error("Error en una o más operaciones:", failedOperations);
       return null;
     }
 
-    return deleteResult;
+    return results;
   }
   
   catch (error) {
