@@ -1447,7 +1447,7 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
-export async function markAsPaid(email: string, outcomeId: string): Promise<boolean> {
+export async function markAsPaid(email: string, outcomeId: string, paid: boolean): Promise<boolean> {
   const outcome = await getData(OUTCOMES_TABLE, outcomeId);
 
   const debt = await getData(SHARED_OUTCOMES_TABLE, outcome.shared_outcome);
@@ -1459,7 +1459,7 @@ export async function markAsPaid(email: string, outcomeId: string): Promise<bool
   }
 
   const newHasPaid = [...debt.has_paid];
-  newHasPaid[userIndex] = true;
+  newHasPaid[userIndex] = paid;
 
   await updateData(SHARED_OUTCOMES_TABLE, 'has_paid', newHasPaid, 'id', outcome.shared_outcome);
   return true;
