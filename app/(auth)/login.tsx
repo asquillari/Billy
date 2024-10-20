@@ -5,13 +5,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { getUser, logIn } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
-import { Alert } from 'react-native'; 
+import { Alert } from 'react-native';
+import { requestPasswordReset } from '../../api/api';  
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('');  
+  const [errorMessage, setErrorMessage] = useState('');
   const { setUser } = useAppContext();
 
   const togglePasswordVisibility = () => {
@@ -30,6 +32,15 @@ export default function Login() {
       }
     } catch (error) {
       Alert.alert('Login Error', 'An error occurred during login');
+    }
+  };
+
+  const handleForgotPassword = () => {
+    if (!email) {
+      setErrorMessage('Por favor inserte un email');
+    } else {
+      setErrorMessage('');
+      requestPasswordReset(email);
     }
   };
 
@@ -58,7 +69,11 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity>
+        {errorMessage ? (
+          <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
+        ) : null}
+
+        <TouchableOpacity onPress={handleForgotPassword}>
           <ThemedText style={styles.forgotPassword}>Olvidé mi contraseña</ThemedText>
         </TouchableOpacity>
         
@@ -147,5 +162,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 10,
   },
 });
