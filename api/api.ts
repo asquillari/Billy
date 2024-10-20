@@ -1148,7 +1148,7 @@ export async function processInvitation(invitationId: string, email: string): Pr
 
     // Verificar si el usuario ya tiene este perfil
     const { data: existingProfile, error: profileError } = await supabase
-      .from('Users')
+      .from(USERS_TABLE)
       .select('my_profiles')
       .eq('email', email)
       .single();
@@ -1186,27 +1186,10 @@ export async function processInvitation(invitationId: string, email: string): Pr
 
 /* Debts */
 
-export async function getDebtsBeetweenUsers(user1: string, user2: string) {
-  try {
-    const { data, error } = await supabase
-      .from('Debts')
-      .select('*')
-      .eq('paid_by', user1)
-      .eq('debtor', user2)
-      .eq('has_paid', false);
-      
-  }
-  
-  catch (error) {
-    console.error("Unexpected error fetching debts between users:", error);
-    return null;
-  }
-}
-
 export async function getDebtsToUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
-      .from('Debts')
+      .from(DEBTS_TABLE)
       .select('*')
       .eq('paid_by', debtor)
       .eq('profile', profileId)
@@ -1229,7 +1212,7 @@ export async function getDebtsToUser(debtor: string, profileId: string): Promise
 export async function getDebtsFromUser(debtor: string, profileId: string): Promise<DebtData[] | null> {
   try {
     const { data, error } = await supabase
-      .from('Debts')
+      .from(DEBTS_TABLE)
       .select('*')
       .eq('debtor', debtor)
       .eq('profile', profileId)
@@ -1266,7 +1249,7 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
   try {
     // Obtener todas las deudas del perfil
     const { data: debts, error: debtsError } = await supabase
-      .from('Debts')
+      .from(DEBTS_TABLE)
       .select('*')
       .eq('profile', profileId)
       .eq('has_paid', false);
@@ -1339,7 +1322,7 @@ export async function redistributeDebts(profileId: string): Promise<boolean> {
 
 async function removeAllDebts(profileId: string): Promise<void> {
   await supabase
-    .from('Debts')
+    .from(DEBTS_TABLE)
     .delete()
     .eq('profile', profileId)
     .eq('has_paid', false);
@@ -1347,7 +1330,7 @@ async function removeAllDebts(profileId: string): Promise<void> {
 
 async function updateDebt(profileId: string, paidBy: string, debtor: string, amount: number): Promise<void> {
   const { data: existingDebt, error: debtError } = await supabase
-    .from('Debts')
+    .from(DEBTS_TABLE)
     .select('*')
     .eq('profile', profileId)
     .eq('paid_by', paidBy)
@@ -1362,7 +1345,7 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
 
   if (existingDebt) {
     await supabase
-      .from('Debts')
+      .from(DEBTS_TABLE)
       .update({ amount: amount })
       .eq('profile', existingDebt.profile)
       .eq('paid_by', paidBy)
@@ -1370,7 +1353,7 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
   } 
   
   else {
-    await supabase.from('Debts').insert({
+    await supabase.from(DEBTS_TABLE).insert({
       profile: profileId,
       paid_by: paidBy,
       debtor: debtor,
@@ -1382,7 +1365,7 @@ async function updateDebt(profileId: string, paidBy: string, debtor: string, amo
 
 async function removeDebt(profileId: string, paidBy: string, debtor: string): Promise<void> {
   await supabase
-    .from('Debts')
+    .from(DEBTS_TABLE)
     .delete()
     .eq('profile', profileId)
     .eq('paid_by', paidBy)
@@ -1393,7 +1376,7 @@ async function removeDebt(profileId: string, paidBy: string, debtor: string): Pr
 export async function addDebt(outcomeId: string, profileId: string, paidBy: string, debtor: string, amount: number): Promise<boolean> {
   try {
     const { data: existingDebt, error: existingDebtError } = await supabase
-      .from('Debts')
+      .from(DEBTS_TABLE)
       .select('*')
       .eq('profile', profileId)
       .eq('paid_by', paidBy)
@@ -1409,7 +1392,7 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
     if (existingDebt) {
       const newAmount = existingDebt.amount + amount;
       const { error: updateError } = await supabase
-        .from('Debts')
+        .from(DEBTS_TABLE)
         .update({ amount: newAmount })
         .eq('profile', profileId)
         .eq('paid_by', paidBy)
@@ -1423,7 +1406,7 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
     
     else {
       const { error: insertError } = await supabase
-        .from('Debts')
+        .from(DEBTS_TABLE)
         .insert({
           profile: profileId,
           paid_by: paidBy,
