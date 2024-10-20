@@ -1435,13 +1435,13 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
-export async function markAsPaid(profile: string, email: string, outcomeId: string, paid: boolean): Promise<boolean> {
+export async function markAsPaid(profile: string, whoPaid: string, outcomeId: string, paid: boolean): Promise<boolean> {
   const outcome = await getData(OUTCOMES_TABLE, outcomeId);
   const sharedOutcome = await getData(SHARED_OUTCOMES_TABLE, outcome.shared_outcome);
 
-  const userIndex = sharedOutcome.users.indexOf(email);
+  const userIndex = sharedOutcome.users.indexOf(whoPaid);
   if (userIndex === -1) {
-    console.error("User not found in shared outcome:", email);
+    console.error("User not found in shared outcome:", whoPaid);
     return false;
   }
 
@@ -1456,7 +1456,7 @@ export async function markAsPaid(profile: string, email: string, outcomeId: stri
     .from('Debts')
     .select('*')
     .eq('profile', profile)
-    .eq('debtor', email)
+    .eq('debtor', whoPaid)
     .eq('paid_by', paidBy)
     .single();
 
@@ -1467,11 +1467,13 @@ export async function markAsPaid(profile: string, email: string, outcomeId: stri
 
   if (debtData) {
     const newAmount = paid ? debtData.amount - outcome.amount : debtData.amount + outcome.amount;
-    await updateDebt(profile, paidBy, email, newAmount);
+    await updateDebt(profile, paidBy, whoPaid, newAmount);
   }
 
   return true;
 }
+
+
 
 /* División de Cuenta */
 
