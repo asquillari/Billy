@@ -1450,12 +1450,14 @@ export async function markAsPaid(profile: string, email: string, outcomeId: stri
 
   await updateData(SHARED_OUTCOMES_TABLE, 'has_paid', newHasPaid, 'id', outcome.shared_outcome);
 
+  const paidBy = sharedOutcome.users[0];
+
   const { data: debtData, error: debtError } = await supabase
     .from('Debts')
     .select('*')
     .eq('profile', profile)
     .eq('debtor', email)
-    .eq('paid_by', sharedOutcome.users[0])
+    .eq('paid_by', paidBy)
     .single();
 
   if (debtError) {
@@ -1465,7 +1467,7 @@ export async function markAsPaid(profile: string, email: string, outcomeId: stri
 
   if (debtData) {
     const newAmount = paid ? debtData.amount - outcome.amount : debtData.amount + outcome.amount;
-    await updateDebt(profile, sharedOutcome.users[0], email, newAmount);
+    await updateDebt(profile, paidBy, email, newAmount);
   }
 
   return true;
