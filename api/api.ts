@@ -294,7 +294,7 @@ export async function fetchOutcomes(profile: string): Promise<OutcomeData[] | nu
   return await fetchData(OUTCOMES_TABLE, 'profile', profile);
 }
 
-export async function getOutcome(id: string): Promise<OutcomeData | null> {
+export async function getOutcome(id: string): Promise<OutcomeData | null> {  
   return await getData(OUTCOMES_TABLE, id);
 }
 
@@ -369,8 +369,7 @@ export async function addSharedOutcome(users: string[], toPay: number[]) {
 }
 
 async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
-  const outcome = await getData(OUTCOMES_TABLE, id);
-  return await getData(SHARED_OUTCOMES_TABLE, outcome?.shared_outcome ?? "");
+  return await getData(SHARED_OUTCOMES_TABLE, id);
 }
 
 // In testing phase
@@ -386,7 +385,7 @@ async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOu
   await redistributeDebts(profile);
 }
 
-export async function removeOutcome(profile: string, id: string) {
+export async function removeOutcome(profile: string, id: string) {  
   try {
     const outcome = await getOutcome(id);
     
@@ -395,12 +394,16 @@ export async function removeOutcome(profile: string, id: string) {
       return { error: "Outcome not found." };
     }
 
-    const [deleteResult] = await Promise.all([
-      supabase.from(OUTCOMES_TABLE).delete().eq('id', id),
+    let sharedOutcomeData = null;
+    if (outcome.shared_outcome) sharedOutcomeData = await getSharedOutcome(outcome.shared_outcome);    
+
+    await Promise.all([
       updateBalance(profile, outcome.amount),
       updateCategorySpent(outcome.category, -outcome.amount),
-      outcome.shared_outcome ? removeSharedOutcomeDebts(profile, (await getSharedOutcome(outcome.shared_outcome)) ?? { users: [], to_pay: [] }) : Promise.resolve()
+      sharedOutcomeData ? removeSharedOutcomeDebts(profile, sharedOutcomeData) : Promise.resolve()
     ]);
+
+    const deleteResult = await removeData(OUTCOMES_TABLE, id);
 
     if (deleteResult.error) {
       console.error("Error removing outcome:", deleteResult.error);
