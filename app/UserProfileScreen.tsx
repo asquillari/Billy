@@ -168,15 +168,13 @@ export default function UserProfileScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#4B00B8', '#20014E']} style={styles.gradientContainer}>
-        <BillyHeader/>
-        <View style={styles.modalWrapper}>
+        <BillyHeader title="Perfil de usuario"/>
           <View style={styles.modalContainer}>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
               <Icon name="close" size={30} color="#000000"/>
             </TouchableOpacity>
             
             <View style={styles.contentContainer}>
-              <Text style={styles.title}>Perfil de usuario</Text>
 
               <View style={styles.iconContainer}>
                 <Image 
@@ -220,7 +218,6 @@ export default function UserProfileScreen() {
               <ChangePasswordModal isVisible={isPasswordChangeModalVisible} onClose={() => setIsPasswordChangeModalVisible(false)} onSubmit={handlePasswordSubmit}/>
             </View>
           </View>
-        </View>
       </LinearGradient>
     </View>
   );
@@ -231,7 +228,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradientContainer: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   iconContainer: {
     alignItems: 'center',
@@ -255,17 +254,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalContainer: {
-    width: '85%',
-    maxWidth: 400,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-    paddingTop: 40,
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 10,
+    marginHorizontal: '2.5%',
   },
   contentContainer: {
     width: '100%',

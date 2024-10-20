@@ -929,7 +929,7 @@ export async function uploadProfilePicture(email: string, base64Image: string): 
     const fileName = `${email}_${Date.now()}.png`;
     const bucketName = 'profile_pictures';
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(bucketName)
       .upload(fileName, decode(base64Data), {
         contentType: 'image/png',
