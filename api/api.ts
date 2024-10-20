@@ -373,13 +373,8 @@ async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
 // In testing phase
 async function removeSharedOutcomeDebts(profile: string, sharedOutcome: SharedOutcomeData) {
   const paidBy = sharedOutcome.users[0];
-
-  for (let i = 1; i < sharedOutcome.users.length; i++) {
-    const debtor = sharedOutcome.users[i];
-    const amount = sharedOutcome.to_pay[i];
-    await updateDebt(profile, paidBy, debtor, -amount);
-  }
-
+  const debtUpdatePromises = sharedOutcome.users.slice(1).map((debtor, index) => updateDebt(profile, paidBy, debtor, -sharedOutcome.to_pay[index + 1]));
+  await Promise.all(debtUpdatePromises);
   await redistributeDebts(profile);
 }
 
@@ -403,7 +398,7 @@ export async function removeOutcome(profile: string, id: string) {
           sharedOutcomeData ? removeSharedOutcomeDebts(profile, sharedOutcomeData) : Promise.resolve()
       ));
     }
-    
+
     const results = await Promise.allSettled(operations);
 
     const failedOperations = results.filter(result => result.status === 'rejected' || (result.status === 'fulfilled' && result.value === false));
