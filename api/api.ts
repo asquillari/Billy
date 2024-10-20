@@ -21,7 +21,7 @@ export interface UserData {
   surname: string;
   currentProfile?: string;
   my_profiles?: string[];
-  profile_url?: string;
+  profile_picture?: string;
 }
 
 export interface IncomeData {
