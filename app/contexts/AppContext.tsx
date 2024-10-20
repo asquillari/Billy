@@ -4,6 +4,7 @@ import { IncomeData, OutcomeData, CategoryData, ProfileData, UserData } from '@/
 export interface AppContextType {
   user: UserData | null;
   setUser: (user: UserData | null) => void;
+  refreshUser: () => Promise<void>;
   currentProfileId: string | null;
   setCurrentProfileId: (id: string | null) => void;
   incomeData: IncomeData[] | null;

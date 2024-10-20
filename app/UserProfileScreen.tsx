@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
 import { updateUserPassword, updateUserFullName, logOut, requestPasswordReset, verifyPasswordResetCode, uploadProfilePicture, getProfilePictureUrl} from '@/api/api';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChangePasswordModal } from '@/components/modals/ChangePasswordModal';
@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 const EditableField = ({ label, value, isEditing, editingField, fieldName, onChangeText, onEditField }: { label: string, value: string, isEditing: boolean, editingField: string, fieldName: string, onChangeText: (text: string) => void, onEditField: (field: string | null) => void }) => (
   <View style={styles.infoContainer}>
-    <Text style={styles.label}>{label}:</Text>
+    <Text style={styles.label}>{label}: </Text>
     <View style={styles.editableField}>
       {isEditing && editingField === fieldName ? (
         <TextInput style={[styles.input, styles.visibleInput]} value={value} onChangeText={onChangeText} onBlur={() => onEditField(null)} autoFocus/>
@@ -29,8 +29,7 @@ const EditableField = ({ label, value, isEditing, editingField, fieldName, onCha
 );
 
 export default function UserProfileScreen() {
-  
-  const { user } = useAppContext();
+  const { user, refreshUser } = useAppContext();
   const navigation = useNavigation();
   const [userName, setUserName] = useState<string>('');
   const [userSurname, setUserSurname] = useState<string>('');
@@ -43,48 +42,60 @@ export default function UserProfileScreen() {
   const [isPasswordChangeModalVisible, setIsPasswordChangeModalVisible] = useState(false);
   const [userIcon, setUserIcon] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user?.email) {
-        try {
-          const profilePictureUrl = await getProfilePictureUrl(user.email);
-          setUserName(user.name || '');
-          setUserSurname(user.surname || '');
-          setUserEmail(user.email);
-          setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
-        } 
-        catch (error) {
-          setUserName('');
-          setUserSurname('');
-          setUserIcon('@/assets/images/icons/UserIcon.png');
-        }
+  const fetchUserData = useCallback(async () => {
+    if (user?.email) {
+      try {
+        await refreshUser();
+        const profilePictureUrl = await getProfilePictureUrl(user.email);
+        setUserName(user.name || '');
+        setUserSurname(user.surname || '');
+        setUserEmail(user.email);
+        setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
+      } 
+      catch (error) {
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to fetch user data. Please try again.');
       }
-    };
-    fetchUserData();
+    }
   }, [user?.email]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [fetchUserData])
+  );
+
+  useEffect(() => {
+    if (user) {
+      setUserName(user.name || '');
+      setUserSurname(user.surname || '');
+      setUserEmail(user.email || '');
+    }
+  }, [user]);
 
   const handleEdit = async () => {
     if (isEditing) {
       setIsUpdating(true);
       try {
         await updateUserFullName(user?.email || '', userName, userSurname);
-        
         {/* TODO: falta chequear la parte de email que funcione bien */}
         //   await updateUserEmail(user?.email || '', userEmail);
-       
+        await refreshUser();
+        setIsEditing(false);
+        setEditingField(null);
+        navigation.goBack();
       }
       catch (error) {
-        console.error('Error updating user information:', error);
         setUserName(userName);
         setUserSurname(userSurname);
         setUserEmail(userEmail);
+        Alert.alert('Error', 'Failed to update user information. Please try again.');
       } 
       finally {
         setIsUpdating(false);
       }
     }
-    setIsEditing(!isEditing);
-    setEditingField(null);
+    else setIsEditing(true);
   };
 
   const handleChangePassword = async () => {
@@ -182,9 +193,9 @@ export default function UserProfileScreen() {
                 />
 
                 {isEditing && (
-                <TouchableOpacity style={styles.changeIconButton} onPress={handleChangeIcon}>
-                  <Text style={styles.changeIconText}>Cambiar Icono</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity style={styles.cameraIconButton} onPress={handleChangeIcon}>
+                    <Icon name="camera-alt" size={24} color="#FFFFFF" />
+                  </TouchableOpacity>
                 )}
               </View>
               
@@ -194,16 +205,14 @@ export default function UserProfileScreen() {
 
               <EditableField label="Mail" value={userEmail} isEditing={isEditing} editingField={editingField || ''} fieldName="email" onChangeText={setUserEmail} onEditField={handleEditField}/>
 
-              {isEditing && (
-              <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-                <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-              </TouchableOpacity>
-              )}
-
               <TouchableOpacity style={[ styles.button, isEditing ? styles.saveButton : null, isUpdating ? styles.disabledButton : null ]} onPress={handleEdit} disabled={isUpdating}>
                 <Text style={styles.buttonText}>
                   {isEditing ? (isUpdating ? 'Guardando...' : 'Guardar') : 'Editar'}
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+                <Text style={styles.buttonText}>Cambiar Contraseña</Text>
               </TouchableOpacity>
 
               {!isEditing && (
@@ -233,13 +242,13 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   userIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginBottom: 10,
+    marginBottom: 5,
   },
   changeIconButton: {
     backgroundColor: '#370185',
@@ -269,12 +278,6 @@ const styles = StyleSheet.create({
     left: 10,
     zIndex: 1
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   infoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -294,7 +297,7 @@ const styles = StyleSheet.create({
     padding: 12,
     width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 15,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -331,5 +334,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: '50%',
+  },
+  cameraIconButton: {
+    position: 'absolute',
+    top: '60%',
+    left: '53%',
+    backgroundColor: '#370185',
+    borderRadius: 15,
+    padding: 5,
   },
 });

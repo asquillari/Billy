@@ -796,7 +796,7 @@ export async function logOut() {
   }
 }
 
-export async function getUser(email: string): Promise<UserData | null> {
+export async function getUser(email: string): Promise<UserData | null> {  
   return await getData(USERS_TABLE, email, 'email');
 }
 
