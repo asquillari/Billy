@@ -67,7 +67,6 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     if (type === 'Income') {
       await addIncome(currentProfileId??"", parseFloat(amount), description);
       refreshIncomeData();
-      refreshBalanceData();
     } 
     else {
       let categoryToUse = selectedCategory;
@@ -89,8 +88,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
       }
       refreshOutcomeData();
       refreshCategoryData();
-      refreshBalanceData();
     }
+    refreshBalanceData();
     // Reset form
     setAmount('');
     setDescription('');
@@ -98,7 +97,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isVisible, on
     setSelectedCategory('');
     setIsSubmitting(false);
     onClose();
-  }, [type, isSubmitting, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, currentProfileId, onClose, shared, whoPaidIt, selectedSharedUser, date]);
+  }, [type, isSubmitting, amount, description, selectedCategory, refreshIncomeData, refreshOutcomeData, refreshCategoryData, refreshBalanceData, currentProfileId, onClose, shared, whoPaidIt, selectedSharedUser, date]);
 
   const switchType = useCallback((newType: 'Income' | 'Outcome') => {
     setType(newType);
