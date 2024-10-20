@@ -1441,36 +1441,22 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
-export async function markDebtAsPaid(debtId: string): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from('Debts')
-      .update({ has_paid: true })
-      .eq('id', debtId)
-      .select()
-      .single();
+export async function markAsPaid(email: string, outcomeId: string): Promise<boolean> {
+  const outcome = await getData(OUTCOMES_TABLE, outcomeId);
 
-    if (error) {
-      console.error("Error marking debt as paid:", error);
-      return false;
-    }
+  const debt = await getData(SHARED_OUTCOMES_TABLE, outcome.shared_outcome);
 
-    if (!data) {
-      console.error("No debt found with id:", debtId);
-      return false;
-    }
-
-    // Redistribuyo las deudas luego de marcarla como pagada (creo que no hace falta)
-    //const redistributionSuccess = await redistributeDebts(profileId);
-    //if (!redistributionSuccess) {
-    //  console.error("Failed to redistribute debts after marking debt as paid");
-    //}
-
-    return true;
-  } catch (error) {
-    console.error("Unexpected error marking debt as paid:", error);
+  const userIndex = debt.users.indexOf(email);
+  if (userIndex === -1) {
+    console.error("User not found in shared outcome:", email);
     return false;
   }
+
+  const newHasPaid = [...debt.has_paid];
+  newHasPaid[userIndex] = true;
+
+  await updateData(SHARED_OUTCOMES_TABLE, 'has_paid', newHasPaid, 'id', outcome.shared_outcome);
+  return true;
 }
 
 /* División de Cuenta */

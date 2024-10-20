@@ -4,7 +4,7 @@ import { TransactionList } from '@/components/TransactionList';
 import { BalanceCard } from '@/components/BalanceCard';
 import { CategoryList } from '@/components/CategoryList';
 import AddButton from '@/components/addButton';
-import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile } from '../../api/api';
+import { fetchCurrentProfile, getSharedUsers, isProfileShared, changeCurrentProfile, markAsPaid } from '../../api/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BillyHeader from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
