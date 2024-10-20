@@ -1436,10 +1436,8 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
 }
 
 export async function markAsPaid(profile: string, email: string, outcomeId: string, paid: boolean): Promise<boolean> {
-  const [outcome, sharedOutcome] = await Promise.all([
-    getData(OUTCOMES_TABLE, outcomeId),
-    getData(SHARED_OUTCOMES_TABLE, (await getData(OUTCOMES_TABLE, outcomeId)).shared_outcome)
-  ]);
+  const outcome = await getData(OUTCOMES_TABLE, outcomeId);
+  const sharedOutcome = await getData(SHARED_OUTCOMES_TABLE, outcome.shared_outcome);
 
   const userIndex = sharedOutcome.users.indexOf(email);
   if (userIndex === -1) {
@@ -1466,11 +1464,8 @@ export async function markAsPaid(profile: string, email: string, outcomeId: stri
   }
 
   if (debtData) {
-    const newAmount = paid ? debtData.amount + outcome.amount : debtData.amount - outcome.amount;
-    await supabase
-      .from('Debts')
-      .update({ amount: newAmount, has_paid: paid })
-      .eq('id', debtData.id);
+    const newAmount = paid ? debtData.amount - outcome.amount : debtData.amount + outcome.amount;
+    await updateDebt(profile, sharedOutcome.users[0], email, newAmount);
   }
 
   return true;
