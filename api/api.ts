@@ -1430,21 +1430,44 @@ export async function addDebt(outcomeId: string, profileId: string, paidBy: stri
   }
 }
 
-export async function markAsPaid(email: string, outcomeId: string, paid: boolean): Promise<boolean> {
-  const outcome = await getData(OUTCOMES_TABLE, outcomeId);
+export async function markAsPaid(profile: string, email: string, outcomeId: string, paid: boolean): Promise<boolean> {
+  const [outcome, sharedOutcome] = await Promise.all([
+    getData(OUTCOMES_TABLE, outcomeId),
+    getData(SHARED_OUTCOMES_TABLE, (await getData(OUTCOMES_TABLE, outcomeId)).shared_outcome)
+  ]);
 
-  const debt = await getData(SHARED_OUTCOMES_TABLE, outcome.shared_outcome);
-
-  const userIndex = debt.users.indexOf(email);
+  const userIndex = sharedOutcome.users.indexOf(email);
   if (userIndex === -1) {
     console.error("User not found in shared outcome:", email);
     return false;
   }
 
-  const newHasPaid = [...debt.has_paid];
+  const newHasPaid = [...sharedOutcome.has_paid];
   newHasPaid[userIndex] = paid;
 
   await updateData(SHARED_OUTCOMES_TABLE, 'has_paid', newHasPaid, 'id', outcome.shared_outcome);
+
+  const { data: debtData, error: debtError } = await supabase
+    .from('Debts')
+    .select('*')
+    .eq('profile', profile)
+    .eq('debtor', email)
+    .eq('paid_by', sharedOutcome.users[0])
+    .single();
+
+  if (debtError) {
+    console.error("Error fetching debt:", debtError);
+    return false;
+  }
+
+  if (debtData) {
+    const newAmount = paid ? debtData.amount + outcome.amount : debtData.amount - outcome.amount;
+    await supabase
+      .from('Debts')
+      .update({ amount: newAmount, has_paid: paid })
+      .eq('id', debtData.id);
+  }
+
   return true;
 }
 
