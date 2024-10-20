@@ -171,7 +171,7 @@ export default function UserProfileScreen() {
         <BillyHeader title="Perfil de usuario"/>
           <View style={styles.modalContainer}>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <Icon name="close" size={30} color="#000000"/>
+              <Icon name="arrow-back" size={30} color="#000000"/>
             </TouchableOpacity>
             
             <View style={styles.contentContainer}>
@@ -258,7 +258,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: 10,
     marginHorizontal: '2.5%',
   },
   contentContainer: {
@@ -268,7 +267,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: 10,
-    right: 10,
+    left: 10,
     zIndex: 1
   },
   title: {
