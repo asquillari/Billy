@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
-import { signUp, addProfile, changeCurrentProfile } from '@/api/api';
+import { signUp, addProfile, changeCurrentProfile, getUser } from '@/api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/hooks/useAppContext';
@@ -11,7 +11,7 @@ export default function Signup() {
   const navigation = useNavigation();
   const { setUser } = useAppContext();
   const [name, setName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -33,12 +33,13 @@ export default function Signup() {
     }
 
     try {
-      const { error, session } = await signUp(email, password, name, lastName);
+      const { error, session } = await signUp(email, password, name, surname);
       if (error) Alert.alert('Error de registro', 'No se pudo crear la cuenta');
       
       else {
         await AsyncStorage.setItem('userSession', JSON.stringify(session));
-        setUser({ email });
+        const user = await getUser(email);
+        setUser(user);
         const newProfile = await addProfile('Default', email);
         await changeCurrentProfile(email, newProfile?.id ?? "");
         navigation.navigate('(tabs)' as never);
@@ -68,7 +69,7 @@ export default function Signup() {
         
         <View style={styles.nameContainer}>
           <TextInput style={styles.miniInput} placeholder="Nombre" placeholderTextColor="#999" value={name} onChangeText={setName}/>
-          <TextInput style={styles.miniInput} placeholder="Apellido" placeholderTextColor="#999" value={lastName} onChangeText={setLastName}/>
+          <TextInput style={styles.miniInput} placeholder="Apellido" placeholderTextColor="#999" value={surname} onChangeText={setSurname}/>
         </View>
         
         <TextInput style={styles.input} placeholder="Mail" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>

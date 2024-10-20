@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, TextInput, TouchableOpacity, KeyboardAvoidingV
 import { ThemedText } from '@/components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { logIn } from '@/api/api';
+import { getUser, logIn } from '@/api/api';
 import { useAppContext } from '@/hooks/useAppContext';
 import { Alert } from 'react-native'; 
 
@@ -22,7 +22,8 @@ export default function Login() {
     try {
       const result = await logIn(email, password);
       if (result.user) { 
-        setUser({ email });
+        const user = await getUser(email);
+        setUser(user);
         navigation.navigate('(tabs)' as never);
       } else {
         Alert.alert('Login Failed', 'Invalid email or password');

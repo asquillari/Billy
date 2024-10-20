@@ -20,7 +20,6 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
-  const userEmail = user?.email;
 
   {/* TODO:Deberia agregarlo en useAppContext?? */}
   useEffect(() => {
@@ -37,7 +36,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
     };
 
     fetchProfilePicture();
-  }, [user?.email]);
+  }, [user?.profile_picture]);
 
   return (
     <View style={styles.headerContainer}>

@@ -4,6 +4,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppContext } from '@/hooks/useAppContext';
+import { getUser } from '@/api/api';
 
 export default function Start() {
   const navigation = useNavigation();
@@ -16,7 +17,8 @@ export default function Start() {
         if (session) { 
           const parsedSession = JSON.parse(session);
           if (parsedSession && parsedSession.user && parsedSession.user.email) {
-            setUser({ email: parsedSession.user.email });
+            const user = await getUser(parsedSession.user.email);
+            setUser(user);
             navigation.navigate('(tabs)' as never);
           } 
           else await AsyncStorage.removeItem('userSession');

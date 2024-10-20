@@ -16,7 +16,6 @@ const BILLS_TABLE = 'Bills';
 
 export interface UserData {
   email: string;
-  password: string;
   name: string;
   surname: string;
   currentProfile?: string;
@@ -108,12 +107,12 @@ async function fetchData(table: string, columnToCheck: string, parentID: string)
   }
 }
 
-async function getData(table: string, id: string): Promise<any | null> {
+async function getData(table: string, id: string, columnToCheck: string = 'id'): Promise<any | null> {
   try {
     const { data, error } = await supabase
       .from(table)
       .select('*')
-      .eq('id', id)
+      .eq(columnToCheck ?? 'id', id)
       .single();
 
     if (error) {
@@ -699,8 +698,8 @@ async function updateBalance(profile: string, added: number): Promise<void | nul
 
 /* User */
 
-export async function addUser(email: string, password: string, name: string, surname: string): Promise<UserData | null> {
-  const newUser: UserData = { email: email, password: password, name: name, surname: surname };
+export async function addUser(email: string, name: string, surname: string): Promise<UserData | null> {
+  const newUser: UserData = { email: email, name: name, surname: surname };
   return await addData(USERS_TABLE, newUser);
 }
 
@@ -798,7 +797,7 @@ export async function logOut() {
 }
 
 export async function getUser(email: string): Promise<UserData | null> {
-  return await getData(USERS_TABLE, email);
+  return await getData(USERS_TABLE, email, 'email');
 }
 
 export async function changeCurrentProfile(user: string, newProfileID: string) {

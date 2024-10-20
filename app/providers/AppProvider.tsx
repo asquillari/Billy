@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { AppContext } from '../contexts/AppContext';
-import { fetchIncomes, fetchOutcomes, fetchCategories, fetchBalance, fetchProfiles, IncomeData, OutcomeData, CategoryData, ProfileData } from '@/api/api';
+import { fetchIncomes, fetchOutcomes, fetchCategories, fetchBalance, fetchProfiles, IncomeData, OutcomeData, CategoryData, ProfileData, UserData } from '@/api/api';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const [incomeData, setIncomeData] = useState<IncomeData[] | null>(null);
   const [outcomeData, setOutcomeData] = useState<OutcomeData[] | null>(null);
