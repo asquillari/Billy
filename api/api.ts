@@ -925,8 +925,10 @@ export async function getUserNames(emails: string[]): Promise<Record<string, str
 export async function uploadProfilePicture(email: string, base64Image: string): Promise<string | null> {
   try {
     const fileName = `${email}_${Date.now()}.jpg`;
-    const { data, error } = await supabase.storage
-      .from('Users')
+    const bucketName = 'Users';
+
+    const { error } = await supabase.storage
+      .from(bucketName)
       .upload(fileName, decode(base64Image), {
         contentType: 'image/jpeg',
         upsert: true
@@ -938,35 +940,22 @@ export async function uploadProfilePicture(email: string, base64Image: string): 
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('Users')
+      .from(bucketName)
       .getPublicUrl(fileName);
 
     await updateUserProfileUrl(email, publicUrl);
 
     return publicUrl;
-  } catch (error) {
+  } 
+  
+  catch (error) {
     console.error("Unexpected error uploading profile picture:", error);
     return null;
   }
 }
 
-async function updateUserProfileUrl(email: string, profileUrl: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('Users')
-      .update({ profile_url: profileUrl })
-      .eq('email', email);
-
-    if (error) {
-      console.error("Error updating user profile URL:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Unexpected error updating user profile URL:", error);
-    return false;
-  }
+async function updateUserProfileUrl(email: string, profilePictureUrl: string) {
+  return await updateData(USERS_TABLE, 'profile_picture_url', profilePictureUrl, 'email', email);
 }
 
 /* Stats */
