@@ -486,18 +486,13 @@ async function updateCategorySpent(category: string, added: number) {
   if (currentSpent !== null) return await updateData(CATEGORIES_TABLE, 'spent', currentSpent + added, 'id', category);
 }
 
-export async function checkCategoryLimit(category: string, amount: number): Promise<boolean | null> {
-  try {
-    const limit = await getCategoryLimit(category);
-    if (limit == null || limit <= 0) return true;
-    const spent = await getCategorySpent(category);
-    return ((spent??0) + amount <= limit);
-  } 
-  
-  catch (error) {
-    console.error("Error checking category limit:", error);
-    return null;
-  }
+export async function checkCategoryLimit(category: string, amount: number): Promise<boolean> {
+  const [limit, spent] = await Promise.all([
+    getCategoryLimit(category),
+    getCategorySpent(category)
+  ]);
+  if (limit == null || limit <= 0) return true;
+  return ((spent ?? 0) + amount <= limit);
 }
 
 
@@ -512,14 +507,15 @@ export async function fetchProfiles(user: string): Promise<ProfileData[] | null>
       console.error("No profiles found or invalid data returned for user:", user);
       return null;
     }
+    
+    const { data: profiles, error } = await supabase
+      .from(PROFILES_TABLE)
+      .select('*')
+      .in('id', profileIds);
 
-    const profiles: ProfileData[] = [];
-
-    for (const profileId of profileIds) {
-      const profile = await fetchData(PROFILES_TABLE, 'id', profileId);
-      if (profile && profile.length > 0) {
-        profiles.push(profile[0]);
-      }
+    if (error) {
+      console.error("Error fetching profiles:", error);
+      return null;
     }
 
     return profiles;
@@ -535,10 +531,6 @@ export async function getProfile(profileId: string): Promise<ProfileData | null>
   return await getData(PROFILES_TABLE, profileId);
 }
 
-// export async function getProfileIcon(profileId: string): Promise<string | null> {
-//   return await getValueFromData(PROFILES_TABLE, 'icon', 'id', profileId);
-// }
-
 export async function getProfileName(profileId: string): Promise<string | null> {
   return await getValueFromData(PROFILES_TABLE, 'name', 'id', profileId);
 }
@@ -552,8 +544,10 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
     const newProfile: ProfileData = { name, owner: user };
     const profile = await addData(PROFILES_TABLE, newProfile);
 
-    const { error: userError } = await supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id });
-    const { error: profileError } = await supabase.rpc('append_user_to_profile', { profile_id: profile.id, new_user: user });
+    const [{ error: userError }, { error: profileError }] = await Promise.all([
+      supabase.rpc('append_to_my_profiles', { user_email: user, new_profile_id: profile.id }),
+      supabase.rpc('append_user_to_profile', { profile_id: profile.id, new_user: user })
+    ]);
 
     if (userError || profileError) {
       console.error("Failed to append new profile to user's my_profiles:", userError && profileError);
@@ -572,17 +566,16 @@ export async function addProfile(name: string, user: string): Promise<ProfileDat
 
 export async function removeProfile(profileId: string, email: string) {
   try {
+    if(await isProfileShared(profileId)) return await removeSharedProfile(profileId, email);
 
-    if(await isProfileShared(profileId) === true){
-      await removeSharedProfile(profileId, email);
-      return true;
-    }
+    const [removedProfile, { error }] = await Promise.all([
+      removeData(PROFILES_TABLE, profileId),
+      supabase.rpc('remove_from_my_profiles', { profile_id_param: profileId })
+    ]);
 
-    const removedProfile = await removeData(PROFILES_TABLE, profileId);
-
-    if (removedProfile) {
-      const { error } = await supabase.rpc('remove_from_my_profiles', { profile_id_param: profileId });
-      if (error) console.error("Error removing profile from user's my_profiles:", error);
+    if (error) {
+      console.error("Error removing profile from user's my_profiles:", error);
+      return null;
     }
 
     return removedProfile;
@@ -1234,15 +1227,27 @@ export async function getDebtsFromUser(debtor: string, profileId: string): Promi
 
 export async function removeSharedProfile(profileId: string, email: string) {
   const profile = await getProfile(profileId);
-  if (profile?.owner !== email) {
-    await removeSharedUsers(profileId, [email]);
-  }
   
-  else {
-    await removeSharedUsers(profileId, profile.users ?? []);
-    await removeData(PROFILES_TABLE, profileId);
+  if (!profile) {
+    console.error("Profile not found:", profileId);
+    return false;
   }
-  return true;
+
+  const usersToRemove = profile.owner === email ? (profile.users ?? []) : [email];
+  
+  const operations = [removeSharedUsers(profileId, usersToRemove)];
+  
+  if (profile.owner === email) operations.push(removeData(PROFILES_TABLE, profileId));
+
+  try {
+    await Promise.all(operations);
+    return true;
+  } 
+  
+  catch (error) {
+    console.error("Error removing shared profile:", error);
+    return false;
+  }
 }
 
 export async function redistributeDebts(profileId: string): Promise<boolean> {
