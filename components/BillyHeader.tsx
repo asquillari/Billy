@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     width: 47,
     height: 47,
     resizeMode: 'contain',
+    borderRadius: 100,
   },
   tituloContainer: {
     marginHorizontal: 5,
