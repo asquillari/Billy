@@ -16,7 +16,7 @@ interface BillyHeaderProps {
 export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
   const { user, profileData, currentProfileId } = useAppContext();
   const navigation = useNavigation();
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>('../assets/images/icons/UserIcon.png');
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
@@ -25,10 +25,10 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
   {/* TODO:Deberia agregarlo en useAppContext?? */}
   useEffect(() => {
     const fetchProfilePicture = async () => {
-      if (userEmail && currentProfile) {
+      if (userEmail && profilePictureUrl) {
         try {
           // Add a 0.5-second delay before fetching
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // await new Promise(resolve => setTimeout(resolve, 500));
 
           const url = await getProfilePictureUrl(userEmail);
           setProfilePictureUrl(url);
@@ -40,7 +40,7 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
     };
 
     fetchProfilePicture();
-  }, [userEmail, currentProfile]);
+  }, [userEmail, profilePictureUrl]);
 
   return (
     <View style={styles.headerContainer}>
