@@ -313,45 +313,43 @@ export async function addOutcome(profile: string, category: string, amount: numb
       created_at: created_at || new Date()
     };
 
-    // Verificar si se ha alcanzado el límite
-    const isWithinLimit = await checkCategoryLimit(category, amount);
-    if (!isWithinLimit) {
-      // Obtener el nombre de la categoría directamente desde la lista de categorías
-      const categoryData = await fetchCategories(profile); // Asegúrate de que esta función devuelva todas las categorías
-      if (!categoryData) {
-          throw new Error("No se encontraron categorías."); // Manejo de error si categoryData es null
-      }
-      const categoryInfo = categoryData.find(cat => cat.id === category);
-      const categoryName = categoryInfo ? categoryInfo.name : "Categoría desconocida"; // Obtener el nombre
+    // Verificar si se ha alcanzado el límite y añadir el outcome en paralelo
+    const [isWithinLimit, categoryData, outcomeData] = await Promise.all([
+      checkCategoryLimit(category, amount),
+      fetchCategories(profile),
+      addData(OUTCOMES_TABLE, newOutcome)
+    ]);
 
-      Alert.alert("¡Cuidado!", `Has alcanzado tu límite en ${categoryName}.`); // Mostrar el nombre en la alerta
+    if (!isWithinLimit) {
+      if (!categoryData) throw new Error("No se encontraron categorías.");
+      const categoryInfo = categoryData.find(cat => cat.id === category);
+      const categoryName = categoryInfo ? categoryInfo.name : "Categoría desconocida";
+      Alert.alert("¡Cuidado!", `Has alcanzado tu límite en ${categoryName}.`);
     }
 
-    const outcomeData = await addData(OUTCOMES_TABLE, newOutcome);
+    const operations = [
+      updateBalance(profile, -amount),
+      updateCategorySpent(category, amount)
+    ];
 
     // Si es un gasto grupal, añadir las deudas correspondientes
     if (paid_by && debtors && debtors.length > 0) {
       const amountPerPerson = amount / (debtors.length + 1);
-
       const allUsers = [paid_by, ...debtors];
       const allAmounts = allUsers.map(() => amountPerPerson);
-      const sharedOutcomeId = await addSharedOutcome(allUsers, allAmounts);
-      await updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id);
 
-      for (const debtor of debtors) {
-        const success = await addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson);
-        if (!success) {
-          console.error("Error añadiendo deuda para", debtor);
-          await removeOutcome(profile, outcomeData.id);
-          return null;
-        }
-      }
+      operations.push(addSharedOutcome(allUsers, allAmounts).then(sharedOutcomeId => updateData(OUTCOMES_TABLE, 'shared_outcome', sharedOutcomeId, 'id', outcomeData.id)));
+      operations.push(...debtors.map(debtor => addDebt(outcomeData.id, outcomeData.profile, paid_by, debtor, amountPerPerson)));
     }
 
-    await Promise.all([
-      updateBalance(profile, -amount),
-      updateCategorySpent(category, amount)
-    ]);
+    const results = await Promise.allSettled(operations);
+
+    const failedOperations = results.filter(result => result.status === 'rejected' || (result.status === 'fulfilled' && result.value === false));
+    if (failedOperations.length > 0) {
+      console.error("Error en una o más operaciones:", failedOperations);
+      await removeOutcome(profile, outcomeData.id);
+      return null;
+    }
 
     return [outcomeData];
   } 
