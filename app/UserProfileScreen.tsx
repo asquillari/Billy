@@ -53,7 +53,6 @@ export default function UserProfileScreen() {
           setUserEmail(user.email);
           setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
         } catch (error) {
-          console.error('Error fetching user name:', error);
           setUserName('');
           setUserIcon('@/assets/images/icons/UserIcon.png');
         }
@@ -69,13 +68,9 @@ export default function UserProfileScreen() {
       try {
         
           await updateUserName(user?.email || '', userName);
-          console.log('Nombre actualizado');
-          console.log(userName);
         
         {/* TODO: falta chequear la parte de email que funcione bien */}
         //   await updateUserEmail(user?.email || '', userEmail);
-        //   console.log('Email actualizado');
-        //   console.log(userEmail);
         
        
       } catch (error) {
