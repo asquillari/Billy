@@ -925,13 +925,15 @@ export async function getUserNames(emails: string[]): Promise<Record<string, str
 
 export async function uploadProfilePicture(email: string, base64Image: string): Promise<string | null> {
   try {
-    const fileName = `${email}_${Date.now()}.jpg`;
-    const bucketName = 'Users';
+    const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+    
+    const fileName = `${email}_${Date.now()}.png`;
+    const bucketName = 'profile_pictures';
 
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from(bucketName)
-      .upload(fileName, decode(base64Image), {
-        contentType: 'image/jpeg',
+      .upload(fileName, decode(base64Data), {
+        contentType: 'image/png',
         upsert: true
       });
 
