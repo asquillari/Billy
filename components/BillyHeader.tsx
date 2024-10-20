@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { StyleSheet, Alert, View, Image, TouchableOpacity, Text, ImageStyle } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Image, TouchableOpacity, Text, ImageStyle } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
-import { logOut } from '@/api/api';
+import { getProfilePictureUrl } from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppContext } from '@/hooks/useAppContext';
+import { useState, useEffect } from 'react';
 
 interface BillyHeaderProps {
   title?: string;
@@ -13,18 +14,30 @@ interface BillyHeaderProps {
 }
 
 export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subtitle, icon }) => {
-  const { profileData, currentProfileId } = useAppContext();
-  const [isProfileIconOpened, setIsProfileIconOpened] = useState(false);
+  const { user, profileData, currentProfileId } = useAppContext();
   const navigation = useNavigation();
-  
-  const handleLogout = async () => {
-    const result = await logOut();
-    if (result.error) Alert.alert('Logout Error', result.error);
-    navigation.navigate('start' as never);
-  };
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   const currentProfile = profileData?.find(profile => profile.id === currentProfileId);
   const profileName = currentProfile ? currentProfile.name : 'Profile';
+  const userEmail = user?.email;
+
+  {/* TODO:Deberia agregarlo en useAppContext?? */}
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (user?.email) {
+        try {
+          const url = await getProfilePictureUrl(user.email);
+          setProfilePictureUrl(url);
+        } catch (error) {
+          console.error('Error fetching profile picture:', error);
+          setProfilePictureUrl(null);
+        }
+      }
+    };
+
+    fetchProfilePicture();
+  }, [user?.email]);
 
   return (
     <View style={styles.headerContainer}>
@@ -35,7 +48,10 @@ export const BillyHeader: React.FC<BillyHeaderProps> = React.memo(({ title, subt
             <Text style={styles.profileName}>{profileName}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen' as never)}>
-            <Image source={require('../assets/images/icons/UserIcon.png')} style={styles.usuario as ImageStyle} />
+            <Image 
+              source={profilePictureUrl ? { uri: profilePictureUrl } : require('../assets/images/icons/UserIcon.png')} 
+              style={styles.usuario as ImageStyle} 
+            />
           </TouchableOpacity>
         </View>
       </View>

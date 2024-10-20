@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode, uploadProfilePicture} from '@/api/api';
+import { getUserNames, updateUserEmail, updateUserPassword, updateUserName, updateUserSurname, updateUserFullName, logOut, requestPasswordReset , verifyPasswordResetCode, uploadProfilePicture, getProfilePictureUrl} from '@/api/api';
 import { useNavigation } from '@react-navigation/native';
 import { BillyHeader } from '@/components/BillyHeader';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,6 +29,7 @@ const EditableField = ({ label, value, isEditing, editingField, fieldName, onCha
 );
 
 export default function UserProfileScreen() {
+  
   const { user } = useAppContext();
   const navigation = useNavigation();
   const [userName, setUserName] = useState<string>('');
@@ -45,12 +46,16 @@ export default function UserProfileScreen() {
     const fetchUserData = async () => {
       if (user?.email) {
         try {
+          {/* TODO: Deberia haber una funcion como getUserSurname para que pueda habilitar el cambio de apellido */}
           const names = await getUserNames([user.email]);
+          const profilePictureUrl = await getProfilePictureUrl(user.email);
           setUserName(names[user.email] || '');
           setUserEmail(user.email);
+          setUserIcon(profilePictureUrl || '@/assets/images/icons/UserIcon.png');
         } catch (error) {
           console.error('Error fetching user name:', error);
           setUserName('');
+          setUserIcon('@/assets/images/icons/UserIcon.png');
         }
       }
     };
@@ -146,7 +151,8 @@ export default function UserProfileScreen() {
       const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
       const uploadedUrl = await uploadProfilePicture(user?.email || '', base64Image);
       if (uploadedUrl) {
-        //TODO: needs backend update function. Does not work properly.
+        {/* TODO: needs backend update function. Does not work properly. */}
+        setUserIcon(uploadedUrl);
       } else {
         Alert.alert("Error", "Failed to upload profile picture. Please try again.");
       }
