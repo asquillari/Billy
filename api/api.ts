@@ -370,7 +370,8 @@ export async function addSharedOutcome(users: string[], toPay: number[]) {
 }
 
 async function getSharedOutcome(id: string): Promise<SharedOutcomeData | null> {
-  return await getData(SHARED_OUTCOMES_TABLE, id);
+  const outcome = await getData(OUTCOMES_TABLE, id);
+  return await getData(SHARED_OUTCOMES_TABLE, outcome?.shared_outcome ?? "");
 }
 
 // In testing phase
